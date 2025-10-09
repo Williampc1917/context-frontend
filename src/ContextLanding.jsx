@@ -6,7 +6,6 @@ import {
   Mail,
   Users,
   Zap,
-  Shield,
   Command,
   CornerDownLeft,
   MessageCircle,
@@ -14,7 +13,6 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-// Lazy-load the dashboard section to keep the initial bundle light
 const RelationshipDashboard = lazy(() => import("./sections/RelationshipDashboard.jsx"));
 
 export default function ContextLanding() {
@@ -23,57 +21,37 @@ export default function ContextLanding() {
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener("scroll", onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // gentle parallax for hero blobs
   const { scrollYProgress } = useScroll();
-  const orbY = useTransform(scrollYProgress, [0, 1], [0, prefersReducedMotion ? 0 : 160]);
-  const orbX = useTransform(scrollYProgress, [0, 1], [0, prefersReducedMotion ? 0 : -80]);
-  const orb2Y = useTransform(scrollYProgress, [0, 1], [0, prefersReducedMotion ? 0 : -120]);
+  const orbY = useTransform(scrollYProgress, [0, 0.3], [0, prefersReducedMotion ? 0 : 40]);
+  const orbX = useTransform(scrollYProgress, [0, 0.3], [0, prefersReducedMotion ? 0 : -20]);
+  const orb2Y = useTransform(scrollYProgress, [0, 0.3], [0, prefersReducedMotion ? 0 : -30]);
 
-  // rotating demo text for the Tip chip (hero)
   const demoLines = useMemo(
     () => [
-      "“Draft a warm follow-up to Jennifer & propose Fri 2pm.”",
-      "“Summarize email thread with Noah in my tone.”",
-      "“When did I last meet Amy? Suggest a check-in.”",
-      "“Any Top-20 I’m ghosting this week?”",
+      "Draft a warm follow-up to Jennifer & propose Fri 2pm.",
+      "Summarize email thread with Noah in my tone.",
+      "When did I last meet Amy? Suggest a check-in.",
+      "Any Top-20 I'm ghosting this week?",
     ],
     []
   );
+  
   const [demoIdx, setDemoIdx] = useState(0);
+  
   useEffect(() => {
     if (prefersReducedMotion) return;
     const id = setInterval(() => setDemoIdx((i) => (i + 1) % demoLines.length), 2600);
     return () => clearInterval(id);
   }, [demoLines.length, prefersReducedMotion]);
 
-  // rotating hints for the features section “you can say”
-  const sayHints = useMemo(
-    () => ["Draft a warm follow-up for Jennifer", "Show overdue only", "Propose Tue 2pm"],
-    []
-  );
-  const [sayIdx, setSayIdx] = useState(0);
-  useEffect(() => {
-    if (prefersReducedMotion) return;
-    const id = setInterval(() => setSayIdx((i) => (i + 1) % sayHints.length), 2600);
-    return () => clearInterval(id);
-  }, [sayHints.length, prefersReducedMotion]);
-
-  const fade = {
-    initial: { opacity: 0, y: 28 },
-    whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true, margin: "-120px" },
-    transition: { duration: 0.7, ease: "easeOut" },
-  };
-
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 
   return (
     <div className="relative min-h-screen overflow-x-clip text-gray-900 bg-surface">
-      {/* BACKGROUND: gradients + grain */}
       <div className="pointer-events-none absolute inset-0 -z-20">
         <motion.div
           style={{ y: orbY, x: orbX }}
@@ -91,9 +69,8 @@ export default function ContextLanding() {
       </div>
       <div className="bg-noise pointer-events-none absolute inset-0 -z-10 mix-blend-soft-light opacity-60" />
 
-      {/* NAV */}
       <nav
-        className={`fixed top-0 z-50 w-full transition-all duration-500 ${
+        className={`fixed top-0 z-50 w-full transition-all duration-300 ${
           scrolled ? "bg-white/35 backdrop-blur-2xl border-b border-white/30 shadow-lg" : "bg-transparent"
         }`}
       >
@@ -101,17 +78,17 @@ export default function ContextLanding() {
           <button onClick={() => scrollTo("top")} className="text-lg font-semibold tracking-tight">
             Context
           </button>
-        <div className="hidden items-center gap-8 text-sm md:flex">
-            <button onClick={() => scrollTo("features")} className="hover:text-gray-600">
+          <div className="hidden items-center gap-8 text-sm md:flex">
+            <button onClick={() => scrollTo("features")} className="hover:text-gray-600 transition-colors">
               Features
             </button>
-            <button onClick={() => scrollTo("dashboard")} className="hover:text-gray-600">
+            <button onClick={() => scrollTo("dashboard")} className="hover:text-gray-600 transition-colors">
               Dashboard
             </button>
-            <button onClick={() => scrollTo("how")} className="hover:text-gray-600">
+            <button onClick={() => scrollTo("how")} className="hover:text-gray-600 transition-colors">
               How it works
             </button>
-            <button onClick={() => scrollTo("pricing")} className="hover:text-gray-600">
+            <button onClick={() => scrollTo("pricing")} className="hover:text-gray-600 transition-colors">
               Pricing
             </button>
           </div>
@@ -121,18 +98,26 @@ export default function ContextLanding() {
         </div>
       </nav>
 
-      {/* HERO — gradient section */}
       <section id="top" className="relative px-6 pb-18 pt-28 md:pt-36 lg:px-8">
-        {/* floating tiles (iOS vibe) */}
-        <FloatingTile className="right-[7%] top-[16%] rotate-[18deg]" Icon={CornerDownLeft} />
-        <FloatingTile className="left-[6%] bottom-[-20px] -rotate-[18deg]" Icon={Command} />
-        <FloatingTile className="right-[22%] bottom-[12%] rotate-[9deg]" Icon={MessageCircle} glow />
+        {/* Floating brand logos - only 1 of each */}
+        <FloatingLogo 
+          src="/gmail.svg" 
+          alt="Gmail" 
+          className="left-[12%] top-[20%] w-[110px]" 
+          delay={0}
+        />
+        <FloatingLogo 
+          src="/google-calendar.svg" 
+          alt="Google Calendar" 
+          className="right-[15%] bottom-[18%] w-[115px]" 
+          delay={0.4}
+        />
 
         <div className="mx-auto max-w-7xl">
           <motion.div
-            initial={{ opacity: 0, y: 18 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="mx-auto max-w-4xl text-center"
           >
             <h1 className="hero-headline">
@@ -161,8 +146,13 @@ export default function ContextLanding() {
             </div>
           </motion.div>
 
-          {/* iPhone-style hero visual */}
-          <motion.div {...fade} className="relative mx-auto mt-10 max-w-5xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px", amount: 0.3 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="relative mx-auto mt-10 max-w-5xl"
+          >
             <div className="iphone-shell">
               <div className="iphone-notch" aria-hidden />
               <div className="ls-card">
@@ -172,10 +162,10 @@ export default function ContextLanding() {
                   </div>
                 </div>
                 <div className="ls-bubble">
-                  “Morning! 6 emails from your Top 20 need a nudge. Jennifer hasn’t heard from you in 9 days.”
+                  "Morning! 6 emails from your Top 20 need a nudge. Jennifer hasn't heard from you in 9 days."
                 </div>
               </div>
-              <div className="ls-your-reply">“Draft a warm follow-up and suggest Friday 2pm.”</div>
+              <div className="ls-your-reply">"Draft a warm follow-up and suggest Friday 2pm."</div>
               <div className="ls-tip">
                 <span className="ls-tip-badge">Tip</span>
                 <span className="align-middle">{demoLines[demoIdx]}</span>
@@ -187,53 +177,252 @@ export default function ContextLanding() {
         </div>
       </section>
 
-      {/* FEATURES — concise with real Gmail/Calendar logos floating in background */}
-      <section id="features" className="section-grad relative overflow-hidden px-6 py-20 lg:px-8">
-        {/* Background floating brand logos (from /public), very subtle */}
-        <motion.img
-          src="/gmail.svg"
-          alt="Gmail"
-          aria-hidden
-          className="pointer-events-none absolute -z-10 left-[-32px] top-8 w-[120px] select-none opacity-[0.12]"
-          initial={{ y: 0, rotate: 0 }}
-          animate={prefersReducedMotion ? {} : { y: [-6, 6, -6], rotate: [0, 2, 0] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.img
-          src="/google-calendar.svg"
-          alt="Google Calendar"
-          aria-hidden
-          className="pointer-events-none absolute -z-10 right-[-24px] bottom-8 w-[120px] select-none opacity-[0.12]"
-          initial={{ y: 0, rotate: 0 }}
-          animate={prefersReducedMotion ? {} : { y: [6, -6, 6], rotate: [0, -2, 0] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
-        />
+      <section id="features" className="section-grad relative overflow-hidden px-6 py-24 lg:px-8">
+  {/* soft background glow, no images */}
+  <div className="pointer-events-none absolute inset-0 -z-10">
+    <div className="absolute -top-40 -left-24 h-[520px] w-[520px] rounded-full blur-3xl opacity-70
+                    bg-[radial-gradient(circle_at_center,rgba(99,102,241,.14),transparent_65%)]" />
+    <div className="absolute -bottom-40 -right-24 h-[520px] w-[520px] rounded-full blur-3xl opacity-70
+                    bg-[radial-gradient(circle_at_center,rgba(56,189,248,.14),transparent_65%)]" />
+  </div>
 
-        <div className="mx-auto max-w-7xl">
-          <motion.div {...fade} className="mx-auto mb-12 max-w-3xl text-center">
-            <h2 className="text-4xl font-bold tracking-tight md:text-5xl">Everything you need</h2>
-            <div className="mx-auto mt-3 h-[2px] w-28 rounded-full bg-gradient-to-r from-indigo-500 via-sky-500 to-emerald-500" />
-            <p className="mt-3 text-lg text-gray-600">Built for email, calendar, and the way you speak.</p>
-          </motion.div>
+  <div className="mx-auto max-w-7xl">
+    {/* Title */}
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px", amount: 0.3 }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      className="mx-auto mb-10 max-w-3xl text-center"
+    >
+      <h2 className="text-4xl font-bold tracking-tight md:text-5xl">See the magic in 60 seconds</h2>
+      <p className="mt-3 text-lg text-gray-600">Built for Gmail, Calendar, and the way you speak.</p>
+    </motion.div>
 
-          <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
-            <Pillar
-              title="Prioritize who matters"
-              desc="Understands your relationships and typical cadence to surface what needs attention first."
-            />
-            <Pillar
-              title="Speak to act"
-              desc="Voice briefings, drafts, and scheduling—hands-free and in your tone."
-            />
-            <Pillar
-              title="Email + Calendar in sync"
-              desc="Replies reference meetings; follow-ups align to real deadlines."
-            />
+    {/* Responsive rail: horizontal snap on mobile, 4-column grid on desktop */}
+    <div
+      className="grid grid-flow-col auto-cols-[85%] gap-4 overflow-x-auto pb-2 snap-x snap-mandatory
+                 md:grid-flow-row md:auto-cols-auto md:grid-cols-4 md:overflow-visible md:gap-6"
+      role="list"
+    >
+      {/* Card 1 — Draft that sounds like you */}
+      <motion.div
+        role="listitem"
+        initial={{ opacity: 0, y: 18 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px", amount: 0.3 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        className="snap-center rounded-2xl border border-white/60 bg-white/80 p-4 backdrop-blur-xl
+                   shadow-[0_10px_24px_rgba(15,23,42,.08)] group"
+      >
+        <div className="mb-3 flex items-center gap-2">
+          <div className="grid size-9 place-items-center rounded-xl bg-[radial-gradient(circle_at_30%_30%,rgba(99,102,241,.16),transparent_60%)]">
+            <Mail size={18} className="text-gray-700" aria-hidden />
+          </div>
+          <div className="text-sm font-semibold">Draft that sounds like you</div>
+        </div>
+
+        {/* mock email UI */}
+        <div className="relative h-56 rounded-xl border border-gray-200/70 bg-white p-4">
+          <div className="mb-3 flex items-center justify-between text-xs text-gray-500">
+            <span className="inline-flex items-center gap-2">
+              <span className="inline-block size-2 rounded-full bg-emerald-400" />
+              Email thread
+            </span>
+            <span>9:41</span>
+          </div>
+
+          <div className="mb-2 h-4 w-40 rounded bg-gray-100" />
+          <div className="mb-1 h-3 w-[85%] rounded bg-gray-100" />
+          <div className="mb-1 h-3 w-[70%] rounded bg-gray-100" />
+          <div className="mb-4 h-3 w-[60%] rounded bg-gray-100" />
+
+          {/* "Summary of the thread" pill */}
+          <div className="absolute left-4 top-10 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-[11px] font-medium text-indigo-700 shadow-sm">
+            Summary of the thread
+          </div>
+
+          {/* reply bubble */}
+          <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2 rounded-xl border border-gray-200 bg-gradient-to-b from-indigo-50/70 to-white px-3 py-2">
+            <div className="h-3 w-24 rounded bg-gray-200/80" />
+            <div className="h-3 w-10 rounded bg-gray-200/60" />
+            <div className="ml-auto inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-1 text-[10px] text-gray-700">
+              <CornerDownLeft size={12} aria-hidden /> Send
+            </div>
           </div>
         </div>
-      </section>
 
-      {/* RELATIONSHIP DASHBOARD — GRADIENT section */}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-white/60 bg-white/80 px-2.5 py-1 text-[11px] text-gray-700">In your tone</span>
+          <span className="rounded-full border border-white/60 bg-white/80 px-2.5 py-1 text-[11px] text-gray-700">1-tap send</span>
+        </div>
+      </motion.div>
+
+      {/* Card 2 — Morning voice briefing */}
+      <motion.div
+        role="listitem"
+        initial={{ opacity: 0, y: 18 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px", amount: 0.3 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        className="snap-center rounded-2xl border border-white/60 bg-white/80 p-4 backdrop-blur-xl
+                   shadow-[0_10px_24px_rgba(15,23,42,.08)] group"
+      >
+        <div className="mb-3 flex items-center gap-2">
+          <div className="grid size-9 place-items-center rounded-xl bg-[radial-gradient(circle_at_30%_30%,rgba(16,185,129,.18),transparent_60%)]">
+            <Mic size={18} className="text-gray-700" aria-hidden />
+          </div>
+          <div className="text-sm font-semibold">Morning voice briefing</div>
+        </div>
+
+        {/* mock briefing UI with waveform */}
+        <div className="relative h-56 rounded-xl border border-gray-200/70 bg-white p-4">
+          <div className="mb-3 text-xs text-gray-500">“Good morning — here’s what matters.”</div>
+
+          {/* waveform */}
+          <div className="mt-2 grid h-24 grid-cols-24 items-end gap-[3px]">
+            {Array.from({ length: 24 }).map((_, i) => (
+              <motion.span
+                key={i}
+                initial={{ height: 6 }}
+                whileInView={{ height: [6, 24 + ((i * 7) % 36), 10] }}
+                transition={{ duration: 2.5, repeat: Infinity, delay: i * 0.03, ease: "easeInOut" }}
+                className="block w-[6px] rounded bg-emerald-400/70"
+                aria-hidden
+              />
+            ))}
+          </div>
+
+          {/* chips overlays */}
+          <div className="absolute left-4 top-12 rounded-full border border-gray-200 bg-white/90 px-3 py-1 text-[11px] text-gray-800 shadow">
+            6 VIP emails · 3 urgent
+          </div>
+          <div className="absolute right-4 bottom-4 rounded-xl border border-emerald-200 bg-emerald-50/90 px-3 py-2 text-[11px] text-emerald-800 shadow">
+            Jennifer: pricing due Fri
+          </div>
+
+          {/* play button (no audio) */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <div className="grid size-10 place-items-center rounded-full border border-gray-200 bg-white shadow">
+              <div className="ml-0.5 h-0 w-0 border-y-8 border-l-[12px] border-y-transparent border-l-gray-700" aria-hidden />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 text-[12px] text-gray-600">What’s urgent, what’s pending, what to say.</div>
+      </motion.div>
+
+      {/* Card 3 — Propose times in seconds */}
+      <motion.div
+        role="listitem"
+        initial={{ opacity: 0, y: 18 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px", amount: 0.3 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        className="snap-center rounded-2xl border border-white/60 bg-white/80 p-4 backdrop-blur-xl
+                   shadow-[0_10px_24px_rgba(15,23,42,.08)] group"
+      >
+        <div className="mb-3 flex items-center gap-2">
+          <div className="grid size-9 place-items-center rounded-xl bg-[radial-gradient(circle_at_30%_30%,rgba(56,189,248,.18),transparent_60%)]">
+            <Calendar size={18} className="text-gray-700" aria-hidden />
+          </div>
+          <div className="text-sm font-semibold">Propose times in seconds</div>
+        </div>
+
+        {/* mini calendar */}
+        <div className="relative h-56 rounded-xl border border-gray-200/70 bg-white p-4">
+          <div className="mb-2 h-4 w-24 rounded bg-gray-100" />
+          <div className="grid grid-cols-7 gap-2">
+            {Array.from({ length: 28 }).map((_, i) => {
+              const isPicked = i === 10 || i === 15;
+              const isToday = i === 12;
+              return (
+                <div
+                  key={i}
+                  className={`grid aspect-square place-items-center rounded-lg border text-[11px] 
+                              ${isPicked ? "border-sky-300 bg-sky-50 text-sky-700" : isToday ? "border-gray-300 bg-gray-50" : "border-gray-200"}`}
+                >
+                  {i + 3}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* time chips */}
+          <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2">
+            <button className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-[11px] text-sky-700 shadow">Fri 2–3pm</button>
+            <button className="rounded-full border border-gray-200 bg-white px-3 py-1 text-[11px] text-gray-800 shadow">Mon 9:30am</button>
+            <button className="rounded-full border border-gray-200 bg-white px-3 py-1 text-[11px] text-gray-800 shadow">Tue 11am</button>
+          </div>
+        </div>
+
+        <div className="mt-3 text-[12px] text-gray-600">Suggest slots that fit your cadence.</div>
+      </motion.div>
+
+      {/* Card 4 — Never ghost your Top-20 */}
+      <motion.div
+        role="listitem"
+        initial={{ opacity: 0, y: 18 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px", amount: 0.3 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        className="snap-center rounded-2xl border border-white/60 bg-white/80 p-4 backdrop-blur-xl
+                   shadow-[0_10px_24px_rgba(15,23,42,.08)] group"
+      >
+        <div className="mb-3 flex items-center gap-2">
+          <div className="grid size-9 place-items-center rounded-xl bg-[radial-gradient(circle_at_30%_30%,rgba(244,63,94,.16),transparent_60%)]">
+            <Zap size={18} className="text-gray-700" aria-hidden />
+          </div>
+          <div className="text-sm font-semibold">Never ghost your Top-20</div>
+        </div>
+
+        {/* alert toast */}
+        <div className="relative h-56 rounded-xl border border-gray-200/70 bg-white p-4">
+          <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-[12px] text-rose-900 shadow-sm">
+            <div className="mb-1 flex items-center gap-2">
+              <div className="grid size-6 place-items-center rounded-full bg-rose-600 text-[10px] font-semibold text-white">
+                D
+              </div>
+              <div className="font-medium">David Chen</div>
+              <span className="ml-auto rounded-full border border-rose-200 bg-white/80 px-2 py-0.5 text-[10px]">Urgent</span>
+            </div>
+            <div className="text-[11px] leading-5">
+              It’s been <span className="font-semibold">5 days</span> since you replied (typical: 24h).  
+              Draft a quick follow-up?
+            </div>
+            <div className="mt-2 flex items-center gap-2">
+              <button className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[11px]">Draft follow-up</button>
+              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] text-emerald-700">Needs action</span>
+            </div>
+          </div>
+
+          {/* tiny history */}
+          <div className="mt-3 space-y-1">
+            <div className="h-3 w-[80%] rounded bg-gray-100" />
+            <div className="h-3 w-[65%] rounded bg-gray-100" />
+            <div className="h-3 w-[50%] rounded bg-gray-100" />
+          </div>
+        </div>
+
+        <div className="mt-3 text-[12px] text-gray-600">Nudges before relationships go cold.</div>
+      </motion.div>
+    </div>
+
+    {/* Privacy note + handoff CTA */}
+    <div className="mx-auto mt-8 flex max-w-3xl flex-col items-center gap-4 text-center">
+      <p className="text-sm text-gray-500">
+        Privacy-first: reads to draft — <span className="font-medium text-gray-700">never</span> sends without your OK.
+      </p>
+      <button
+        onClick={() => document.getElementById("dashboard")?.scrollIntoView({ behavior: "smooth" })}
+        className="btn-glass inline-flex items-center gap-2"
+      >
+        See your professional world at a glance <ArrowRight size={16} />
+      </button>
+    </div>
+  </div>
+</section>
+
       <section id="dashboard" className="section-grad px-6 py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <Suspense fallback={<div className="glass-card mx-auto h-[420px] max-w-[720px] animate-pulse" />}>
@@ -242,10 +431,15 @@ export default function ContextLanding() {
         </div>
       </section>
 
-      {/* HOW IT WORKS — PLAIN section */}
       <section id="how" className="section-plain px-6 py-24">
         <div className="mx-auto max-w-7xl">
-          <motion.div {...fade} className="mx-auto mb-14 max-w-3xl text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px", amount: 0.3 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="mx-auto mb-14 max-w-3xl text-center"
+          >
             <h2 className="text-4xl font-bold tracking-tight md:text-5xl">How it works</h2>
           </motion.div>
 
@@ -258,7 +452,10 @@ export default function ContextLanding() {
             ].map(({ step, title, desc, Icon }, i) => (
               <motion.div
                 key={step}
-                {...fade}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px", amount: 0.3 }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                 className={`flex flex-col items-center gap-10 ${i % 2 ? "lg:flex-row-reverse" : "lg:flex-row"}`}
               >
                 <div className="flex-1">
@@ -277,21 +474,25 @@ export default function ContextLanding() {
         </div>
       </section>
 
-      {/* WAITLIST — PLAIN section */}
       <section id="waitlist" className="section-plain px-6 py-20">
         <div className="mx-auto max-w-4xl text-center">
           <h3 className="text-3xl font-bold tracking-tight">Get early access</h3>
           <p className="mt-2 text-lg text-gray-600">
-            Join the waitlist and be the first to try Context. We’ll reach out when TestFlight is ready.
+            Join the waitlist and be the first to try Context. We'll reach out when TestFlight is ready.
           </p>
           <WaitlistForm />
         </div>
       </section>
 
-      {/* PRICING — PLAIN section */}
       <section id="pricing" className="section-plain px-6 py-24">
         <div className="mx-auto max-w-7xl">
-          <motion.div {...fade} className="mx-auto mb-14 max-w-3xl text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px", amount: 0.3 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="mx-auto mb-14 max-w-3xl text-center"
+          >
             <h2 className="text-4xl font-bold tracking-tight md:text-5xl">Simple, transparent pricing</h2>
             <p className="mt-2 text-lg text-gray-600">Start free for 7 days. No credit card required.</p>
           </motion.div>
@@ -349,11 +550,10 @@ export default function ContextLanding() {
         </div>
       </section>
 
-      {/* CTA — GRADIENT section */}
       <section className="section-grad px-6 py-24 lg:px-8">
         <div className="glass-card mx-auto max-w-4xl p-12 text-center">
           <h3 className="text-4xl font-bold tracking-tight">Ready to never drop the ball?</h3>
-          <p className="mt-2 text-lg text-gray-600">
+          <p className="mt-2 text-gray-600">
             Join professionals who manage their most important relationships with Context.
           </p>
           <button onClick={() => scrollTo("waitlist")} className="btn-primary mt-6">
@@ -362,7 +562,6 @@ export default function ContextLanding() {
         </div>
       </section>
 
-      {/* FOOTER — PLAIN */}
       <footer className="section-plain px-6 py-12">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-8 md:grid-cols-4">
@@ -381,83 +580,20 @@ export default function ContextLanding() {
   );
 }
 
-/* ---------- “Everything you need” helpers ---------- */
-
-function Pillar({ title, desc, children, delay = 0 }) {
+function Pillar({ title, desc }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-120px" }}
-      transition={{ duration: 0.55, ease: "easeOut", delay }}
+      viewport={{ once: true, margin: "-80px", amount: 0.3 }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       className="rounded-2xl border border-white/60 bg-white/70 p-6 backdrop-blur-xl shadow-[0_10px_24px_rgba(15,23,42,.08)]"
     >
       <div className="mb-3 text-lg font-semibold">{title}</div>
       <p className="mb-0 text-sm text-gray-600">{desc}</p>
-      {children}
     </motion.div>
   );
 }
-
-function RowPill({ name, label, color = "emerald", pulse = false }) {
-  const map = {
-    emerald: "bg-emerald-500",
-    amber: "bg-amber-500",
-    rose: "bg-rose-500",
-  };
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur-xl">
-      <div className="truncate text-sm font-medium">{name}</div>
-      <span
-        className={`inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/80 px-2 py-0.5 text-xs text-gray-700 backdrop-blur-xl ${
-          pulse ? "animate-[pulse_2.6s_ease-in-out_infinite]" : ""
-        }`}
-      >
-        <span className={`inline-block size-2.5 rounded-full ${map[color]}`} />
-        {label}
-      </span>
-    </div>
-  );
-}
-
-function TimeChip({ when }) {
-  return (
-    <div className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/80 px-3 py-1 text-xs text-gray-700 backdrop-blur-xl">
-      <Calendar size={14} />
-      <span>{when}</span>
-    </div>
-  );
-}
-
-function SayDoes({ say, does }) {
-  return (
-    <div className="rounded-2xl border border-white/60 bg-white/70 p-4 backdrop-blur-xl">
-      <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/80 px-3 py-1 text-xs text-gray-700 backdrop-blur-xl">
-        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-900 text-white">
-          <Mic size={14} />
-        </span>
-        <span className="font-medium">You:</span>
-        <span>{say}</span>
-      </div>
-      <div className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/80 px-3 py-1 text-xs text-gray-700 backdrop-blur-xl">
-        <span className="inline-block size-2.5 rounded-full bg-indigo-500" />
-        <span className="font-medium">Context:</span>
-        <span>{does}</span>
-      </div>
-    </div>
-  );
-}
-
-function Proof({ number, label }) {
-  return (
-    <div className="inline-flex items-baseline gap-2">
-      <span className="text-2xl font-semibold tabular-nums">{number}</span>
-      <span className="text-gray-600">{label}</span>
-    </div>
-  );
-}
-
-/* ---------- Waitlist ---------- */
 
 function WaitlistForm() {
   const [email, setEmail] = useState("");
@@ -471,7 +607,7 @@ function WaitlistForm() {
   if (submitted) {
     return (
       <div className="mx-auto mt-6 max-w-xl rounded-2xl border border-white/60 bg-white/70 p-4 text-center backdrop-blur-xl">
-        <div className="text-sm font-medium">Thanks! We’ll be in touch at</div>
+        <div className="text-sm font-medium">Thanks! We'll be in touch at</div>
         <div className="mt-1 text-lg font-semibold">{email}</div>
       </div>
     );
@@ -494,8 +630,6 @@ function WaitlistForm() {
   );
 }
 
-/* ---------- shared helpers ---------- */
-
 function FooterCol({ title, items }) {
   return (
     <div>
@@ -503,7 +637,7 @@ function FooterCol({ title, items }) {
       <ul className="space-y-2 text-gray-600">
         {items.map((t) => (
           <li key={t}>
-            <a className="hover:text-gray-900" href="#">
+            <a className="hover:text-gray-900 transition-colors" href="#">
               {t}
             </a>
           </li>
@@ -514,16 +648,47 @@ function FooterCol({ title, items }) {
 }
 
 function FloatingTile({ className = "", Icon, glow = false }) {
+  const prefersReducedMotion = useReducedMotion();
+  
   return (
     <motion.div
       initial={{ y: 0, rotate: 0, opacity: 0 }}
-      animate={{ y: [-4, 4, -4], rotate: [0, 2, 0], opacity: 1 }}
-      transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+      animate={{ 
+        y: prefersReducedMotion ? 0 : [-2, 2, -2], 
+        rotate: prefersReducedMotion ? 0 : [0, 1, 0], 
+        opacity: 1 
+      }}
+      transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
       className={`pointer-events-none absolute ${className}`}
     >
       <div className={`tile ${glow ? "tile-glow" : ""}`}>
         <Icon size={28} className="text-gray-600" />
       </div>
     </motion.div>
+  );
+}
+
+function FloatingLogo({ src, alt, className = "", delay = 0 }) {
+  const prefersReducedMotion = useReducedMotion();
+  
+  return (
+    <motion.img
+      src={src}
+      alt={alt}
+      aria-hidden
+      initial={{ y: 0, rotate: 0, opacity: 0 }}
+      animate={{ 
+        y: prefersReducedMotion ? 0 : [-8, 8, -8],
+        rotate: prefersReducedMotion ? 0 : [-3, 3, -3],
+        opacity: 0.15
+      }}
+      transition={{ 
+        duration: 12, 
+        repeat: Infinity, 
+        ease: "easeInOut",
+        delay 
+      }}
+      className={`pointer-events-none absolute select-none ${className}`}
+    />
   );
 }

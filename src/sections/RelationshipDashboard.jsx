@@ -1,317 +1,259 @@
-import { useEffect, useMemo, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import { Mic } from "lucide-react";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Clock, AlertCircle, CheckCircle, Calendar, Mail, TrendingUp } from "lucide-react";
 
-/**
- * Relationship Dashboard (compact, read-only)
- * - Two rings (inner 4, outer 6) + center
- * - Fixed angles -> no layout jitter
- * - Soft fade/scale entrance; subtle pulse on 🔴 only
- * - Mobile strips for < md
- */
 export default function RelationshipDashboard() {
-  const prefersReducedMotion = useReducedMotion();
+  const [selectedId, setSelectedId] = useState(null);
 
-  // Smaller, curated demo set (4 + 6 = 10 nodes)
-  const nodes = useMemo(
-    () => [
-      { id: "you", name: "You", ring: 0, status: "center" },
+  // Demo data - 10 relationships with varying health
+  const relationships = [
+    { id: 1, name: "Jennifer", company: "Acme Corp", status: "cold", lastContact: "9 days ago", pending: "Pricing proposal overdue", score: 32, ring: 1, angle: -90 },
+    { id: 2, name: "Mike", company: "Leadership", status: "cold", lastContact: "12 days ago", pending: "No meeting scheduled", score: 28, ring: 1, angle: 0 },
+    { id: 3, name: "Sarah", company: "Design Co", status: "healthy", lastContact: "2 days ago", pending: "None", score: 95, ring: 1, angle: 90 },
+    { id: 4, name: "David", company: "TechStart", status: "healthy", lastContact: "1 day ago", pending: "None", score: 92, ring: 1, angle: 180 },
+    { id: 5, name: "Noah", company: "Operations", status: "due", lastContact: "5 days ago", pending: "Contract review needed", score: 58, ring: 2, angle: -135 },
+    { id: 6, name: "Amy", company: "Sales Inc", status: "healthy", lastContact: "3 days ago", pending: "None", score: 88, ring: 2, angle: -60 },
+    { id: 7, name: "Priya", company: "Customer Success", status: "healthy", lastContact: "2 days ago", pending: "None", score: 90, ring: 2, angle: 15 },
+    { id: 8, name: "Liam", company: "BigClient", status: "due", lastContact: "6 days ago", pending: "Meeting follow-up", score: 62, ring: 2, angle: 75 },
+    { id: 9, name: "Maya", company: "Investors", status: "cold", lastContact: "15 days ago", pending: "Q4 update overdue", score: 25, ring: 2, angle: 150 },
+    { id: 10, name: "Alex", company: "Partner Co", status: "healthy", lastContact: "1 day ago", pending: "None", score: 94, ring: 2, angle: 210 },
+  ];
 
-      // inner ring (VIPs)
-      { id: "jennifer", name: "Jennifer", ring: 1, org: "Acme", status: "due" },
-      { id: "mike", name: "Mike", ring: 1, org: "Leadership", status: "cold" },
-      { id: "sarah", name: "Sarah", ring: 1, org: "Design", status: "healthy" },
-      { id: "david", name: "David", ring: 1, org: "Client", status: "healthy" },
+  // Sort by priority (cold first, then due, then healthy)
+  const sortedRelationships = [...relationships].sort((a, b) => {
+    const priority = { cold: 0, due: 1, healthy: 2 };
+    return priority[a.status] - priority[b.status];
+  });
 
-      // outer ring (stakeholders/active)
-      { id: "noah", name: "Noah", ring: 2, org: "Ops", status: "due" },
-      { id: "amy", name: "Amy", ring: 2, org: "Sales", status: "healthy" },
-      { id: "priya", name: "Priya", ring: 2, org: "CS", status: "healthy" },
-      { id: "liam", name: "Liam", ring: 2, org: "Client", status: "due" },
-      { id: "maya", name: "Maya", ring: 2, org: "Investor", status: "cold" },
-    ],
-    []
-  );
+  const getStatusColor = (status) => {
+    if (status === "healthy") return "emerald";
+    if (status === "due") return "amber";
+    return "rose";
+  };
 
-  // rotating “Ask” hints
-  const hints = useMemo(
-    () => ["Who am I neglecting?", "What’s pending with Jennifer?", "Show overdue only."],
-    []
-  );
-  const [hintIdx, setHintIdx] = useState(0);
-  useEffect(() => {
-    if (prefersReducedMotion) return;
-    const id = setInterval(() => setHintIdx((i) => (i + 1) % hints.length), 2600);
-    return () => clearInterval(id);
-  }, [hints.length, prefersReducedMotion]);
+  const getStatusText = (status) => {
+    if (status === "healthy") return "Healthy";
+    if (status === "due") return "Needs attention";
+    return "Urgent";
+  };
 
   return (
     <div className="mx-auto max-w-7xl">
-      {/* Title + legend */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-120px" }}
-        transition={{ duration: 0.55, ease: "easeOut" }}
+        viewport={{ once: true, margin: "-80px", amount: 0.3 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         className="mx-auto mb-10 max-w-3xl text-center"
       >
-        <h2 className="text-4xl font-bold tracking-tight md:text-5xl">See your professional world at a glance.</h2>
-        <p className="mt-3 text-lg text-gray-600">Three rings. One priority — your Top 20.</p>
-        <div className="mt-3 inline-flex items-center gap-4 text-sm text-gray-600">
-          <LegendDot color="emerald" label="Healthy" />
-          <LegendDot color="amber" label="Due soon" />
-          <LegendDot color="rose" label="Overdue" />
-        </div>
+        <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
+          One view. Twenty relationships. Zero anxiety.
+        </h2>
+        <p className="mt-3 text-lg text-gray-600">
+          Context's relationship intelligence analyzes patterns, detects issues, and prioritizes what matters.
+        </p>
       </motion.div>
 
-      {/* Desktop/Tablet: compact radial */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-120px" }}
-        transition={{ duration: 0.55, ease: "easeOut" }}
-        className="relative hidden md:block"
+        viewport={{ once: true, margin: "-80px", amount: 0.3 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        className="glass-card p-6 md:p-8"
       >
-        <CompactRadial data={nodes} prefersReducedMotion={!!prefersReducedMotion} />
+        <div className="grid gap-8 lg:grid-cols-[400px,1fr]">
+          {/* LEFT: Network Graph */}
+          <div className="flex flex-col">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-gray-900">Network Health</h3>
+              <div className="flex items-center gap-3 text-xs">
+                <span className="flex items-center gap-1">
+                  <span className="inline-block size-2 rounded-full bg-emerald-500" />
+                  Healthy
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block size-2 rounded-full bg-amber-500" />
+                  Attention
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block size-2 rounded-full bg-rose-500" />
+                  Urgent
+                </span>
+              </div>
+            </div>
 
-        {/* voice hint */}
-        <div className="pointer-events-auto mx-auto mt-4 w-full max-w-[640px] rounded-2xl border border-white/60 bg-white/80 px-4 py-2 text-center text-sm text-gray-700 shadow-[0_10px_20px_rgba(15,23,42,.08)] backdrop-blur-xl">
-          <span className="inline-flex items-center gap-2">
-            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-900 text-white">
-              <Mic size={14} />
-            </span>
-            <span className="font-medium">Ask:</span>
-            <em className="not-italic text-gray-700">{hints[hintIdx]}</em>
-          </span>
-          <span className="ml-2 text-gray-500">• Hold the mic in the app</span>
+            <NetworkGraph 
+              relationships={relationships} 
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+            />
+
+            <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+              <div className="flex items-start gap-2">
+                <TrendingUp size={14} className="mt-0.5 shrink-0" />
+                <div>
+                  <strong>Algorithm at work:</strong> Context analyzes email frequency, response times, meeting cadence, and sentiment to calculate each relationship's health score.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT: Priority List */}
+          <div className="flex flex-col">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-gray-900">Priority View</h3>
+              <span className="text-xs text-gray-500">
+                {sortedRelationships.filter(r => r.status !== "healthy").length} need attention
+              </span>
+            </div>
+
+            <div className="space-y-2 overflow-y-auto" style={{ maxHeight: "520px" }}>
+              {sortedRelationships.map((person) => (
+                <RelationshipCard
+                  key={person.id}
+                  person={person}
+                  isSelected={selectedId === person.id}
+                  onClick={() => setSelectedId(person.id)}
+                />
+              ))}
+            </div>
+          </div>
         </div>
-
-        <div className="mt-3 text-center text-xs text-gray-500">Concept preview. Live view in the app.</div>
       </motion.div>
 
-      {/* Mobile: three strips */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-120px" }}
-        transition={{ duration: 0.55, ease: "easeOut" }}
-        className="md:hidden"
-      >
-        <MobileStrips data={nodes} />
-        <div className="pointer-events-auto mx-auto mt-4 w-full rounded-2xl border border-white/60 bg-white/80 px-4 py-2 text-center text-sm text-gray-700 shadow-[0_10px_20px_rgba(15,23,42,.08)] backdrop-blur-xl">
-          <span className="inline-flex items-center gap-2">
-            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-900 text-white">
-              <Mic size={14} />
-            </span>
-            <span className="font-medium">Ask:</span>
-            <em className="not-italic text-gray-700">{hints[hintIdx]}</em>
-          </span>
-        </div>
-        <div className="mt-3 text-center text-xs text-gray-500">Concept preview. Live view in the app.</div>
-      </motion.div>
+      <div className="mt-3 text-center text-xs text-gray-500">
+        Demo visualization. Live dashboard updates in real-time in the app.
+      </div>
     </div>
   );
 }
 
-/* ---------------- Compact radial graph ---------------- */
-
-function CompactRadial({ data, prefersReducedMotion }) {
-  const SIZE = 540;
+function NetworkGraph({ relationships, selectedId, onSelect }) {
+  const SIZE = 380;
   const C = SIZE / 2;
+  const R = { inner: 90, outer: 160 };
 
-  // fixed radii + fixed angle sets => no jitter
-  const R = { center: 0, inner: 130, outer: 220 };
-  const ANGLES = {
-    inner: [-90, 0, 90, 180], // top, right, bottom, left
-    outer: [-135, -60, 15, 75, 150, 210], // aesthetically spaced
+  const toXY = (angle, radius) => {
+    const rad = (angle - 90) * (Math.PI / 180);
+    return [C + radius * Math.cos(rad), C + radius * Math.sin(rad)];
   };
 
-  const centerNode = data.find((d) => d.ring === 0);
-  const inner = data.filter((d) => d.ring === 1);
-  const outer = data.filter((d) => d.ring === 2);
-
-  const toXY = (deg, r) => {
-    const rad = (deg - 90) * (Math.PI / 180); // 0° at top
-    return [C + r * Math.cos(rad), C + r * Math.sin(rad)];
+  const getStatusStyle = (status, isSelected) => {
+    const base = isSelected ? "ring-2 ring-offset-2" : "";
+    if (status === "healthy") return `${base} bg-emerald-100 ring-emerald-400 border-emerald-300`;
+    if (status === "due") return `${base} bg-amber-100 ring-amber-400 border-amber-300`;
+    return `${base} bg-rose-100 ring-rose-400 border-rose-300 animate-pulse`;
   };
-
-  // helper: glass chip with colored halo
-  const Chip = ({ x, y, name, org, status }) => {
-    const { halo, ringClass, pulse } = statusClasses(status);
-    return (
-      <foreignObject x={x - 58} y={y - 28} width="116" height="56">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: "-120px" }}
-          transition={{
-            duration: 0.45,
-            ease: "easeOut",
-            type: "spring",
-            stiffness: 220,
-            damping: 22,
-            mass: 0.55,
-          }}
-          className={`pointer-events-none rounded-2xl border border-white/60 bg-white/75 px-3 py-2 text-center backdrop-blur-xl shadow-[0_10px_24px_rgba(15,23,42,.08)] ${ringClass} ${pulse}`}
-          style={{
-            boxShadow: `0 0 0 8px ${halo} inset, 0 10px 24px rgba(15,23,42,.08)`,
-          }}
-        >
-          <div className="truncate text-[12px] text-gray-500">{org || "\u00A0"}</div>
-          <div className="truncate text-sm font-medium">{name}</div>
-        </motion.div>
-      </foreignObject>
-    );
-  };
-
-  // helper: center “You”
-  const Center = () => (
-    <foreignObject x={C - 56} y={C - 56} width="112" height="112">
-      <div className="pointer-events-none flex h-[112px] w-[112px] flex-col items-center justify-center rounded-3xl border border-white/60 bg-white/75 text-center backdrop-blur-2xl shadow-[0_10px_30px_rgba(15,23,42,.12)]">
-        <div className="text-[12px] text-gray-500">You</div>
-        <div className="text-lg font-semibold">Context</div>
-      </div>
-    </foreignObject>
-  );
-
-  // helper: draw straight edges with soft glow (no animated pathLength)
-  const Edge = ({ x, y }) => (
-    <line
-      x1={C}
-      y1={C}
-      x2={x}
-      y2={y}
-      stroke="rgba(255,255,255,.6)"
-      strokeWidth="1"
-      strokeLinecap="round"
-      style={{ filter: "drop-shadow(0 0 6px rgba(255,255,255,.25))" }}
-    />
-  );
 
   return (
-    <div className="relative mx-auto max-w-[700px]">
-      <svg width={SIZE} height={SIZE} role="img" aria-label="Relationship network graph">
-        {/* background halo */}
-        <defs>
-          <radialGradient id="halo2" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="rgba(99,102,241,.16)" />
-            <stop offset="100%" stopColor="transparent" />
-          </radialGradient>
-        </defs>
-        <circle cx={C} cy={C} r={R.outer + 22} fill="url(#halo2)" />
+    <div className="relative mx-auto" style={{ width: SIZE, height: SIZE }}>
+      <svg width={SIZE} height={SIZE} className="absolute inset-0">
+        {/* Center rings */}
+        <circle cx={C} cy={C} r={R.inner} fill="none" stroke="rgba(0,0,0,0.05)" strokeWidth="1" />
+        <circle cx={C} cy={C} r={R.outer} fill="none" stroke="rgba(0,0,0,0.05)" strokeWidth="1" />
+        
+        {/* Center "You" */}
+        <foreignObject x={C - 40} y={C - 40} width="80" height="80">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-indigo-200 bg-indigo-50 text-center text-xs font-semibold text-indigo-900">
+            You
+          </div>
+        </foreignObject>
 
-        {/* rings */}
-        {[R.inner, R.outer].map((r) => (
-          <circle key={r} cx={C} cy={C} r={r} fill="none" stroke="rgba(255,255,255,.6)" strokeWidth="1" />
-        ))}
-
-        {/* center */}
-        {centerNode && <Center />}
-
-        {/* edges + chips */}
-        {inner.map((n, i) => {
-          const [x, y] = toXY(ANGLES.inner[i % ANGLES.inner.length], R.inner);
+        {/* Connections */}
+        {relationships.map((person) => {
+          const radius = person.ring === 1 ? R.inner : R.outer;
+          const [x, y] = toXY(person.angle, radius);
           return (
-            <g key={n.id}>
-              <Edge x={x} y={y} />
-              <Chip x={x} y={y} name={n.name} org={n.org} status={n.status} />
-            </g>
+            <line
+              key={`line-${person.id}`}
+              x1={C}
+              y1={C}
+              x2={x}
+              y2={y}
+              stroke="rgba(0,0,0,0.08)"
+              strokeWidth="1"
+            />
           );
         })}
 
-        {outer.map((n, i) => {
-          const [x, y] = toXY(ANGLES.outer[i % ANGLES.outer.length], R.outer);
+        {/* Nodes */}
+        {relationships.map((person) => {
+          const radius = person.ring === 1 ? R.inner : R.outer;
+          const [x, y] = toXY(person.angle, radius);
+          const isSelected = selectedId === person.id;
+
           return (
-            <g key={n.id}>
-              <Edge x={x} y={y} />
-              <Chip x={x} y={y} name={n.name} org={n.org} status={n.status} />
-            </g>
+            <foreignObject
+              key={person.id}
+              x={x - 30}
+              y={y - 30}
+              width="60"
+              height="60"
+              className="cursor-pointer"
+              onClick={() => onSelect(person.id)}
+            >
+              <div
+                className={`flex h-[60px] w-[60px] items-center justify-center rounded-full border-2 text-center text-xs font-medium transition-all ${getStatusStyle(person.status, isSelected)}`}
+              >
+                {person.name}
+              </div>
+            </foreignObject>
           );
         })}
       </svg>
-
-      {/* tiny static callout to sell the dream */}
-      {!prefersReducedMotion && (
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-120px" }}
-          transition={{ duration: 0.35, ease: "easeOut", delay: 0.2 }}
-          className="pointer-events-none absolute right-2 top-2 rounded-xl border border-white/60 bg-white/80 px-3 py-1 text-xs text-gray-700 backdrop-blur-xl"
-        >
-          Jennifer • needs reply • due Fri
-        </motion.div>
-      )}
     </div>
   );
 }
 
-/* ---------------- Mobile strips ---------------- */
+function RelationshipCard({ person, isSelected, onClick }) {
+  const statusColors = {
+    healthy: "border-emerald-200 bg-emerald-50/50",
+    due: "border-amber-200 bg-amber-50/50",
+    cold: "border-rose-200 bg-rose-50/50",
+  };
 
-function MobileStrips({ data }) {
-  const overdue = data.filter((d) => d.status === "cold");
-  const due = data.filter((d) => d.status === "due");
-  const healthy = data.filter((d) => d.status === "healthy");
+  const iconColors = {
+    healthy: "text-emerald-600",
+    due: "text-amber-600",
+    cold: "text-rose-600",
+  };
+
+  const StatusIcon = person.status === "healthy" ? CheckCircle : AlertCircle;
 
   return (
-    <div className="space-y-6">
-      <Strip title="Overdue" color="rose" items={overdue} />
-      <Strip title="Due soon" color="amber" items={due} />
-      <Strip title="Healthy" color="emerald" items={healthy} />
-    </div>
-  );
-}
+    <button
+      onClick={onClick}
+      className={`w-full rounded-xl border-2 p-3 text-left transition-all hover:shadow-md ${
+        statusColors[person.status]
+      } ${isSelected ? "ring-2 ring-indigo-400 ring-offset-2" : ""}`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <StatusIcon size={14} className={iconColors[person.status]} />
+            <h4 className="truncate text-sm font-semibold text-gray-900">{person.name}</h4>
+          </div>
+          <p className="mt-0.5 truncate text-xs text-gray-600">{person.company}</p>
+          
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+            <span className="flex items-center gap-1">
+              <Clock size={12} />
+              {person.lastContact}
+            </span>
+            {person.pending !== "None" && (
+              <span className="flex items-center gap-1">
+                <Mail size={12} />
+                {person.pending}
+              </span>
+            )}
+          </div>
+        </div>
 
-function Strip({ title, color, items }) {
-  return (
-    <div>
-      <div className="mb-2 flex items-center gap-2 text-sm">
-        <LegendDot color={color} />
-        <span className="font-medium">{title}</span>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <div className="text-lg font-bold text-gray-900">{person.score}</div>
+          <div className="text-xs text-gray-500">score</div>
+        </div>
       </div>
-      <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1">
-        {items.map((d) => {
-          const { halo, ringClass, pulse } = statusClasses(d.status);
-          return (
-            <div
-              key={d.id}
-              className={`w-48 shrink-0 snap-start rounded-2xl border border-white/60 bg-white/75 px-3 py-2 text-left backdrop-blur-xl shadow-[0_10px_24px_rgba(15,23,42,.08)] ${ringClass} ${pulse}`}
-              style={{ boxShadow: `0 0 0 8px ${halo} inset, 0 10px 24px rgba(15,23,42,.08)` }}
-            >
-              <div className="truncate text-[12px] text-gray-500">{d.org || "\u00A0"}</div>
-              <div className="truncate text-sm font-medium">{d.name}</div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    </button>
   );
-}
-
-/* ---------------- Helpers ---------------- */
-
-function LegendDot({ color = "emerald", label = "" }) {
-  const map = { emerald: "bg-emerald-500", amber: "bg-amber-500", rose: "bg-rose-500" };
-  return (
-    <span className="inline-flex items-center gap-2">
-      <span className={`inline-block size-2.5 rounded-full ${map[color]}`} />
-      {label ? <span>{label}</span> : null}
-    </span>
-  );
-}
-
-function statusClasses(status) {
-  // halo colors (rgba) + ring color classes
-  if (status === "healthy")
-    return { halo: "rgba(16,185,129,.26)", ringClass: "ring-1 ring-emerald-400/60", pulse: "" };
-  if (status === "due")
-    return { halo: "rgba(245,158,11,.28)", ringClass: "ring-1 ring-amber-400/60", pulse: "" };
-  if (status === "cold")
-    return {
-      halo: "rgba(244,63,94,.32)",
-      ringClass: "ring-1 ring-rose-400/70",
-      // gentle pulse only on red
-      pulse: "animate-[pulse_2.6s_ease-in-out_infinite]",
-    };
-  return { halo: "rgba(99,102,241,.18)", ringClass: "", pulse: "" };
 }

@@ -31,7 +31,8 @@
 }
 
 html { scroll-behavior: smooth; }
-* { transition: all .15s ease; }
+
+/* REMOVED GLOBAL TRANSITION - this was causing the glitchy behavior */
 
 .hero-headline {
   @apply text-[40px] md:text-[72px] lg:text-[92px] leading-[0.95] font-black tracking-[-0.02em];
@@ -42,26 +43,50 @@ html { scroll-behavior: smooth; }
 .glass-card {
   @apply rounded-3xl border border-white/60 bg-white/70 backdrop-blur-2xl shadow-[0_10px_30px_rgba(15,23,42,.12)];
 }
-.btn-primary { @apply inline-flex items-center gap-2 rounded-full bg-gray-900 px-5 py-3 text-white hover:bg-black active:scale-95; }
-.btn-on-dark { @apply bg-white text-gray-900 hover:bg-gray-200; }
-.btn-glass { @apply inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/60 px-5 py-3 backdrop-blur-xl hover:bg-white; }
+.btn-primary { 
+  @apply inline-flex items-center gap-2 rounded-full bg-gray-900 px-5 py-3 text-white;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+.btn-primary:hover { @apply bg-black; }
+.btn-primary:active { transform: scale(0.95); }
+
+.btn-on-dark { 
+  @apply bg-white text-gray-900;
+  transition: background-color 0.2s ease;
+}
+.btn-on-dark:hover { @apply bg-gray-200; }
+
+.btn-glass { 
+  @apply inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/60 px-5 py-3 backdrop-blur-xl;
+  transition: background-color 0.2s ease;
+}
+.btn-glass:hover { @apply bg-white; }
 
 /* App Store badge */
 .badge-appstore {
   @apply inline-flex items-center gap-3 rounded-[18px] border border-white/10 bg-black px-5 py-3 text-white shadow-[0_10px_30px_rgba(0,0,0,.25)];
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.badge-appstore:hover { @apply -translate-y-[1px] shadow-[0_16px_40px_rgba(0,0,0,.28)]; }
+.badge-appstore:hover { 
+  transform: translateY(-1px);
+  box-shadow: 0 16px 40px rgba(0,0,0,.28);
+}
 .badge-appstore .lines { line-height: 1.05; }
 .badge-appstore .small { @apply block text-[11px] tracking-wide text-white/80; }
 .badge-appstore .big { @apply -mt-0.5 block text-[22px] font-semibold; }
 
 /* tiny entrance nudge for the primary CTA */
-@keyframes scaleIn { 0% { transform: scale(.98); opacity: 0 } 100% { transform: scale(1); opacity: 1 } }
+@keyframes scaleIn { 
+  0% { transform: scale(.98); opacity: 0 } 
+  100% { transform: scale(1); opacity: 1 } 
+}
 .animate-scale-in { animation: scaleIn .6s cubic-bezier(.2,.8,.2,1) both .2s; }
 
 /* traffic dots */
 .dot { @apply inline-block size-2.5 rounded-full; }
-.dot.red { background:#ef4444 } .dot.yellow { background:#f59e0b } .dot.green { background:#22c55e }
+.dot.red { background:#ef4444 } 
+.dot.yellow { background:#f59e0b } 
+.dot.green { background:#22c55e }
 
 /* iOS-like floating tiles */
 .tile {
@@ -89,35 +114,9 @@ html { scroll-behavior: smooth; }
 
 .node {
   @apply rounded-2xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur-xl shadow-[0_10px_20px_rgba(15,23,42,.08)] cursor-pointer;
+  transition: transform 0.2s ease;
 }
-.node:hover { @apply scale-[1.02]; }
-
-.node-healthy { box-shadow: 0 10px 20px rgba(16,185,129,.12), inset 0 1px 0 rgba(255,255,255,.7); }
-.node-due { box-shadow: 0 10px 20px rgba(245,158,11,.12), inset 0 1px 0 rgba(255,255,255,.7); }
-.node-cold { box-shadow: 0 10px 20px rgba(244,63,94,.14), inset 0 1px 0 rgba(255,255,255,.7); }
-
-.node-center {
-  @apply flex h-[116px] w-[116px] flex-col items-center justify-center rounded-[28px] border border-white/60 bg-white/80 backdrop-blur-2xl;
-  box-shadow:
-    0 20px 40px rgba(15,23,42,.08),
-    inset 0 4px 10px rgba(255,255,255,.6),
-    inset 0 -8px 16px rgba(15,23,42,.06);
-}
-
-@keyframes pulseSoft {
-  0%   { transform: scale(1);    box-shadow: 0 10px 20px rgba(244,63,94,.14), 0 0 0 0 rgba(244,63,94,.28); }
-  70%  { transform: scale(1.015); box-shadow: 0 10px 24px rgba(244,63,94,.18), 0 0 0 10px rgba(244,63,94,0); }
-  100% { transform: scale(1);    box-shadow: 0 10px 20px rgba(244,63,94,.14), 0 0 0 0 rgba(244,63,94,0); }
-}
-.node-pulse { animation: pulseSoft 2.6s ease-in-out infinite; }
-
-/* Relationship Dashboard visuals */
-.legend-dot { @apply inline-block size-2.5 rounded-full; }
-
-.node {
-  @apply rounded-2xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur-xl shadow-[0_10px_20px_rgba(15,23,42,.08)] cursor-pointer;
-}
-.node:hover { @apply scale-[1.02]; }
+.node:hover { transform: scale(1.02); }
 
 .node-healthy { box-shadow: 0 10px 20px rgba(16,185,129,.12), inset 0 1px 0 rgba(255,255,255,.7); }
 .node-due { box-shadow: 0 10px 20px rgba(245,158,11,.12), inset 0 1px 0 rgba(255,255,255,.7); }
@@ -217,7 +216,8 @@ html { scroll-behavior: smooth; }
   display:inline-block; margin-right:8px; border-radius:8px; padding:2px 8px;
   background:#0f172a; color:white; font-size:12px;
 }
-/* Animated gradient for brand word “Context” */
+
+/* Animated gradient for brand word "Context" */
 @keyframes gradientShift {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -228,7 +228,7 @@ html { scroll-behavior: smooth; }
   animation: gradientShift 6s ease infinite;
 }
 
-/* Gentle underline pulse under “Speak.” */
+/* Gentle underline pulse under "Speak." */
 @keyframes pulseSlow {
   0%, 100% { opacity: .4; transform: scaleX(1); }
   50% { opacity: 1; transform: scaleX(1.08); }
