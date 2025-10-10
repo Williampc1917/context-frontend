@@ -16,7 +16,7 @@ const MotionArticle = motion.article;
 
 export default function FeatureSection() {
   const { ref, isVisible } = useSection();
-  const isDesktop = useMediaQuery("(min-width: 768px)", false);
+  const isMobile = useMediaQuery("(max-width: 767px)", false);
 
   return (
     <section ref={ref} id="features" className="relative overflow-hidden px-6 py-28 lg:px-8 scroll-mt-24 lg:scroll-mt-32">
@@ -74,7 +74,7 @@ export default function FeatureSection() {
           accent="amber"
           Icon={Bell}
         >
-          <NudgesVisual animate={isVisible && isDesktop} />
+          <NudgesVisual animate={isVisible && !isMobile} />
         </FeatureTile>
 
         <FeatureTile
@@ -85,7 +85,7 @@ export default function FeatureSection() {
           accent="sky"
           Icon={Shield}
         >
-          <PrivacyVisual animate={isVisible && isDesktop} />
+          <PrivacyVisual animate={isVisible && !isMobile} />
         </FeatureTile>
       </div>
     </section>
@@ -122,7 +122,7 @@ function FeatureTile({ isVisible, delay, title, sub, Icon: IconComponent, accent
       </div>
 
       {/* Visual */}
-      <div className="relative min-h-[260px] md:min-h-[384px] overflow-hidden rounded-2xl border border-white/60 bg-white/70">
+      <div className="relative min-h-[260px] md:h-96 overflow-hidden rounded-2xl border border-white/60 bg-white/70">
         {children}
       </div>
     </MotionArticle>

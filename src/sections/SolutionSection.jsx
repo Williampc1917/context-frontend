@@ -2,19 +2,18 @@ import { useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Brain, Type, Mic } from "lucide-react";
 import { useSection } from "../hooks/useSection";
-import { useMediaQuery } from "../hooks/useMediaQuery";
 
 const MotionDiv = motion.div;
 const MotionArticle = motion.article;
 
 export default function SolutionSection() {
   const { ref, isVisible } = useSection();
-  const isDesktop = useMediaQuery("(min-width: 768px)", false);
 
   return (
-    <section ref={ref} className="relative overflow-visible px-6 py-24 lg:px-8">
+    <section ref={ref} id="solution" className="relative overflow-visible px-6 py-24 lg:px-8">
       {/* Full-bleed smart network */}
-      {isDesktop ? <BackgroundNetwork isActive={isVisible} /> : <MobileNetworkBackdrop />}
+      <BackgroundNetwork isActive={isVisible} className="hidden md:block" />
+      <MobileNetworkBackdrop className="md:hidden" />
 
       <div className="mx-auto max-w-7xl">
         {/* Heading */}
@@ -79,7 +78,7 @@ export default function SolutionSection() {
 /* =======================
    Optimized Smart Network
    ======================= */
-function BackgroundNetwork({ isActive }) {
+function BackgroundNetwork({ isActive, className = "" }) {
   const prefersReducedMotion = useReducedMotion();
 
   // Static configuration - compute once, never changes
@@ -136,14 +135,14 @@ function BackgroundNetwork({ isActive }) {
   );
 
   if (prefersReducedMotion) {
-    return <StaticNetwork config={config} className="network-container" />;
+    return <StaticNetwork config={config} className={`network-container ${className}`} />;
   }
 
   return (
     <div
       className={`network-container pointer-events-none absolute -inset-x-[22%] -inset-y-[18%] -z-10 ${
         isActive ? "network-active" : "network-paused"
-      }`}
+      } ${className}`}
     >
       <svg
         width="100%"
@@ -229,11 +228,11 @@ function BackgroundNetwork({ isActive }) {
   );
 }
 
-function MobileNetworkBackdrop() {
+function MobileNetworkBackdrop({ className = "" }) {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-0 -z-10 rounded-[56px] bg-gradient-to-b from-white/85 via-white/70 to-white/30"
+      className={`pointer-events-none absolute inset-0 -z-10 rounded-[56px] bg-gradient-to-b from-white/85 via-white/70 to-white/30 ${className}`}
     />
   );
 }
