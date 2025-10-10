@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useReducedMotion } from "framer-motion";
-import { Mic, ArrowRight } from "lucide-react";
+import { Mic, ArrowRight, Menu, X } from "lucide-react";
 import "./index.css";
 import { rafThrottle } from "./utils/throttle";
 
@@ -11,6 +11,7 @@ import HowItWorksSection from "./sections/HowItWorksSection.jsx";
 
 export default function ContextLanding() {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Throttled scroll handler for better performance
   useEffect(() => {
@@ -31,12 +32,39 @@ export default function ContextLanding() {
     if (!element) return;
 
     // Use native smooth scroll with optimized behavior
-    element.scrollIntoView({ 
+    element.scrollIntoView({
       behavior: "smooth",
       block: "start",
       inline: "nearest"
     });
+    setMenuOpen(false);
   }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    };
+
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [menuOpen]);
 
   return (
     <div className="relative min-h-screen overflow-x-clip text-gray-900 bg-surface">
@@ -65,40 +93,73 @@ export default function ContextLanding() {
             <button onClick={() => scrollTo("problem")} className="hover:text-gray-600 transition-colors">
               The problem
             </button>
+            <button onClick={() => scrollTo("solution")} className="hover:text-gray-600 transition-colors">
+              Solution
+            </button>
             <button onClick={() => scrollTo("features")} className="hover:text-gray-600 transition-colors">
               Features
-            </button>
-            <button onClick={() => scrollTo("dashboard")} className="hover:text-gray-600 transition-colors">
-              Dashboard
             </button>
             <button onClick={() => scrollTo("how")} className="hover:text-gray-600 transition-colors">
               How it works
             </button>
-            <button onClick={() => scrollTo("pricing")} className="hover:text-gray-600 transition-colors">
-              Pricing
+          </div>
+          <div className="flex items-center gap-3">
+            <button onClick={() => scrollTo("waitlist")} className="hidden btn-primary sm:inline-flex">
+              Join the waitlist
+            </button>
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-full border border-gray-200 bg-white/80 p-2 text-gray-700 shadow-sm transition-colors hover:bg-white md:hidden"
+              aria-label="Toggle navigation menu"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              {menuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
-          <button onClick={() => scrollTo("waitlist")} className="btn-primary">
-            Join the waitlist
-          </button>
         </div>
       </nav>
 
+      {menuOpen ? (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm md:hidden"
+            onClick={() => setMenuOpen(false)}
+          />
+          <div className="fixed top-14 inset-x-0 z-50 px-4 pt-4 pb-6 md:hidden">
+            <div className="rounded-3xl border border-white/60 bg-white/90 p-4 shadow-xl backdrop-blur-xl">
+              <div className="space-y-2">
+                <MobileNavButton label="The problem" onClick={() => scrollTo("problem")} />
+                <MobileNavButton label="Solution" onClick={() => scrollTo("solution")} />
+                <MobileNavButton label="Features" onClick={() => scrollTo("features")} />
+                <MobileNavButton label="How it works" onClick={() => scrollTo("how")} />
+                <MobileNavButton label="Waitlist" onClick={() => scrollTo("waitlist")} />
+              </div>
+              <button onClick={() => scrollTo("waitlist")} className="btn-primary mt-4 w-full justify-center">
+                Join the waitlist
+              </button>
+            </div>
+          </div>
+        </>
+      ) : null}
+
       <section id="top" className="relative px-6 pb-18 pt-28 md:pt-36 lg:px-8">
         {/* Floating brand logos - only 1 of each */}
-        <FloatingLogo 
-  src={`${import.meta.env.BASE_URL}gmail.svg`} 
-  alt="Gmail" 
-  className="left-[12%] top-[20%] w-[110px]" 
-  delay={0}
-/>
+        <FloatingLogo
+          src={`${import.meta.env.BASE_URL}gmail.svg`}
+          alt="Gmail"
+          className="left-[12%] top-[22%] w-[90px] sm:w-[110px] lg:w-[140px]"
+          delay={0}
+          hideBelow="sm"
+        />
 
-<FloatingLogo 
-  src={`${import.meta.env.BASE_URL}google-calendar.svg`} 
-  alt="Google Calendar" 
-  className="right-[15%] bottom-[18%] w-[115px]" 
-  delay={0.4}
-/>
+        <FloatingLogo
+          src={`${import.meta.env.BASE_URL}google-calendar.svg`}
+          alt="Google Calendar"
+          className="right-[16%] bottom-[20%] w-[95px] sm:w-[115px] lg:w-[145px]"
+          delay={0.4}
+          hideBelow="sm"
+        />
 
         <div className="mx-auto max-w-7xl">
           <div className="hero-content mx-auto max-w-4xl text-center">
@@ -153,28 +214,28 @@ export default function ContextLanding() {
       </section>
 
       {/* Problem section */}
-      <section id="problem" className="section-plain px-6 py-20 lg:px-8">
+      <section id="problem" className="section-plain px-6 py-20 lg:px-8 scroll-mt-24 lg:scroll-mt-32">
         <div className="mx-auto max-w-7xl">
           <ProblemSection />
         </div>
       </section>
 
       {/* Solution section */}
-      <section id="solution" className="section-grad px-6 py-24 lg:px-8">
+      <section id="solution" className="section-grad px-6 py-24 lg:px-8 scroll-mt-24 lg:scroll-mt-32">
         <div className="mx-auto max-w-7xl">
           <SolutionSection />
         </div>
       </section>
 
       {/* How it works section */}
-      <section id="how" className="section-plain px-6 py-24">
+      <section id="how" className="section-plain px-6 py-24 scroll-mt-24 lg:scroll-mt-32">
         <div className="mx-auto max-w-7xl">
           <HowItWorksSection />
         </div>
       </section>
 
       {/* Waitlist section */}
-      <section id="waitlist" className="waitlist-section section-grad px-6 py-24 lg:px-8">
+      <section id="waitlist" className="waitlist-section section-grad px-6 py-24 lg:px-8 scroll-mt-24 lg:scroll-mt-32">
         <div className="mx-auto max-w-4xl text-center">
           <h3 className="text-4xl font-bold tracking-tight">Intelligence for how you connect.</h3>
           <p className="mt-3 text-lg text-gray-600">
@@ -192,7 +253,15 @@ export default function ContextLanding() {
               <div className="text-xl font-semibold">Context</div>
               <p className="mt-2 text-gray-600">Relationship intelligence for busy professionals.</p>
             </div>
-            <FooterCol title="Product" items={["Features", "Dashboard", "Pricing", "Security"]} />
+            <FooterCol
+              title="Product"
+              items={[
+                { label: "Features", target: "features" },
+                { label: "Solution", target: "solution" },
+                { label: "Waitlist", target: "waitlist" },
+                { label: "Security", href: "#" }
+              ]}
+            />
             <FooterCol title="Company" items={["About", "Blog", "Careers"]} />
             <FooterCol title="Legal" items={["Privacy", "Terms", "Contact"]} />
           </div>
@@ -200,6 +269,19 @@ export default function ContextLanding() {
         </div>
       </footer>
     </div>
+  );
+}
+
+function MobileNavButton({ label, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center justify-between rounded-2xl border border-white/70 bg-white px-4 py-3 text-sm font-medium text-gray-800 shadow-sm transition-colors hover:bg-white/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+    >
+      <span>{label}</span>
+      <ArrowRight size={16} className="text-gray-400" aria-hidden />
+    </button>
   );
 }
 
@@ -243,27 +325,38 @@ function FooterCol({ title, items }) {
     <div>
       <div className="mb-3 font-semibold">{title}</div>
       <ul className="space-y-2 text-gray-600">
-        {items.map((t) => (
-          <li key={t}>
-            <a className="hover:text-gray-900 transition-colors" href="#">
-              {t}
-            </a>
-          </li>
-        ))}
+        {items.map((item) => {
+          const key = typeof item === "string" ? item : item.label;
+          const href =
+            typeof item === "string"
+              ? "#"
+              : item.target
+              ? `#${item.target}`
+              : item.href || "#";
+
+          return (
+            <li key={key}>
+              <a className="hover:text-gray-900 transition-colors" href={href}>
+                {key}
+              </a>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
 }
 
-function FloatingLogo({ src, alt, className = "", delay = 0, brightness = 0.38 }) {
+function FloatingLogo({ src, alt, className = "", delay = 0, brightness = 0.38, hideBelow }) {
   const prefersReducedMotion = useReducedMotion();
+  const visibilityClass = hideBelow ? `hidden ${hideBelow}:block` : "";
 
   return (
     <img
       src={src}
       alt={alt}
-      className={`floating-logo pointer-events-none absolute z-10 select-none drop-shadow-[0_10px_26px_rgba(0,0,0,.22)] ${className} ${
-        prefersReducedMotion ? 'floating-logo-static' : ''
+      className={`floating-logo pointer-events-none absolute z-10 select-none drop-shadow-[0_10px_26px_rgba(0,0,0,.22)] ${visibilityClass} ${className} ${
+        prefersReducedMotion ? "floating-logo-static" : ""
       }`}
       style={{
         opacity: brightness,

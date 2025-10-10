@@ -394,6 +394,12 @@ html { scroll-behavior: smooth; }
   animation: none;
 }
 
+@media (max-width: 639px) {
+  .floating-logo {
+    animation-duration: 10s;
+  }
+}
+
 @keyframes logoFloat {
   0%, 100% {
     transform: scale(1);

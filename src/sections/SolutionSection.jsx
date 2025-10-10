@@ -2,17 +2,19 @@ import { useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Brain, Type, Mic } from "lucide-react";
 import { useSection } from "../hooks/useSection";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 
 const MotionDiv = motion.div;
 const MotionArticle = motion.article;
 
 export default function SolutionSection() {
   const { ref, isVisible } = useSection();
+  const isDesktop = useMediaQuery("(min-width: 768px)", false);
 
   return (
-    <section ref={ref} id="solution" className="relative overflow-visible px-6 py-24 lg:px-8">
+    <section ref={ref} className="relative overflow-visible px-6 py-24 lg:px-8">
       {/* Full-bleed smart network */}
-      <BackgroundNetwork isActive={isVisible} />
+      {isDesktop ? <BackgroundNetwork isActive={isVisible} /> : <MobileNetworkBackdrop />}
 
       <div className="mx-auto max-w-7xl">
         {/* Heading */}
@@ -224,6 +226,15 @@ function BackgroundNetwork({ isActive }) {
         </g>
       </svg>
     </div>
+  );
+}
+
+function MobileNetworkBackdrop() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0 -z-10 rounded-[56px] bg-gradient-to-b from-white/85 via-white/70 to-white/30"
+    />
   );
 }
 

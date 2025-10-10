@@ -9,15 +9,17 @@ import {
   Mail,
 } from "lucide-react";
 import { useSection } from "../hooks/useSection";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 
 const MotionDiv = motion.div;
 const MotionArticle = motion.article;
 
 export default function FeatureSection() {
   const { ref, isVisible } = useSection();
+  const isDesktop = useMediaQuery("(min-width: 768px)", false);
 
   return (
-    <section ref={ref} id="features" className="relative overflow-hidden px-6 py-28 lg:px-8">
+    <section ref={ref} id="features" className="relative overflow-hidden px-6 py-28 lg:px-8 scroll-mt-24 lg:scroll-mt-32">
       {/* ... rest stays the same but replace all whileInView with isVisible ... */}
       {/* Soft, section-wide glow */}
       <div className="pointer-events-none absolute inset-0 -z-10">
@@ -43,48 +45,48 @@ export default function FeatureSection() {
       {/* 2×2 Grid */}
       <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2">
         <FeatureTile
-  isVisible={isVisible}
-  delay={0}
-  title="Smart relationship triage"
-  sub="Surfaces who matters now — not just what's newest."
-  accent="indigo"
-  Icon={Inbox}
->
-  <TriageVisual />
-</FeatureTile>
+          isVisible={isVisible}
+          delay={0}
+          title="Smart relationship triage"
+          sub="Surfaces who matters now — not just what's newest."
+          accent="indigo"
+          Icon={Inbox}
+        >
+          <TriageVisual active={isVisible} />
+        </FeatureTile>
 
-<FeatureTile
-  isVisible={isVisible}
-  delay={0.1}
-  title="AI drafts in your tone"
-  sub="Replies that sound like you, customized per person."
-  accent="emerald"
-  Icon={Wand2}
->
-  <DraftsVisual />
-</FeatureTile>
+        <FeatureTile
+          isVisible={isVisible}
+          delay={0.1}
+          title="AI drafts in your tone"
+          sub="Replies that sound like you, customized per person."
+          accent="emerald"
+          Icon={Wand2}
+        >
+          <DraftsVisual />
+        </FeatureTile>
 
-<FeatureTile
-  isVisible={isVisible}
-  delay={0.2}
-  title="Proactive nudges"
-  sub="Warns before you ghost, with timing that fits your cadence."
-  accent="amber"
-  Icon={Bell}
->
-  <NudgesVisual />
-</FeatureTile>
+        <FeatureTile
+          isVisible={isVisible}
+          delay={0.2}
+          title="Proactive nudges"
+          sub="Warns before you ghost, with timing that fits your cadence."
+          accent="amber"
+          Icon={Bell}
+        >
+          <NudgesVisual animate={isVisible && isDesktop} />
+        </FeatureTile>
 
-<FeatureTile
-  isVisible={isVisible}
-  delay={0.3}
-  title="Privacy by design"
-  sub="Your data stays with Google. No auto-sending — you're always in control."
-  accent="sky"
-  Icon={Shield}
->
-  <PrivacyVisual />
-</FeatureTile>
+        <FeatureTile
+          isVisible={isVisible}
+          delay={0.3}
+          title="Privacy by design"
+          sub="Your data stays with Google. No auto-sending — you're always in control."
+          accent="sky"
+          Icon={Shield}
+        >
+          <PrivacyVisual animate={isVisible && isDesktop} />
+        </FeatureTile>
       </div>
     </section>
   );
@@ -120,7 +122,7 @@ function FeatureTile({ isVisible, delay, title, sub, Icon: IconComponent, accent
       </div>
 
       {/* Visual */}
-      <div className="relative h-50 md:h-96 overflow-hidden rounded-2xl border border-white/60 bg-white/70">
+      <div className="relative min-h-[260px] md:min-h-[384px] overflow-hidden rounded-2xl border border-white/60 bg-white/70">
         {children}
       </div>
     </MotionArticle>
@@ -166,7 +168,7 @@ function useAccent(accent) {
 /** 1) Smart Relationship Triage — Smooth Chat Animation */
 /** 1) Smart Relationship Triage — Smooth Chat Animation */
 /** 1) Smart Relationship Triage — iOS-Style Chat Animation */
-function TriageVisual() {
+function TriageVisual({ active }) {
   const prefersReducedMotion = useReducedMotion();
 
   const AI_TEXT =
@@ -190,10 +192,29 @@ function TriageVisual() {
   useEffect(() => {
     if (prefersReducedMotion) return;
 
+    if (!active) {
+      setShowAI1(false);
+      setShowUser(false);
+      setShowAI2(false);
+      setAiCount(0);
+      setUserCount(0);
+      setEmailCount(0);
+      setTyping(null);
+      return;
+    }
+
     const timeouts = [];
     const intervals = [];
 
-    const wait = (ms) => new Promise((r) => timeouts.push(setTimeout(r, ms)));
+    setShowAI1(false);
+    setShowUser(false);
+    setShowAI2(false);
+    setAiCount(0);
+    setUserCount(0);
+    setEmailCount(0);
+    setTyping(null);
+
+    const wait = (ms) => new Promise((resolve) => timeouts.push(setTimeout(resolve, ms)));
 
     const typeOut = (text, setCount, speed, who) =>
       new Promise((resolve) => {
@@ -212,22 +233,22 @@ function TriageVisual() {
     (async () => {
       setShowAI1(true);
       await wait(300);
-      await typeOut(AI_TEXT, setAiCount, 38, "ai"); // slower typing
+      await typeOut(AI_TEXT, setAiCount, 38, "ai");
 
       setShowUser(true);
       await wait(250);
-      await typeOut(USER_TEXT, setUserCount, 44, "user"); // slower typing
+      await typeOut(USER_TEXT, setUserCount, 44, "user");
 
       setShowAI2(true);
       await wait(250);
-      await typeOut(EMAIL_TEXT, setEmailCount, 36, "email"); // slower typing
+      await typeOut(EMAIL_TEXT, setEmailCount, 36, "email");
     })();
 
     return () => {
       timeouts.forEach(clearTimeout);
       intervals.forEach(clearInterval);
     };
-  }, [prefersReducedMotion]);
+  }, [active, prefersReducedMotion]);
 
   // determine status text
   let status = "";
@@ -385,7 +406,7 @@ function DraftsVisual() {
 /** 3) Proactive Nudges (floating chips — extended version) */
 /** 3) Proactive Nudges (non-overlapping floating chips) */
 /** 3) Proactive Nudges — non-overlapping refined layout */
-function NudgesVisual() {
+function NudgesVisual({ animate }) {
   return (
     <div className="relative h-full w-full overflow-hidden p-3">
       <FloatChip
@@ -393,24 +414,28 @@ function NudgesVisual() {
         text="No reply to Daniel in 5d · typical 24h"
         tone="amber"
         delay={0}
+        animate={animate}
       />
       <FloatChip
         className="right-6 top-10"
         text="Investor update overdue"
         tone="rose"
         delay={0.4}
+        animate={animate}
       />
       <FloatChip
         className="left-[22%] top-[38%]"
         text="Team intro with Noah still pending"
         tone="sky"
         delay={0.8}
+        animate={animate}
       />
       <FloatChip
         className="left-[56%] top-[56%]"
         text="Last touch with Jennifer · 9d ago"
         tone="violet"
         delay={1.2}
+        animate={animate}
       />
       {/* Bottom pair adjusted */}
       <FloatChip
@@ -418,17 +443,19 @@ function NudgesVisual() {
         text="Haven’t met Amy in 4w · schedule?"
         tone="indigo"
         delay={1.6}
+        animate={animate}
       />
       <FloatChip
         className="right-[10%] bottom-[10%]"
         text="No follow-up with Sarah since last proposal"
         tone="emerald"
         delay={2}
+        animate={animate}
       />
     </div>
   );
 }
-function FloatChip({ className = "", text, tone = "amber", delay = 0 }) {
+function FloatChip({ className = "", text, tone = "amber", delay = 0, animate = true }) {
   const prefersReducedMotion = useReducedMotion();
 
   const styles =
@@ -444,16 +471,25 @@ function FloatChip({ className = "", text, tone = "amber", delay = 0 }) {
       ? { border: "border-violet-200", bg: "bg-violet-50/90", text: "text-violet-900" }
       : { border: "border-amber-200", bg: "bg-amber-50/90", text: "text-amber-900" };
 
+  const baseClass = `absolute rounded-xl border ${styles.border} ${styles.bg} px-3 py-2 text-[12px] ${styles.text} shadow-sm ${className}`;
+
+  if (!animate || prefersReducedMotion) {
+    return (
+      <div className={baseClass}>
+        <div className="flex items-center gap-2">
+          <Bell size={14} />
+          <span>{text}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <MotionDiv
       initial={{ opacity: 0, y: 6 }}
-      animate={
-        prefersReducedMotion
-          ? { opacity: 1, y: 0 }
-          : { opacity: [0.85, 1, 0.85], y: [0, -4, 0], x: [0, 2, -2, 0] }
-      }
+      animate={{ opacity: [0.85, 1, 0.85], y: [0, -4, 0], x: [0, 2, -2, 0] }}
       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay }}
-      className={`absolute rounded-xl border ${styles.border} ${styles.bg} px-3 py-2 text-[12px] ${styles.text} shadow-sm ${className}`}
+      className={baseClass}
     >
       <div className="flex items-center gap-2">
         <Bell size={14} />
@@ -464,16 +500,17 @@ function FloatChip({ className = "", text, tone = "amber", delay = 0 }) {
 }
 
 /** 4) Privacy by Design — Enhanced visual with big shield & soft aura */
-function PrivacyVisual() {
+function PrivacyVisual({ animate }) {
   const prefersReducedMotion = useReducedMotion();
+  const shouldAnimate = animate && !prefersReducedMotion;
 
   return (
-    <div className="relative grid h-full place-items-center bg-gradient-to-b from-white to-sky-50 overflow-hidden">
+    <div className="relative grid h-full place-items-center overflow-hidden bg-gradient-to-b from-white to-sky-50">
       {/* Outer glow + rings */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <GlowRing delay={0} size={180} />
-        <GlowRing delay={1.2} size={260} />
-        <GlowRing delay={2.4} size={340} />
+        <GlowRing delay={0} size={180} animate={shouldAnimate} />
+        <GlowRing delay={1.2} size={260} animate={shouldAnimate} />
+        <GlowRing delay={2.4} size={340} animate={shouldAnimate} />
       </div>
 
       {/* Shield icon */}
@@ -481,16 +518,19 @@ function PrivacyVisual() {
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 grid place-items-center rounded-3xl border border-white/60 
-                   bg-white/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(56,189,248,0.15)] size-28"
+        className="relative z-10 grid size-28 place-items-center rounded-3xl border border-white/60 bg-white/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(56,189,248,0.15)]"
       >
         <MotionDiv
           animate={
-            prefersReducedMotion
-              ? {}
-              : { scale: [1, 1.05, 1], rotate: [0, 2, -2, 0] }
+            shouldAnimate
+              ? { scale: [1, 1.05, 1], rotate: [0, 2, -2, 0] }
+              : { scale: 1, rotate: 0 }
           }
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          transition={
+            shouldAnimate
+              ? { duration: 6, repeat: Infinity, ease: "easeInOut" }
+              : undefined
+          }
         >
           <Shield
             size={56}
@@ -516,22 +556,24 @@ function PrivacyVisual() {
 }
 
 /* Expanding glow rings around shield */
-function GlowRing({ delay = 0, size = 220 }) {
+function GlowRing({ delay = 0, size = 220, animate = true }) {
   const prefersReducedMotion = useReducedMotion();
+  const shouldAnimate = animate && !prefersReducedMotion;
+
+  if (!shouldAnimate) {
+    return (
+      <div
+        style={{ width: size, height: size }}
+        className="absolute rounded-full border border-sky-200/40"
+      />
+    );
+  }
+
   return (
     <MotionDiv
       initial={{ opacity: 0.25, scale: 1 }}
-      animate={
-        prefersReducedMotion
-          ? { opacity: 0.25, scale: 1 }
-          : { opacity: [0.2, 0.05, 0.2], scale: [1, 1.3, 1] }
-      }
-      transition={{
-        duration: 5.6,
-        repeat: Infinity,
-        ease: "easeInOut",
-        delay,
-      }}
+      animate={{ opacity: [0.2, 0.05, 0.2], scale: [1, 1.3, 1] }}
+      transition={{ duration: 5.6, repeat: Infinity, ease: "easeInOut", delay }}
       style={{ width: size, height: size }}
       className="absolute rounded-full border border-sky-200/60"
     />
