@@ -7,8 +7,8 @@ import { useReducedMotion } from "framer-motion";
  */
 export function useSection(options = {}) {
   const { 
-    threshold = 0.3, 
-    rootMargin = "-80px"
+    threshold = 0.1, 
+    rootMargin = "0px 0px -35% 0px",
   } = options;
   
   const ref = useRef(null);

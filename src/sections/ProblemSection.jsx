@@ -36,49 +36,54 @@ export default function ProblemSection() {
       </MotionDiv>
 
       {/* Stat cards */}
-      <div className="mx-auto mt-8 grid max-w-6xl gap-4 sm:grid-cols-2 md:grid-cols-4">
-        <StatCard
-          isVisible={isVisible}
-          delay={0}
-          tone="rose"
-          Icon={BellOff}
-          heading="Ghosting"
-          value="73%"
-          label="of deals"
-          sub="die from slow follow-up"
-        />
-        <StatCard
-          isVisible={isVisible}
-          delay={0.1}
-          tone="indigo"
-          Icon={Brain}
-          heading="Context overload"
-          value="70%"
-          label="can't recall"
-          sub="what's pending with key contacts"
-        />
-        <StatCard
-          isVisible={isVisible}
-          delay={0.2}
-          tone="amber"
-          Icon={Hourglass}
-          heading="Time wasted"
-          value="15"
-          suffix="h/week"
-          label="lost to email"
-          sub="manual triage & drafts"
-        />
-        <StatCard
-          isVisible={isVisible}
-          delay={0.3}
-          tone="slate"
-          Icon={Bot}
-          heading="Robotic tone"
-          value="76%"
-          label="say AI"
-          sub="sounds unnatural"
-        />
-      </div>
+<div className="mx-auto mt-8 grid max-w-6xl gap-4 sm:grid-cols-2 md:grid-cols-4">
+  <StatCard
+    isVisible={isVisible}
+    delay={0}
+    tone="rose"
+    Icon={BellOff}
+    heading="Ghosting"
+    value="60%"
+    label="of deals"
+    sub="die from slow or no follow-up"
+    className="md:col-span-2 lg:scale-[1.05] lg:shadow-[0_12px_40px_rgba(244,63,94,0.25)]"
+  />
+
+  <StatCard
+    isVisible={isVisible}
+    delay={0.1}
+    tone="indigo"
+    Icon={Brain}
+    heading="Context overload"
+    value="9"
+    suffix="h/week"
+    label="lost searching for context"
+    sub="threads, notes & follow-ups"
+  />
+
+  <StatCard
+    isVisible={isVisible}
+    delay={0.2}
+    tone="amber"
+    Icon={Hourglass}
+    heading="Inbox chaos"
+    value="12"
+    suffix="h/week"
+    label="spent managing email"
+    sub="manual triage & drafts"
+  />
+
+  <StatCard
+    isVisible={isVisible}
+    delay={0.3}
+    tone="slate"
+    Icon={Bot}
+    heading="Robotic tone"
+    value="70%"
+    label="say AI"
+    sub="still feels unnatural"
+  />
+</div>
     </MotionDiv>
   );
 }

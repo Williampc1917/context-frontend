@@ -87,17 +87,18 @@ export default function ContextLanding() {
       <section id="top" className="relative px-6 pb-18 pt-28 md:pt-36 lg:px-8">
         {/* Floating brand logos - only 1 of each */}
         <FloatingLogo 
-          src="/gmail.svg" 
-          alt="Gmail" 
-          className="left-[12%] top-[20%] w-[110px]" 
-          delay={0}
-        />
-        <FloatingLogo 
-          src="/google-calendar.svg" 
-          alt="Google Calendar" 
-          className="right-[15%] bottom-[18%] w-[115px]" 
-          delay={0.4}
-        />
+  src={`${import.meta.env.BASE_URL}gmail.svg`} 
+  alt="Gmail" 
+  className="left-[12%] top-[20%] w-[110px]" 
+  delay={0}
+/>
+
+<FloatingLogo 
+  src={`${import.meta.env.BASE_URL}google-calendar.svg`} 
+  alt="Google Calendar" 
+  className="right-[15%] bottom-[18%] w-[115px]" 
+  delay={0.4}
+/>
 
         <div className="mx-auto max-w-7xl">
           <div className="hero-content mx-auto max-w-4xl text-center">

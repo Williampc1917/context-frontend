@@ -8,13 +8,13 @@ import {
   Type,
   Mail,
 } from "lucide-react";
-import { useSection } from "../hooks/useSection"; // ADD THIS
+import { useSection } from "../hooks/useSection";
 
 const MotionDiv = motion.div;
 const MotionArticle = motion.article;
 
 export default function FeatureSection() {
-  const { ref, isVisible } = useSection(); // ADD THIS
+  const { ref, isVisible } = useSection();
 
   return (
     <section ref={ref} id="features" className="relative overflow-hidden px-6 py-28 lg:px-8">
