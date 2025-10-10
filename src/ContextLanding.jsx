@@ -150,7 +150,7 @@ export default function ContextLanding() {
           alt="Gmail"
           className="left-[12%] top-[22%] w-[90px] sm:w-[110px] lg:w-[140px]"
           delay={0}
-          hideBelow="sm"
+          hideBelow="md"
         />
 
         <FloatingLogo
@@ -158,7 +158,7 @@ export default function ContextLanding() {
           alt="Google Calendar"
           className="right-[16%] bottom-[20%] w-[95px] sm:w-[115px] lg:w-[145px]"
           delay={0.4}
-          hideBelow="sm"
+          hideBelow="md"
         />
 
         <div className="mx-auto max-w-7xl">

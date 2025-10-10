@@ -407,75 +407,93 @@ function DraftsVisual() {
 /** 3) Proactive Nudges (non-overlapping floating chips) */
 /** 3) Proactive Nudges — non-overlapping refined layout */
 function NudgesVisual({ animate }) {
+  const chips = [
+    {
+      position: "left-6 top-6",
+      text: "No reply to Daniel in 5d · typical 24h",
+      tone: "amber",
+      delay: 0
+    },
+    {
+      position: "right-6 top-10",
+      text: "Investor update overdue",
+      tone: "rose",
+      delay: 0.4
+    },
+    {
+      position: "left-[22%] top-[38%]",
+      text: "Team intro with Noah still pending",
+      tone: "sky",
+      delay: 0.8
+    },
+    {
+      position: "left-[56%] top-[56%]",
+      text: "Last touch with Jennifer · 9d ago",
+      tone: "violet",
+      delay: 1.2
+    },
+    {
+      position: "left-[10%] bottom-[24%]",
+      text: "Haven’t met Amy in 4w · schedule?",
+      tone: "indigo",
+      delay: 1.6
+    },
+    {
+      position: "right-[10%] bottom-[10%]",
+      text: "No follow-up with Sarah since last proposal",
+      tone: "emerald",
+      delay: 2
+    }
+  ];
+
+  if (!animate) {
+    return (
+      <div className="flex h-full flex-col justify-center gap-3 p-4">
+        {chips.map(({ text, tone }) => (
+          <StaticChip key={text} text={text} tone={tone} />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="relative h-full w-full overflow-hidden p-3">
-      <FloatChip
-        className="left-6 top-6"
-        text="No reply to Daniel in 5d · typical 24h"
-        tone="amber"
-        delay={0}
-        animate={animate}
-      />
-      <FloatChip
-        className="right-6 top-10"
-        text="Investor update overdue"
-        tone="rose"
-        delay={0.4}
-        animate={animate}
-      />
-      <FloatChip
-        className="left-[22%] top-[38%]"
-        text="Team intro with Noah still pending"
-        tone="sky"
-        delay={0.8}
-        animate={animate}
-      />
-      <FloatChip
-        className="left-[56%] top-[56%]"
-        text="Last touch with Jennifer · 9d ago"
-        tone="violet"
-        delay={1.2}
-        animate={animate}
-      />
-      {/* Bottom pair adjusted */}
-      <FloatChip
-        className="left-[10%] bottom-[24%]"
-        text="Haven’t met Amy in 4w · schedule?"
-        tone="indigo"
-        delay={1.6}
-        animate={animate}
-      />
-      <FloatChip
-        className="right-[10%] bottom-[10%]"
-        text="No follow-up with Sarah since last proposal"
-        tone="emerald"
-        delay={2}
-        animate={animate}
-      />
+      {chips.map(({ position, text, tone, delay }) => (
+        <FloatChip
+          key={text}
+          className={position}
+          text={text}
+          tone={tone}
+          delay={delay}
+        />
+      ))}
     </div>
   );
 }
-function FloatChip({ className = "", text, tone = "amber", delay = 0, animate = true }) {
+
+function StaticChip({ text, tone = "amber" }) {
+  const styles = getChipStyles(tone);
+
+  return (
+    <div
+      className={`flex items-center gap-2 rounded-xl border ${styles.border} ${styles.bg} px-3 py-2 text-[12px] ${styles.text} shadow-sm`}
+    >
+      <Bell size={14} />
+      <span>{text}</span>
+    </div>
+  );
+}
+
+function FloatChip({ className = "", text, tone = "amber", delay = 0 }) {
   const prefersReducedMotion = useReducedMotion();
 
-  const styles =
-    tone === "rose"
-      ? { border: "border-rose-200", bg: "bg-rose-50/90", text: "text-rose-900" }
-      : tone === "indigo"
-      ? { border: "border-indigo-200", bg: "bg-indigo-50/90", text: "text-indigo-900" }
-      : tone === "emerald"
-      ? { border: "border-emerald-200", bg: "bg-emerald-50/90", text: "text-emerald-900" }
-      : tone === "sky"
-      ? { border: "border-sky-200", bg: "bg-sky-50/90", text: "text-sky-900" }
-      : tone === "violet"
-      ? { border: "border-violet-200", bg: "bg-violet-50/90", text: "text-violet-900" }
-      : { border: "border-amber-200", bg: "bg-amber-50/90", text: "text-amber-900" };
+  const styles = getChipStyles(tone);
 
-  const baseClass = `absolute rounded-xl border ${styles.border} ${styles.bg} px-3 py-2 text-[12px] ${styles.text} shadow-sm ${className}`;
-
-  if (!animate || prefersReducedMotion) {
+  if (prefersReducedMotion) {
     return (
-      <div className={baseClass}>
+      <div
+        className={`absolute rounded-xl border ${styles.border} ${styles.bg} px-3 py-2 text-[12px] ${styles.text} shadow-sm ${className}`}
+      >
         <div className="flex items-center gap-2">
           <Bell size={14} />
           <span>{text}</span>
@@ -489,7 +507,7 @@ function FloatChip({ className = "", text, tone = "amber", delay = 0, animate = 
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: [0.85, 1, 0.85], y: [0, -4, 0], x: [0, 2, -2, 0] }}
       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay }}
-      className={baseClass}
+      className={`absolute rounded-xl border ${styles.border} ${styles.bg} px-3 py-2 text-[12px] ${styles.text} shadow-sm ${className}`}
     >
       <div className="flex items-center gap-2">
         <Bell size={14} />
@@ -499,10 +517,51 @@ function FloatChip({ className = "", text, tone = "amber", delay = 0, animate = 
   );
 }
 
+function getChipStyles(tone) {
+  return tone === "rose"
+    ? { border: "border-rose-200", bg: "bg-rose-50/90", text: "text-rose-900" }
+    : tone === "indigo"
+    ? { border: "border-indigo-200", bg: "bg-indigo-50/90", text: "text-indigo-900" }
+    : tone === "emerald"
+    ? { border: "border-emerald-200", bg: "bg-emerald-50/90", text: "text-emerald-900" }
+    : tone === "sky"
+    ? { border: "border-sky-200", bg: "bg-sky-50/90", text: "text-sky-900" }
+    : tone === "violet"
+    ? { border: "border-violet-200", bg: "bg-violet-50/90", text: "text-violet-900" }
+    : { border: "border-amber-200", bg: "bg-amber-50/90", text: "text-amber-900" };
+}
+
 /** 4) Privacy by Design — Enhanced visual with big shield & soft aura */
 function PrivacyVisual({ animate }) {
   const prefersReducedMotion = useReducedMotion();
   const shouldAnimate = animate && !prefersReducedMotion;
+
+  if (!shouldAnimate) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-4 bg-gradient-to-b from-white to-sky-50 p-6 text-center">
+        <div className="grid size-24 place-items-center rounded-3xl border border-white/60 bg-white/80 shadow-[0_8px_24px_rgba(56,189,248,0.12)]">
+          <Shield
+            size={48}
+            className="text-sky-600 drop-shadow-[0_2px_4px_rgba(56,189,248,0.4)]"
+          />
+        </div>
+        <p className="text-sm leading-6 text-gray-700">
+          Your data stays with Google. No auto-sending — you approve every action.
+        </p>
+        <div className="flex flex-wrap justify-center gap-2 text-[11px] text-gray-600">
+          <span className="rounded-full border border-sky-200/60 bg-white px-2 py-1">
+            Secure by design
+          </span>
+          <span className="rounded-full border border-sky-200/60 bg-white px-2 py-1">
+            On-device AI
+          </span>
+          <span className="rounded-full border border-sky-200/60 bg-white px-2 py-1">
+            You stay in control
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative grid h-full place-items-center overflow-hidden bg-gradient-to-b from-white to-sky-50">
@@ -521,16 +580,8 @@ function PrivacyVisual({ animate }) {
         className="relative z-10 grid size-28 place-items-center rounded-3xl border border-white/60 bg-white/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(56,189,248,0.15)]"
       >
         <MotionDiv
-          animate={
-            shouldAnimate
-              ? { scale: [1, 1.05, 1], rotate: [0, 2, -2, 0] }
-              : { scale: 1, rotate: 0 }
-          }
-          transition={
-            shouldAnimate
-              ? { duration: 6, repeat: Infinity, ease: "easeInOut" }
-              : undefined
-          }
+          animate={{ scale: [1, 1.05, 1], rotate: [0, 2, -2, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
         >
           <Shield
             size={56}
