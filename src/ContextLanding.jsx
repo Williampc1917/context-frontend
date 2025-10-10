@@ -1,71 +1,54 @@
-import { useEffect, useMemo, useState, lazy, Suspense } from "react";
-import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
-import {
-  Mic,
-  Calendar,
-  Mail,
-  Users,
-  Zap,
-  Command,
-  CornerDownLeft,
-  MessageCircle,
-  Check,
-  ArrowRight,
-} from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { useReducedMotion } from "framer-motion";
+import { Mic, ArrowRight } from "lucide-react";
+import "./index.css";
+import { rafThrottle } from "./utils/throttle";
 
-const ProblemSection = lazy(() => import("./sections/ProblemSection.jsx"));
-const SolutionSection = lazy(() => import("./sections/SolutionSection.jsx"));
-const HowItWorksSection = lazy(() => import("./sections/HowItWorksSection.jsx"));
+// Import sections directly - no lazy loading
+import ProblemSection from "./sections/ProblemSection.jsx";
+import SolutionSection from "./sections/SolutionSection.jsx";
+import HowItWorksSection from "./sections/HowItWorksSection.jsx";
+
 export default function ContextLanding() {
   const [scrolled, setScrolled] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
+  // Throttled scroll handler for better performance
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    const handleScroll = rafThrottle(() => {
+      setScrolled(window.scrollY > 10);
+    });
+
+    // Passive listener - browser knows we won't preventDefault
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
-  const { scrollYProgress } = useScroll();
-  const orbY = useTransform(scrollYProgress, [0, 0.3], [0, prefersReducedMotion ? 0 : 40]);
-  const orbX = useTransform(scrollYProgress, [0, 0.3], [0, prefersReducedMotion ? 0 : -20]);
-  const orb2Y = useTransform(scrollYProgress, [0, 0.3], [0, prefersReducedMotion ? 0 : -30]);
+  const scrollTo = useCallback((id) => {
+    const element = document.getElementById(id);
+    if (!element) return;
 
-  const demoLines = useMemo(
-    () => [
-      "Draft a warm follow-up to Jennifer & propose Fri 2pm.",
-      "Summarize email thread with Noah in my tone.",
-      "When did I last meet Amy? Suggest a check-in.",
-      "Any Top-20 I'm ghosting this week?",
-    ],
-    []
-  );
-  
-  const [demoIdx, setDemoIdx] = useState(0);
-  
-  useEffect(() => {
-    if (prefersReducedMotion) return;
-    const id = setInterval(() => setDemoIdx((i) => (i + 1) % demoLines.length), 2600);
-    return () => clearInterval(id);
-  }, [demoLines.length, prefersReducedMotion]);
-
-  const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    // Use native smooth scroll with optimized behavior
+    element.scrollIntoView({ 
+      behavior: "smooth",
+      block: "start",
+      inline: "nearest"
+    });
+  }, []);
 
   return (
     <div className="relative min-h-screen overflow-x-clip text-gray-900 bg-surface">
       <div className="pointer-events-none absolute inset-0 -z-20">
-        <motion.div
-          style={{ y: orbY, x: orbX }}
-          className="absolute -top-40 -left-28 size-[780px] rounded-full blur-3xl opacity-90"
-        >
+        {/* Use CSS animation instead of Framer Motion parallax */}
+        <div className="hero-orb hero-orb-1">
           <div className="size-full bg-[radial-gradient(circle_at_center,rgba(99,102,241,.22),transparent_65%)]" />
-        </motion.div>
-        <motion.div
-          style={{ y: orb2Y }}
-          className="absolute -bottom-60 right-[-10%] size-[900px] rounded-full blur-3xl opacity-90"
-        >
+        </div>
+        <div className="hero-orb hero-orb-2">
           <div className="size-full bg-[radial-gradient(circle_at_center,rgba(56,189,248,.22),transparent_65%)]" />
-        </motion.div>
+        </div>
         <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-white/70 via-white/30 to-transparent backdrop-blur-sm" />
       </div>
       <div className="bg-noise pointer-events-none absolute inset-0 -z-10 mix-blend-soft-light opacity-60" />
@@ -81,7 +64,7 @@ export default function ContextLanding() {
           </button>
           <div className="hidden items-center gap-8 text-sm md:flex">
             <button onClick={() => scrollTo("problem")} className="hover:text-gray-600 transition-colors">
-            The problem
+              The problem
             </button>
             <button onClick={() => scrollTo("features")} className="hover:text-gray-600 transition-colors">
               Features
@@ -118,12 +101,7 @@ export default function ContextLanding() {
         />
 
         <div className="mx-auto max-w-7xl">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="mx-auto max-w-4xl text-center"
-          >
+          <div className="hero-content mx-auto max-w-4xl text-center">
             <h1 className="hero-headline">
               <span className="relative inline-block">
                 Speak.
@@ -147,15 +125,9 @@ export default function ContextLanding() {
                 See how it works <ArrowRight size={16} />
               </button>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px", amount: 0.3 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="relative mx-auto mt-10 max-w-5xl"
-          >
+          <div className="hero-iphone relative mx-auto mt-10 max-w-5xl">
             <div className="iphone-shell">
               <div className="iphone-notch" aria-hidden />
               <div className="ls-card">
@@ -171,50 +143,48 @@ export default function ContextLanding() {
               <div className="ls-your-reply">"Draft a warm follow-up and suggest Friday 2pm."</div>
               <div className="ls-tip">
                 <span className="ls-tip-badge">Tip</span>
-                <span className="align-middle">{demoLines[demoIdx]}</span>
+                <span className="align-middle">Try: "Draft a warm follow-up to Jennifer & propose Fri 2pm."</span>
               </div>
             </div>
 
             <div className="absolute -inset-4 -z-10 rounded-[32px] bg-[radial-gradient(60%_60%_at_50%_50%,rgba(99,102,241,.12),transparent_60%)]" />
-          </motion.div>
+          </div>
         </div>
       </section>
-      {/* === New: Problem section (right under hero) === */}
-<section id="problem" className="section-plain px-6 py-20 lg:px-8">
-  <div className="mx-auto max-w-7xl">
-    <Suspense fallback={<div className="glass-card mx-auto h-[240px] max-w-3xl animate-pulse" />}>
-      <ProblemSection />
-    </Suspense>
-  </div>
-</section>
 
-<section id="solution" className="section-grad px-6 py-24 lg:px-8">
-  <div className="mx-auto max-w-7xl">
-    <Suspense fallback={<div className="glass-card mx-auto h-[240px] max-w-3xl animate-pulse" />}>
-      <SolutionSection />
-    </Suspense>
-  </div>
-</section>
+      {/* Problem section */}
+      <section id="problem" className="section-plain px-6 py-20 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <ProblemSection />
+        </div>
+      </section>
 
-<section id="how" className="section-plain px-6 py-24">
-  <div className="mx-auto max-w-7xl">
-    <Suspense fallback={<div className="glass-card mx-auto h-[360px] max-w-[900px] animate-pulse" />}>
-      <HowItWorksSection />
-    </Suspense>
-  </div>
-</section>
+      {/* Solution section */}
+      <section id="solution" className="section-grad px-6 py-24 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <SolutionSection />
+        </div>
+      </section>
 
-      <section id="waitlist" className="section-grad px-6 py-24 lg:px-8">
-  <div className="mx-auto max-w-4xl text-center">
-    <h3 className="text-4xl font-bold tracking-tight">Ready to never drop the ball?</h3>
-    <p className="mt-3 text-lg text-gray-600">
-      Join professionals who manage their most important relationships with Context.
-    </p>
-    <WaitlistForm />
-  </div>
-</section>
+      {/* How it works section */}
+      <section id="how" className="section-plain px-6 py-24">
+        <div className="mx-auto max-w-7xl">
+          <HowItWorksSection />
+        </div>
+      </section>
 
+      {/* Waitlist section */}
+      <section id="waitlist" className="waitlist-section section-grad px-6 py-24 lg:px-8">
+        <div className="mx-auto max-w-4xl text-center">
+          <h3 className="text-4xl font-bold tracking-tight">Ready to never drop the ball?</h3>
+          <p className="mt-3 text-lg text-gray-600">
+            Join professionals who manage their most important relationships with Context.
+          </p>
+          <WaitlistForm />
+        </div>
+      </section>
 
+      {/* Footer */}
       <footer className="section-plain px-6 py-12">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-8 md:grid-cols-4">
@@ -230,21 +200,6 @@ export default function ContextLanding() {
         </div>
       </footer>
     </div>
-  );
-}
-
-function Pillar({ title, desc }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 18 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px", amount: 0.3 }}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      className="rounded-2xl border border-white/60 bg-white/70 p-6 backdrop-blur-xl shadow-[0_10px_24px_rgba(15,23,42,.08)]"
-    >
-      <div className="mb-3 text-lg font-semibold">{title}</div>
-      <p className="mb-0 text-sm text-gray-600">{desc}</p>
-    </motion.div>
   );
 }
 
@@ -300,44 +255,20 @@ function FooterCol({ title, items }) {
   );
 }
 
-function FloatingTile({ className = "", Icon, glow = false }) {
-  const prefersReducedMotion = useReducedMotion();
-  
-  return (
-    <motion.div
-      initial={{ y: 0, rotate: 0, opacity: 0 }}
-      animate={{ 
-        y: prefersReducedMotion ? 0 : [-2, 2, -2], 
-        rotate: prefersReducedMotion ? 0 : [0, 1, 0], 
-        opacity: 1 
-      }}
-      transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-      className={`pointer-events-none absolute ${className}`}
-    >
-      <div className={`tile ${glow ? "tile-glow" : ""}`}>
-        <Icon size={28} className="text-gray-600" />
-      </div>
-    </motion.div>
-  );
-}
-
 function FloatingLogo({ src, alt, className = "", delay = 0, brightness = 0.38 }) {
   const prefersReducedMotion = useReducedMotion();
 
-  // Stay anchored; gently pulse scale/opacity.
-  const animate = prefersReducedMotion
-    ? {}
-    : { scale: [1, 1.06, 1], opacity: [brightness * 0.95, brightness, brightness * 0.95] };
-
   return (
-    <motion.img
+    <img
       src={src}
       alt={alt}
-      // Start visible (no fade-from-0), brighter, with a subtle glow
-      initial={{ scale: 1, opacity: brightness }}
-      animate={animate}
-      transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut", delay }}
-      className={`pointer-events-none absolute z-10 select-none drop-shadow-[0_10px_26px_rgba(0,0,0,.22)] ${className}`}
+      className={`floating-logo pointer-events-none absolute z-10 select-none drop-shadow-[0_10px_26px_rgba(0,0,0,.22)] ${className} ${
+        prefersReducedMotion ? 'floating-logo-static' : ''
+      }`}
+      style={{
+        opacity: brightness,
+        animationDelay: `${delay}s`
+      }}
     />
   );
 }

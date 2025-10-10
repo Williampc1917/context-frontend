@@ -1,41 +1,43 @@
 import { motion } from "framer-motion";
 import { BellOff, Brain, Hourglass, Bot } from "lucide-react";
+import { useSection } from "../hooks/useSection";
 
 export default function ProblemSection() {
+  const { ref, isVisible } = useSection();
+
   return (
-    <div className="relative">
+    <div ref={ref} className="relative">
       {/* soft background glows */}
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-24 left-[-8%] h-[380px] w-[380px] rounded-full blur-3xl opacity-80 bg-[radial-gradient(circle_at_center,rgba(244,63,94,.12),transparent_65%)]" />
         <div className="absolute -bottom-24 right-[-6%] h-[420px] w-[420px] rounded-full blur-3xl opacity-80 bg-[radial-gradient(circle_at_center,rgba(99,102,241,.12),transparent_65%)]" />
       </div>
 
-      {/* Refined Problem Heading */}
-<motion.div
-  initial={{ opacity: 0, y: 20 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  viewport={{ once: true, margin: "-80px", amount: 0.3 }}
-  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-  className="relative mx-auto mb-12 max-w-3xl text-center"
->
+      {/* Heading */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className="relative mx-auto mb-12 max-w-3xl text-center"
+      >
+        <h2 className="text-5xl md:text-6xl font-bold tracking-tight leading-tight">
+          It's not neglect{" "}
+          <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-indigo-500 to-sky-500 animate-gradient-slow">
+            it's overload
+            <span className="absolute -bottom-2 left-0 h-[2px] w-full rounded-full bg-gradient-to-r from-rose-400/70 via-indigo-400/70 to-sky-400/70 animate-pulse-slow" />
+          </span>
+        </h2>
 
-  <h2 className="text-5xl md:text-6xl font-bold tracking-tight leading-tight">
-    It’s not neglect  {" "}
-    <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-indigo-500 to-sky-500 animate-gradient-slow">
-      it’s overload
-      <span className="absolute -bottom-2 left-0 h-[2px] w-full rounded-full bg-gradient-to-r from-rose-400/70 via-indigo-400/70 to-sky-400/70 animate-pulse-slow" />
-    </span>
-  </h2>
-
-  <p className="mt-6 text-xl text-gray-600/90 leading-relaxed max-w-2xl mx-auto">
-  You’re not neglecting your network — you’re drowning in threads, follow-ups, and details that no one can remember
-    
-  </p>
-</motion.div>
+        <p className="mt-6 text-xl text-gray-600/90 leading-relaxed max-w-2xl mx-auto">
+          You're not neglecting your network — you're drowning in threads, follow-ups, and details that no one can remember
+        </p>
+      </motion.div>
 
       {/* Stat cards */}
       <div className="mx-auto mt-8 grid max-w-6xl gap-4 sm:grid-cols-2 md:grid-cols-4">
         <StatCard
+          isVisible={isVisible}
+          delay={0}
           tone="rose"
           Icon={BellOff}
           heading="Ghosting"
@@ -44,14 +46,18 @@ export default function ProblemSection() {
           sub="die from slow follow-up"
         />
         <StatCard
+          isVisible={isVisible}
+          delay={0.1}
           tone="indigo"
           Icon={Brain}
           heading="Context overload"
           value="70%"
-          label="can’t recall"
-          sub="what’s pending with key contacts"
+          label="can't recall"
+          sub="what's pending with key contacts"
         />
         <StatCard
+          isVisible={isVisible}
+          delay={0.2}
           tone="amber"
           Icon={Hourglass}
           heading="Time wasted"
@@ -61,6 +67,8 @@ export default function ProblemSection() {
           sub="manual triage & drafts"
         />
         <StatCard
+          isVisible={isVisible}
+          delay={0.3}
           tone="slate"
           Icon={Bot}
           heading="Robotic tone"
@@ -76,22 +84,21 @@ export default function ProblemSection() {
 /* ============
    Components
    ============ */
-function StatCard({ tone = "indigo", Icon, heading, value, suffix, label, sub }) {
+function StatCard({ isVisible, delay, tone = "indigo", Icon, heading, value, suffix, label, sub }) {
   const styles = getToneStyles(tone);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px", amount: 0.3 }}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay }}
       className={`relative overflow-hidden rounded-2xl border border-white/60 bg-white/80 p-5 backdrop-blur-xl shadow-[0_10px_24px_rgba(15,23,42,.08)] ring-1 ${styles.ring}`}
     >
       {/* halo */}
       <motion.div
         aria-hidden
         className={`pointer-events-none absolute inset-0 -z-10 ${styles.halo}`}
-        animate={{ opacity: [0.9, 1, 0.9], scale: [1, 1.02, 1] }}
+        animate={isVisible ? { opacity: [0.9, 1, 0.9], scale: [1, 1.02, 1] } : {}}
         transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
       />
 

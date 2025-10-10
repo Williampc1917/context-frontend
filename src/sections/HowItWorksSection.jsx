@@ -1,4 +1,3 @@
-// ./sections/FeatureSection.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion, useInView } from "framer-motion";
 import {
@@ -9,22 +8,14 @@ import {
   Type,
   Mail,
 } from "lucide-react";
+import { useSection } from "../hooks/useSection"; // ADD THIS
 
-/**
- * FeatureSection
- * - 2x2 grid of animated feature tiles
- * - Minimal CPU use, honors reduced motion
- */
 export default function FeatureSection() {
-  const fadeUp = {
-    initial: { opacity: 0, y: 16 },
-    whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true, margin: "-80px", amount: 0.3 },
-    transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
-  };
+  const { ref, isVisible } = useSection(); // ADD THIS
 
   return (
-    <section id="features" className="relative overflow-hidden px-6 py-28 lg:px-8">
+    <section ref={ref} id="features" className="relative overflow-hidden px-6 py-28 lg:px-8">
+      {/* ... rest stays the same but replace all whileInView with isVisible ... */}
       {/* Soft, section-wide glow */}
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-40 -left-28 h-[520px] w-[520px] rounded-full blur-3xl opacity-70 bg-[radial-gradient(circle_at_center,rgba(99,102,241,.12),transparent_65%)]" />
@@ -32,52 +23,65 @@ export default function FeatureSection() {
       </div>
 
       {/* Header */}
-      <motion.div {...fadeUp} className="mx-auto mb-14 max-w-3xl text-center">
-        <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
-          The magic behind Context
-        </h2>
-        <p className="mt-3 text-base text-gray-600">
-          Four reasons your inbox, calendar, and relationships finally work together.
-        </p>
-      </motion.div>
+<motion.div
+  initial={{ opacity: 0, y: 16 }}
+  animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+  transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+  className="mx-auto mb-14 max-w-3xl text-center"
+>
+  <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
+    The magic behind Context
+  </h2>
+  <p className="mt-3 text-base text-gray-600">
+    Four reasons your inbox, calendar, and relationships finally work together.
+  </p>
+</motion.div>
 
       {/* 2×2 Grid */}
       <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2">
         <FeatureTile
-          title="Smart relationship triage"
-          sub="Surfaces who matters now — not just what’s newest."
-          accent="indigo"
-          Icon={Inbox}
-        >
-          <TriageVisual />
-        </FeatureTile>
+  isVisible={isVisible}
+  delay={0}
+  title="Smart relationship triage"
+  sub="Surfaces who matters now — not just what's newest."
+  accent="indigo"
+  Icon={Inbox}
+>
+  <TriageVisual />
+</FeatureTile>
 
-        <FeatureTile
-          title="AI drafts in your tone"
-          sub="Replies that sound like you, customized per person."
-          accent="emerald"
-          Icon={Wand2}
-        >
-          <DraftsVisual />
-        </FeatureTile>
+<FeatureTile
+  isVisible={isVisible}
+  delay={0.1}
+  title="AI drafts in your tone"
+  sub="Replies that sound like you, customized per person."
+  accent="emerald"
+  Icon={Wand2}
+>
+  <DraftsVisual />
+</FeatureTile>
 
-        <FeatureTile
-          title="Proactive nudges"
-          sub="Warns before you ghost, with timing that fits your cadence."
-          accent="amber"
-          Icon={Bell}
-        >
-          <NudgesVisual />
-        </FeatureTile>
+<FeatureTile
+  isVisible={isVisible}
+  delay={0.2}
+  title="Proactive nudges"
+  sub="Warns before you ghost, with timing that fits your cadence."
+  accent="amber"
+  Icon={Bell}
+>
+  <NudgesVisual />
+</FeatureTile>
 
-        <FeatureTile
-          title="Privacy by design"
-          sub="Your data stays with Google. No auto-sending — you’re always in control."
-          accent="sky"
-          Icon={Shield}
-        >
-          <PrivacyVisual />
-        </FeatureTile>
+<FeatureTile
+  isVisible={isVisible}
+  delay={0.3}
+  title="Privacy by design"
+  sub="Your data stays with Google. No auto-sending — you're always in control."
+  accent="sky"
+  Icon={Shield}
+>
+  <PrivacyVisual />
+</FeatureTile>
       </div>
     </section>
   );
@@ -86,15 +90,14 @@ export default function FeatureSection() {
 /* =======================
    Generic Feature Tile
    ======================= */
-function FeatureTile({ title, sub, Icon, accent = "indigo", children }) {
+function FeatureTile({ isVisible, delay, title, sub, Icon, accent = "indigo", children }) {
   const styles = useAccent(accent);
 
   return (
     <motion.article
       initial={{ opacity: 0, y: 14 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px", amount: 0.25 }}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay }}
       className={`relative overflow-hidden rounded-3xl border border-white/60 bg-white/80 p-6 backdrop-blur-xl ring-1 ${styles.ring}
                   shadow-[0_8px_28px_rgba(15,23,42,.08)]`}
     >
