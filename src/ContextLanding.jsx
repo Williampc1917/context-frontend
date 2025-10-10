@@ -176,7 +176,7 @@ export default function ContextLanding() {
       {/* Waitlist section */}
       <section id="waitlist" className="waitlist-section section-grad px-6 py-24 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
-          <h3 className="text-4xl font-bold tracking-tight">Ready to never drop the ball?</h3>
+          <h3 className="text-4xl font-bold tracking-tight">Intelligence for how you connect.</h3>
           <p className="mt-3 text-lg text-gray-600">
             Join professionals who manage their most important relationships with Context.
           </p>
