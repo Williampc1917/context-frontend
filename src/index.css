@@ -278,6 +278,25 @@ html { scroll-behavior: smooth; }
   will-change: opacity;
 }
 
+.network-container {
+  pointer-events: none;
+}
+
+.network-paused .network-layer,
+.network-paused .network-edge,
+.network-paused .network-node,
+.network-paused .network-sparkle {
+  animation-play-state: paused;
+  opacity: 0.45;
+}
+
+.network-active .network-layer,
+.network-active .network-edge,
+.network-active .network-node,
+.network-active .network-sparkle {
+  animation-play-state: running;
+}
+
 .network-node {
   animation: networkPulse 4s ease-in-out infinite;
   will-change: transform, opacity;

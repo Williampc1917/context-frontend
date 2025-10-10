@@ -2,11 +2,13 @@ import { motion } from "framer-motion";
 import { BellOff, Brain, Hourglass, Bot } from "lucide-react";
 import { useSection } from "../hooks/useSection";
 
+const MotionDiv = motion.div;
+
 export default function ProblemSection() {
   const { ref, isVisible } = useSection();
 
   return (
-    <div ref={ref} className="relative">
+    <MotionDiv ref={ref} className="relative">
       {/* soft background glows */}
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-24 left-[-8%] h-[380px] w-[380px] rounded-full blur-3xl opacity-80 bg-[radial-gradient(circle_at_center,rgba(244,63,94,.12),transparent_65%)]" />
@@ -14,7 +16,7 @@ export default function ProblemSection() {
       </div>
 
       {/* Heading */}
-      <motion.div
+      <MotionDiv
         initial={{ opacity: 0, y: 20 }}
         animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
@@ -31,7 +33,7 @@ export default function ProblemSection() {
         <p className="mt-6 text-xl text-gray-600/90 leading-relaxed max-w-2xl mx-auto">
           You're not neglecting your network — you're drowning in threads, follow-ups, and details that no one can remember
         </p>
-      </motion.div>
+      </MotionDiv>
 
       {/* Stat cards */}
       <div className="mx-auto mt-8 grid max-w-6xl gap-4 sm:grid-cols-2 md:grid-cols-4">
@@ -77,7 +79,7 @@ export default function ProblemSection() {
           sub="sounds unnatural"
         />
       </div>
-    </div>
+    </MotionDiv>
   );
 }
 
@@ -88,14 +90,14 @@ function StatCard({ isVisible, delay, tone = "indigo", Icon, heading, value, suf
   const styles = getToneStyles(tone);
 
   return (
-    <motion.div
+    <MotionDiv
       initial={{ opacity: 0, y: 12 }}
       animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay }}
       className={`relative overflow-hidden rounded-2xl border border-white/60 bg-white/80 p-5 backdrop-blur-xl shadow-[0_10px_24px_rgba(15,23,42,.08)] ring-1 ${styles.ring}`}
     >
       {/* halo */}
-      <motion.div
+      <MotionDiv
         aria-hidden
         className={`pointer-events-none absolute inset-0 -z-10 ${styles.halo}`}
         animate={isVisible ? { opacity: [0.9, 1, 0.9], scale: [1, 1.02, 1] } : {}}
@@ -117,7 +119,7 @@ function StatCard({ isVisible, delay, tone = "indigo", Icon, heading, value, suf
       </div>
       <div className={`mt-2 text-sm font-semibold ${styles.accentText}`}>{label}</div>
       <div className="text-sm text-gray-700">{sub}</div>
-    </motion.div>
+    </MotionDiv>
   );
 }
 

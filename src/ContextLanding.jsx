@@ -11,7 +11,6 @@ import HowItWorksSection from "./sections/HowItWorksSection.jsx";
 
 export default function ContextLanding() {
   const [scrolled, setScrolled] = useState(false);
-  const prefersReducedMotion = useReducedMotion();
 
   // Throttled scroll handler for better performance
   useEffect(() => {

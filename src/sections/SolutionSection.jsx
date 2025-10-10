@@ -1,20 +1,22 @@
-import { useRef, useMemo } from "react";
+import { useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Brain, Type, Mic } from "lucide-react";
 import { useSection } from "../hooks/useSection";
 
+const MotionDiv = motion.div;
+const MotionArticle = motion.article;
+
 export default function SolutionSection() {
   const { ref, isVisible } = useSection();
-  const sectionRef = useRef(null);
 
   return (
     <section ref={ref} id="solution" className="relative overflow-visible px-6 py-24 lg:px-8">
       {/* Full-bleed smart network */}
-      <BackgroundNetwork containerRef={sectionRef} />
+      <BackgroundNetwork isActive={isVisible} />
 
-      <div ref={sectionRef} className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-7xl">
         {/* Heading */}
-        <motion.div
+        <MotionDiv
           initial={{ opacity: 0, y: 16 }}
           animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -26,7 +28,7 @@ export default function SolutionSection() {
           <p className="mt-3 text-base text-gray-600">
             Three principles that make Context unlike any productivity app.
           </p>
-        </motion.div>
+        </MotionDiv>
 
         {/* Pillars */}
         <div className="mx-auto mt-12 grid max-w-6xl gap-6 md:grid-cols-3">
@@ -75,12 +77,12 @@ export default function SolutionSection() {
 /* =======================
    Optimized Smart Network
    ======================= */
-function BackgroundNetwork({ containerRef }) {
+function BackgroundNetwork({ isActive }) {
   const prefersReducedMotion = useReducedMotion();
 
   // Static configuration - compute once, never changes
   const config = useMemo(() => {
-    const nodeCount = 50;
+    const nodeCount = 36;
     const W = 1400;
     const H = 800;
     const pad = 20;
@@ -119,12 +121,28 @@ function BackgroundNetwork({ containerRef }) {
     return { nodes, edges, W, H };
   }, []);
 
+  const sparkles = useMemo(
+    () =>
+      Array.from({ length: 4 }).map(() => ({
+        x: rand(0, config.W),
+        y: rand(0, config.H),
+        r: rand(0.8, 1.4),
+        delay: rand(0, 2),
+        duration: rand(3, 5),
+      })),
+    [config]
+  );
+
   if (prefersReducedMotion) {
-    return <StaticNetwork config={config} />;
+    return <StaticNetwork config={config} className="network-container" />;
   }
 
   return (
-    <div className="pointer-events-none absolute -inset-x-[22%] -inset-y-[18%] -z-10">
+    <div
+      className={`network-container pointer-events-none absolute -inset-x-[22%] -inset-y-[18%] -z-10 ${
+        isActive ? "network-active" : "network-paused"
+      }`}
+    >
       <svg
         width="100%"
         height="100%"
@@ -189,17 +207,17 @@ function BackgroundNetwork({ containerRef }) {
             />
           ))}
 
-          {Array.from({ length: 5 }).map((_, i) => (
+          {sparkles.map((sparkle, i) => (
             <circle
               key={`spark-${i}`}
-              cx={rand(0, config.W)}
-              cy={rand(0, config.H)}
-              r={rand(0.8, 1.4)}
+              cx={sparkle.x}
+              cy={sparkle.y}
+              r={sparkle.r}
               fill="white"
               className="network-sparkle"
               style={{
-                animationDelay: `${i * 0.4}s`,
-                animationDuration: `${rand(3, 5)}s`
+                animationDelay: `${sparkle.delay}s`,
+                animationDuration: `${sparkle.duration}s`
               }}
             />
           ))}
@@ -209,9 +227,11 @@ function BackgroundNetwork({ containerRef }) {
   );
 }
 
-function StaticNetwork({ config }) {
+function StaticNetwork({ config, className = "" }) {
   return (
-    <div className="pointer-events-none absolute -inset-x-[22%] -inset-y-[18%] -z-10 opacity-60">
+    <div
+      className={`pointer-events-none absolute -inset-x-[22%] -inset-y-[18%] -z-10 opacity-60 ${className}`}
+    >
       <svg
         width="100%"
         height="100%"
@@ -264,7 +284,7 @@ function StaticNetwork({ config }) {
 /* =======================
    Pillar Card
    ======================= */
-function PillarCard({ isVisible, delay, Icon, title, bullets = [], accent = "indigo" }) {
+function PillarCard({ isVisible, delay, Icon: IconComponent, title, bullets = [], accent = "indigo" }) {
   const accents = {
     indigo: {
       ring: "ring-indigo-400/50",
@@ -292,8 +312,10 @@ function PillarCard({ isVisible, delay, Icon, title, bullets = [], accent = "ind
     },
   }[accent];
 
+  const IconEl = IconComponent;
+
   return (
-    <motion.article
+    <MotionArticle
       initial={{ opacity: 0, y: 14 }}
       animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay }}
@@ -302,7 +324,7 @@ function PillarCard({ isVisible, delay, Icon, title, bullets = [], accent = "ind
       <div className="relative mb-4">
         <div className={`pointer-events-none absolute -inset-6 -z-10 rounded-3xl ${accents.halo} blur-[14px]`} />
         <div className="grid size-12 place-items-center rounded-2xl border border-white/60 bg-white/90 shadow">
-          <Icon size={26} className="text-gray-800" />
+          <IconEl size={26} className="text-gray-800" />
         </div>
       </div>
 
@@ -337,7 +359,7 @@ function PillarCard({ isVisible, delay, Icon, title, bullets = [], accent = "ind
           </>
         )}
       </div>
-    </motion.article>
+    </MotionArticle>
   );
 }
 

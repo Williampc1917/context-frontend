@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, useReducedMotion, useInView } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   Inbox,
   Wand2,
@@ -9,6 +9,9 @@ import {
   Mail,
 } from "lucide-react";
 import { useSection } from "../hooks/useSection"; // ADD THIS
+
+const MotionDiv = motion.div;
+const MotionArticle = motion.article;
 
 export default function FeatureSection() {
   const { ref, isVisible } = useSection(); // ADD THIS
@@ -23,7 +26,7 @@ export default function FeatureSection() {
       </div>
 
       {/* Header */}
-<motion.div
+<MotionDiv
   initial={{ opacity: 0, y: 16 }}
   animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
   transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
@@ -35,7 +38,7 @@ export default function FeatureSection() {
   <p className="mt-3 text-base text-gray-600">
     Four reasons your inbox, calendar, and relationships finally work together.
   </p>
-</motion.div>
+</MotionDiv>
 
       {/* 2×2 Grid */}
       <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2">
@@ -90,11 +93,12 @@ export default function FeatureSection() {
 /* =======================
    Generic Feature Tile
    ======================= */
-function FeatureTile({ isVisible, delay, title, sub, Icon, accent = "indigo", children }) {
+function FeatureTile({ isVisible, delay, title, sub, Icon: IconComponent, accent = "indigo", children }) {
   const styles = useAccent(accent);
+  const IconEl = IconComponent;
 
   return (
-    <motion.article
+    <MotionArticle
       initial={{ opacity: 0, y: 14 }}
       animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay }}
@@ -107,7 +111,7 @@ function FeatureTile({ isVisible, delay, title, sub, Icon, accent = "indigo", ch
       {/* Header */}
       <div className="mb-5 flex items-center gap-3">
         <div className="grid size-11 place-items-center rounded-2xl border border-white/60 bg-white/90 shadow">
-          <Icon className="text-gray-800" size={22} />
+          <IconEl className="text-gray-800" size={22} />
         </div>
         <div>
           <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
@@ -119,7 +123,7 @@ function FeatureTile({ isVisible, delay, title, sub, Icon, accent = "indigo", ch
       <div className="relative h-50 md:h-96 overflow-hidden rounded-2xl border border-white/60 bg-white/70">
         {children}
       </div>
-    </motion.article>
+    </MotionArticle>
   );
 }
 
@@ -271,7 +275,7 @@ function Bubble({ role, children, typing = false }) {
   const isUser = role === "user";
 
   return (
-    <motion.div
+    <MotionDiv
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
@@ -297,7 +301,7 @@ function Bubble({ role, children, typing = false }) {
           )}
         </span>
       </div>
-    </motion.div>
+    </MotionDiv>
   );
 }
 
@@ -441,7 +445,7 @@ function FloatChip({ className = "", text, tone = "amber", delay = 0 }) {
       : { border: "border-amber-200", bg: "bg-amber-50/90", text: "text-amber-900" };
 
   return (
-    <motion.div
+    <MotionDiv
       initial={{ opacity: 0, y: 6 }}
       animate={
         prefersReducedMotion
@@ -455,7 +459,7 @@ function FloatChip({ className = "", text, tone = "amber", delay = 0 }) {
         <Bell size={14} />
         <span>{text}</span>
       </div>
-    </motion.div>
+    </MotionDiv>
   );
 }
 
@@ -473,14 +477,14 @@ function PrivacyVisual() {
       </div>
 
       {/* Shield icon */}
-      <motion.div
+      <MotionDiv
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         className="relative z-10 grid place-items-center rounded-3xl border border-white/60 
                    bg-white/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(56,189,248,0.15)] size-28"
       >
-        <motion.div
+        <MotionDiv
           animate={
             prefersReducedMotion
               ? {}
@@ -492,21 +496,21 @@ function PrivacyVisual() {
             size={56}
             className="text-sky-600 drop-shadow-[0_2px_4px_rgba(56,189,248,0.4)]"
           />
-        </motion.div>
+        </MotionDiv>
 
         {/* Subtle halo behind the shield */}
         <div className="absolute inset-0 rounded-3xl bg-[radial-gradient(circle_at_center,rgba(56,189,248,0.25),transparent_70%)] blur-2xl" />
-      </motion.div>
+      </MotionDiv>
 
       {/* Caption */}
-      <motion.div
+      <MotionDiv
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8, duration: 0.6 }}
         className="absolute bottom-5 left-1/2 -translate-x-1/2 text-center text-[11px] text-gray-600"
       >
         Secure by design · On-device AI · You stay in control
-      </motion.div>
+      </MotionDiv>
     </div>
   );
 }
@@ -515,7 +519,7 @@ function PrivacyVisual() {
 function GlowRing({ delay = 0, size = 220 }) {
   const prefersReducedMotion = useReducedMotion();
   return (
-    <motion.div
+    <MotionDiv
       initial={{ opacity: 0.25, scale: 1 }}
       animate={
         prefersReducedMotion
@@ -537,7 +541,7 @@ function GlowRing({ delay = 0, size = 220 }) {
 function Ring({ delay = 0 }) {
   const prefersReducedMotion = useReducedMotion();
   return (
-    <motion.div
+    <MotionDiv
       initial={{ opacity: 0.2, scale: 1 }}
       animate={
         prefersReducedMotion
