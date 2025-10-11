@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
-import { useReducedMotion } from "framer-motion";
+import { useReducedMotion, motion, AnimatePresence } from "framer-motion";
 import { Mic, ArrowRight, Menu, X } from "lucide-react";
 import "./index.css";
 import { rafThrottle } from "./utils/throttle";
+import { useForm, ValidationError } from "@formspree/react";
 
 // Import sections directly - no lazy loading
 import ProblemSection from "./sections/ProblemSection.jsx";
@@ -286,37 +287,116 @@ function MobileNavButton({ label, onClick }) {
 }
 
 function WaitlistForm() {
+  // ⬅️ Put your Formspree form ID here
+  const [state, handleSubmit] = useForm("mvgwwnrp");
   const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
 
-  const submit = (e) => {
-    e.preventDefault();
-    setSubmitted(true);
-  };
+  const hasError = state.errors && state.errors.length > 0;
 
-  if (submitted) {
+  // ✅ SUCCESS VIEW
+  if (state.succeeded) {
     return (
-      <div className="mx-auto mt-6 max-w-xl rounded-2xl border border-white/60 bg-white/70 p-4 text-center backdrop-blur-xl">
-        <div className="text-sm font-medium">Thanks! We'll be in touch at</div>
-        <div className="mt-1 text-lg font-semibold">{email}</div>
-      </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key="success"
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.96 }}
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          className="mx-auto mt-6 max-w-xl rounded-2xl border border-white/60 bg-white/70 p-5 text-center backdrop-blur-xl shadow-[0_10px_24px_rgba(15,23,42,.08)]"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: [0, 1.12, 1] }}
+            transition={{ duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
+            className="mx-auto mb-2 flex size-10 items-center justify-center rounded-full bg-green-100 text-green-600 shadow"
+            aria-hidden
+          >
+            ✓
+          </motion.div>
+          <h4 className="text-lg font-semibold">All set.</h4>
+          <p className="mt-1 text-sm text-gray-600">
+            We’ll reach out to <span className="font-medium">{email}</span>.
+          </p>
+        </motion.div>
+      </AnimatePresence>
     );
   }
 
+  // 🧾 FORM (idle / submitting / error)
   return (
-    <form onSubmit={submit} className="mx-auto mt-6 flex max-w-xl flex-col gap-3 sm:flex-row">
+    <motion.form
+      onSubmit={(e) => {
+        e.preventDefault();
+        // Formspree handles the POST + validation
+        handleSubmit(e);
+      }}
+      className="mx-auto mt-6 flex max-w-xl flex-col gap-3 sm:flex-row"
+      // Subtle shake if Formspree returns an error
+      animate={hasError ? { x: [-6, 6, -4, 4, 0] } : { x: 0 }}
+      transition={{ duration: 0.32, ease: "easeInOut" }}
+      aria-live="polite"
+    >
       <input
         required
         type="email"
+        id="email"
+        name="email"                 // 👈 Formspree requires a name
         placeholder="you@company.com"
-        className="w-full rounded-full border border-white/60 bg-white/80 px-4 py-3 text-sm outline-none backdrop-blur-xl"
+        className="w-full rounded-full border border-white/60 bg-white/80 px-4 py-3 text-sm outline-none backdrop-blur-xl focus:border-indigo-400"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        disabled={state.submitting}
       />
-      <button type="submit" className="btn-primary">
-        Join the waitlist
+
+      <button
+        type="submit"
+        disabled={state.submitting}
+        className={`relative btn-primary overflow-hidden transition-all ${
+          state.submitting ? "brightness-95 opacity-90" : "hover:scale-[1.02]"
+        }`}
+      >
+        {/* Idle label */}
+        <span className={state.submitting ? "invisible" : "visible"}>
+          Join the waitlist
+        </span>
+
+        {/* ✨ Three-dot loader (Apple-y, inside the button) */}
+        {state.submitting && (
+          <span className="absolute inset-0 flex items-center justify-center gap-1">
+            {[0, 1, 2].map((i) => (
+              <motion.span
+                key={i}
+                initial={{ opacity: 0.3, y: 0 }}
+                animate={{ opacity: [0.3, 1, 0.3], y: [0, -3, 0] }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: i * 0.2,
+                }}
+                className="h-2 w-2 rounded-full bg-gradient-to-br from-indigo-500 to-sky-500 shadow-[0_0_10px_rgba(56,189,248,0.5)]"
+              />
+            ))}
+          </span>
+        )}
       </button>
-    </form>
+
+      {/* Inline field error (from Formspree) */}
+      <ValidationError prefix="Email" field="email" errors={state.errors} />
+
+      {/* Generic error line for non-field issues */}
+      {hasError && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-sm text-rose-600 mt-2"
+          role="alert"
+        >
+          Something went wrong. Please try again.
+        </motion.p>
+      )}
+    </motion.form>
   );
 }
 
