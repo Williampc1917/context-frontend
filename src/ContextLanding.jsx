@@ -4,6 +4,7 @@ import { Mic, ArrowRight, Menu, X } from "lucide-react";
 import "./index.css";
 import { rafThrottle } from "./utils/throttle";
 import { useForm, ValidationError } from "@formspree/react";
+import { useSection } from "./hooks/useSection";
 
 // Import sections directly - no lazy loading
 import ProblemSection from "./sections/ProblemSection.jsx";
@@ -13,6 +14,10 @@ import HowItWorksSection from "./sections/HowItWorksSection.jsx";
 export default function ContextLanding() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { ref: waitlistRef, isVisible: waitlistVisible } = useSection({
+    threshold: 0.15,
+    rootMargin: "0px 0px -30% 0px"
+  });
 
   // Throttled scroll handler for better performance
   useEffect(() => {
@@ -236,7 +241,12 @@ export default function ContextLanding() {
       </section>
 
       {/* Waitlist section */}
-      <section id="waitlist" className="waitlist-section section-grad px-6 py-24 lg:px-8 scroll-mt-24 lg:scroll-mt-32">
+      <section
+        id="waitlist"
+        ref={waitlistRef}
+        data-revealed={waitlistVisible}
+        className="waitlist-section section-grad px-6 py-24 lg:px-8 scroll-mt-24 lg:scroll-mt-32"
+      >
         <div className="mx-auto max-w-4xl text-center">
           <h3 className="text-4xl font-bold tracking-tight">Intelligence for how you connect.</h3>
           <p className="mt-3 text-lg text-gray-600">
