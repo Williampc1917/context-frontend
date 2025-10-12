@@ -37,12 +37,18 @@ export default function ContextLanding() {
     const element = document.getElementById(id);
     if (!element) return;
 
-    // Use native smooth scroll with optimized behavior
-    element.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-      inline: "nearest"
+    const navHeight = document.querySelector("nav")?.getBoundingClientRect().height ?? 0;
+    const isMobile = window.innerWidth < 768;
+    const extraOffset = isMobile ? 16 : 24;
+    const targetOffset = navHeight + extraOffset;
+    const elementTop = element.getBoundingClientRect().top + window.scrollY;
+    const targetPosition = Math.max(0, elementTop - targetOffset);
+
+    window.scrollTo({
+      top: targetPosition,
+      behavior: "smooth"
     });
+
     setMenuOpen(false);
   }, []);
 
@@ -272,9 +278,10 @@ export default function ContextLanding() {
                 { label: "Waitlist", target: "waitlist" },
                 { label: "Security", href: "#" }
               ]}
+              onNavigate={scrollTo}
             />
-            <FooterCol title="Company" items={["About", "Blog", "Careers"]} />
-            <FooterCol title="Legal" items={["Privacy", "Terms", "Contact"]} />
+            <FooterCol title="Company" items={["About", "Blog", "Careers"]} onNavigate={scrollTo} />
+            <FooterCol title="Legal" items={["Privacy", "Terms", "Contact"]} onNavigate={scrollTo} />
           </div>
           <div className="mt-8 text-center text-gray-600">© {new Date().getFullYear()} Context. All rights reserved.</div>
         </div>
@@ -410,7 +417,7 @@ function WaitlistForm() {
   );
 }
 
-function FooterCol({ title, items }) {
+function FooterCol({ title, items, onNavigate }) {
   return (
     <div>
       <div className="mb-3 font-semibold">{title}</div>
@@ -424,9 +431,17 @@ function FooterCol({ title, items }) {
               ? `#${item.target}`
               : item.href || "#";
 
+          const handleClick =
+            typeof item === "string" || !item.target
+              ? undefined
+              : (event) => {
+                  event.preventDefault();
+                  onNavigate?.(item.target);
+                };
+
           return (
             <li key={key}>
-              <a className="hover:text-gray-900 transition-colors" href={href}>
+              <a className="hover:text-gray-900 transition-colors" href={href} onClick={handleClick}>
                 {key}
               </a>
             </li>
