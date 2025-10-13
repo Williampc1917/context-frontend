@@ -648,3 +648,7 @@ nav {
     animation: none !important;
   }
 }
+/* index.css (or a global stylesheet) */
+#waitlist {
+  scroll-margin-top: 90px; /* ~ your fixed nav height */
+}

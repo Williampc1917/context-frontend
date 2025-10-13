@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useReducedMotion, motion, AnimatePresence } from "framer-motion";
 import { Mic, ArrowRight, Menu, X } from "lucide-react";
 import "./index.css";
@@ -33,24 +33,52 @@ export default function ContextLanding() {
     };
   }, []);
 
-  const scrollTo = useCallback((id) => {
-    const element = document.getElementById(id);
-    if (!element) return;
+  const hasLoadedRef = useRef(document.readyState === "complete");
 
-    const navHeight = document.querySelector("nav")?.getBoundingClientRect().height ?? 0;
-    const isMobile = window.innerWidth < 768;
-    const extraOffset = isMobile ? 16 : 24;
-    const targetOffset = navHeight + extraOffset;
-    const elementTop = element.getBoundingClientRect().top + window.scrollY;
-    const targetPosition = Math.max(0, elementTop - targetOffset);
+  useEffect(() => {
+  const onLoad = () => { hasLoadedRef.current = true; };
+  window.addEventListener("load", onLoad, { once: true });
+  return () => window.removeEventListener("load", onLoad);
+}, []);
 
-    window.scrollTo({
-      top: targetPosition,
-      behavior: "smooth"
+const scrollTo = useCallback((id) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  const run = () => {
+    el.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
     });
+  };
 
-    setMenuOpen(false);
-  }, []);
+  // 1) Initial attempt
+  run();
+
+  // 2) If page hasn't fully loaded, correct once it is
+  if (!hasLoadedRef.current) {
+    window.addEventListener("load", () => {
+      setTimeout(run, 100);
+    }, { once: true });
+  }
+
+  // 3) Retry a couple times to fight late layout shifts
+  let tries = 0;
+  const retry = () => {
+    tries += 1;
+    const rect = el.getBoundingClientRect();
+    const headerH = document.querySelector("nav")?.getBoundingClientRect().height ?? 0;
+
+    // If the top of the target is not within ~header height from the top, correct it
+    if (rect.top < 0 || rect.top > headerH + 12) {
+      run();
+    }
+    if (tries < 3) setTimeout(retry, 280);
+  };
+  setTimeout(retry, 280);
+
+  setMenuOpen(false);
+}, []);
 
   useEffect(() => {
     if (!menuOpen) return;
