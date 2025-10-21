@@ -10,7 +10,11 @@ export default function SolutionSection() {
   const { ref, isVisible } = useSection();
 
   return (
-    <section ref={ref} id="solution" className="relative overflow-visible px-6 py-24 lg:px-8">
+    <section
+      ref={ref}
+      id="solution"
+      className="relative overflow-visible px-6 py-24 lg:px-8"
+    >
       {/* Full-bleed smart network */}
       <BackgroundNetwork isActive={isVisible} className="hidden md:block" />
       <MobileNetworkBackdrop className="md:hidden" />
@@ -110,10 +114,10 @@ function BackgroundNetwork({ isActive, className = "" }) {
         const a = Math.min(i, j);
         const b = Math.max(i, j);
         if (!edges.find((e) => e.a === a && e.b === b)) {
-          edges.push({ 
-            a, 
-            b, 
-            opacity: rand(0.15, 0.35)
+          edges.push({
+            a,
+            b,
+            opacity: rand(0.15, 0.35),
           });
         }
       }
@@ -131,11 +135,16 @@ function BackgroundNetwork({ isActive, className = "" }) {
         delay: rand(0, 2),
         duration: rand(3, 5),
       })),
-    [config]
+    [config],
   );
 
   if (prefersReducedMotion) {
-    return <StaticNetwork config={config} className={`network-container ${className}`} />;
+    return (
+      <StaticNetwork
+        config={config}
+        className={`network-container ${className}`}
+      />
+    );
   }
 
   return (
@@ -149,7 +158,7 @@ function BackgroundNetwork({ isActive, className = "" }) {
         height="100%"
         viewBox={`0 0 ${config.W} ${config.H}`}
         className="absolute inset-0"
-        style={{ willChange: 'transform' }}
+        style={{ willChange: "transform" }}
       >
         <defs>
           <filter id="softBlur" x="-20%" y="-20%" width="140%" height="140%">
@@ -185,7 +194,7 @@ function BackgroundNetwork({ isActive, className = "" }) {
                 className="network-edge"
                 style={{
                   animationDelay: `${idx * 0.05}s`,
-                  animationDuration: `${rand(8, 14)}s`
+                  animationDuration: `${rand(8, 14)}s`,
                 }}
               />
             );
@@ -203,7 +212,7 @@ function BackgroundNetwork({ isActive, className = "" }) {
               className="network-node"
               style={{
                 animationDelay: `${i * 0.03}s`,
-                animationDuration: `${rand(3, 5)}s`
+                animationDuration: `${rand(3, 5)}s`,
               }}
             />
           ))}
@@ -218,7 +227,7 @@ function BackgroundNetwork({ isActive, className = "" }) {
               className="network-sparkle"
               style={{
                 animationDelay: `${sparkle.delay}s`,
-                animationDuration: `${sparkle.duration}s`
+                animationDuration: `${sparkle.duration}s`,
               }}
             />
           ))}
@@ -294,7 +303,14 @@ function StaticNetwork({ config, className = "" }) {
 /* =======================
    Pillar Card
    ======================= */
-function PillarCard({ isVisible, delay, Icon: IconComponent, title, bullets = [], accent = "indigo" }) {
+function PillarCard({
+  isVisible,
+  delay,
+  Icon: IconComponent,
+  title,
+  bullets = [],
+  accent = "indigo",
+}) {
   const accents = {
     indigo: {
       ring: "ring-indigo-400/50",
@@ -332,7 +348,9 @@ function PillarCard({ isVisible, delay, Icon: IconComponent, title, bullets = []
       className={`group relative overflow-hidden rounded-3xl border border-white/60 bg-white/80 p-6 backdrop-blur-xl shadow-[0_8px_28px_rgba(15,23,42,.08)] ring-1 ${accents.ring}`}
     >
       <div className="relative mb-4">
-        <div className={`pointer-events-none absolute -inset-6 -z-10 rounded-3xl ${accents.halo} blur-[14px]`} />
+        <div
+          className={`pointer-events-none absolute -inset-6 -z-10 rounded-3xl ${accents.halo} blur-[14px]`}
+        />
         <div className="grid size-12 place-items-center rounded-2xl border border-white/60 bg-white/90 shadow">
           <IconEl size={26} className="text-gray-800" />
         </div>
@@ -343,7 +361,9 @@ function PillarCard({ isVisible, delay, Icon: IconComponent, title, bullets = []
       <ul className="mt-3 space-y-2">
         {bullets.map((b) => (
           <li key={b} className="flex items-start gap-2 text-sm text-gray-700">
-            <span className={`mt-1 inline-block size-1.5 rounded-full ${accents.dot}`} />
+            <span
+              className={`mt-1 inline-block size-1.5 rounded-full ${accents.dot}`}
+            />
             <span>{b}</span>
           </li>
         ))}
@@ -375,7 +395,9 @@ function PillarCard({ isVisible, delay, Icon: IconComponent, title, bullets = []
 
 function Chip({ children, chipBorder, chipBg, chipText }) {
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full border ${chipBorder} ${chipBg} px-2.5 py-1 text-[11px] ${chipText}`}>
+    <span
+      className={`inline-flex items-center gap-1 rounded-full border ${chipBorder} ${chipBg} px-2.5 py-1 text-[11px] ${chipText}`}
+    >
       {children}
     </span>
   );

@@ -35,7 +35,7 @@ export function rafThrottle(func) {
 
   return function throttled(...args) {
     lastArgs = args;
-    
+
     if (rafId === null) {
       rafId = requestAnimationFrame(() => {
         func.apply(this, lastArgs);

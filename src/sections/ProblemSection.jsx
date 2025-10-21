@@ -31,59 +31,60 @@ export default function ProblemSection() {
         </h2>
 
         <p className="mt-6 text-xl text-gray-600/90 leading-relaxed max-w-2xl mx-auto">
-          You're not neglecting your network — you're drowning in threads, follow-ups, and details that no one can remember
+          You're not neglecting your network — you're drowning in threads,
+          follow-ups, and details that no one can remember
         </p>
       </MotionDiv>
 
       {/* Stat cards */}
-<div className="mx-auto mt-8 grid max-w-6xl gap-4 sm:grid-cols-2 md:grid-cols-4">
-  <StatCard
-    isVisible={isVisible}
-    delay={0}
-    tone="rose"
-    Icon={BellOff}
-    heading="Ghosting"
-    value="60%"
-    label="of deals"
-    sub="die from slow or no follow-up"
-    className="md:col-span-2 lg:scale-[1.05] lg:shadow-[0_12px_40px_rgba(244,63,94,0.25)]"
-  />
+      <div className="mx-auto mt-8 grid max-w-6xl gap-4 sm:grid-cols-2 md:grid-cols-4">
+        <StatCard
+          isVisible={isVisible}
+          delay={0}
+          tone="rose"
+          Icon={BellOff}
+          heading="Ghosting"
+          value="60%"
+          label="of deals"
+          sub="die from slow or no follow-up"
+          className="md:col-span-2 lg:scale-[1.05] lg:shadow-[0_12px_40px_rgba(244,63,94,0.25)]"
+        />
 
-  <StatCard
-    isVisible={isVisible}
-    delay={0.1}
-    tone="indigo"
-    Icon={Brain}
-    heading="Context overload"
-    value="9"
-    suffix="h/week"
-    label="lost searching for context"
-    sub="threads, notes & follow-ups"
-  />
+        <StatCard
+          isVisible={isVisible}
+          delay={0.1}
+          tone="indigo"
+          Icon={Brain}
+          heading="Context overload"
+          value="9"
+          suffix="h/week"
+          label="lost searching for context"
+          sub="threads, notes & follow-ups"
+        />
 
-  <StatCard
-    isVisible={isVisible}
-    delay={0.2}
-    tone="amber"
-    Icon={Hourglass}
-    heading="Inbox chaos"
-    value="12"
-    suffix="h/week"
-    label="spent managing email"
-    sub="manual triage & drafts"
-  />
+        <StatCard
+          isVisible={isVisible}
+          delay={0.2}
+          tone="amber"
+          Icon={Hourglass}
+          heading="Inbox chaos"
+          value="12"
+          suffix="h/week"
+          label="spent managing email"
+          sub="manual triage & drafts"
+        />
 
-  <StatCard
-    isVisible={isVisible}
-    delay={0.3}
-    tone="slate"
-    Icon={Bot}
-    heading="Robotic tone"
-    value="70%"
-    label="say AI"
-    sub="still feels unnatural"
-  />
-</div>
+        <StatCard
+          isVisible={isVisible}
+          delay={0.3}
+          tone="slate"
+          Icon={Bot}
+          heading="Robotic tone"
+          value="70%"
+          label="say AI"
+          sub="still feels unnatural"
+        />
+      </div>
     </MotionDiv>
   );
 }
@@ -91,7 +92,17 @@ export default function ProblemSection() {
 /* ============
    Components
    ============ */
-function StatCard({ isVisible, delay, tone = "indigo", Icon, heading, value, suffix, label, sub }) {
+function StatCard({
+  isVisible,
+  delay,
+  tone = "indigo",
+  Icon,
+  heading,
+  value,
+  suffix,
+  label,
+  sub,
+}) {
   const styles = getToneStyles(tone);
 
   return (
@@ -105,13 +116,17 @@ function StatCard({ isVisible, delay, tone = "indigo", Icon, heading, value, suf
       <MotionDiv
         aria-hidden
         className={`pointer-events-none absolute inset-0 -z-10 ${styles.halo}`}
-        animate={isVisible ? { opacity: [0.9, 1, 0.9], scale: [1, 1.02, 1] } : {}}
+        animate={
+          isVisible ? { opacity: [0.9, 1, 0.9], scale: [1, 1.02, 1] } : {}
+        }
         transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
       />
 
       {/* header row */}
       <div className="mb-3 flex items-center gap-2">
-        <div className={`grid size-9 place-items-center rounded-xl bg-white/80 ${styles.iconText}`}>
+        <div
+          className={`grid size-9 place-items-center rounded-xl bg-white/80 ${styles.iconText}`}
+        >
           {Icon ? <Icon size={18} /> : null}
         </div>
         <div className="text-sm font-semibold text-gray-800">{heading}</div>
@@ -119,10 +134,18 @@ function StatCard({ isVisible, delay, tone = "indigo", Icon, heading, value, suf
 
       {/* numbers */}
       <div className="flex items-baseline gap-2">
-        <div className="text-5xl font-bold leading-none tracking-tight">{value}</div>
-        {suffix ? <div className="translate-y-[2px] text-sm font-medium text-gray-600">{suffix}</div> : null}
+        <div className="text-5xl font-bold leading-none tracking-tight">
+          {value}
+        </div>
+        {suffix ? (
+          <div className="translate-y-[2px] text-sm font-medium text-gray-600">
+            {suffix}
+          </div>
+        ) : null}
       </div>
-      <div className={`mt-2 text-sm font-semibold ${styles.accentText}`}>{label}</div>
+      <div className={`mt-2 text-sm font-semibold ${styles.accentText}`}>
+        {label}
+      </div>
       <div className="text-sm text-gray-700">{sub}</div>
     </MotionDiv>
   );

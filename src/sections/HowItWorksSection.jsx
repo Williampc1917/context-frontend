@@ -1,13 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import {
-  Inbox,
-  Wand2,
-  Bell,
-  Shield,
-  Type,
-  Mail,
-} from "lucide-react";
+import { Inbox, Wand2, Bell, Shield, Type, Mail } from "lucide-react";
 import { useSection } from "../hooks/useSection";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 
@@ -19,7 +12,11 @@ export default function FeatureSection() {
   const isMobile = useMediaQuery("(max-width: 767px)", false);
 
   return (
-    <section ref={ref} id="features" className="relative overflow-hidden px-6 py-28 lg:px-8 scroll-mt-24 lg:scroll-mt-32">
+    <section
+      ref={ref}
+      id="features"
+      className="relative overflow-hidden px-6 py-28 lg:px-8 scroll-mt-24 lg:scroll-mt-32"
+    >
       {/* ... rest stays the same but replace all whileInView with isVisible ... */}
       {/* Soft, section-wide glow */}
       <div className="pointer-events-none absolute inset-0 -z-10">
@@ -28,19 +25,20 @@ export default function FeatureSection() {
       </div>
 
       {/* Header */}
-<MotionDiv
-  initial={{ opacity: 0, y: 16 }}
-  animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
-  transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-  className="mx-auto mb-14 max-w-3xl text-center"
->
-  <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
-    The magic behind Context
-  </h2>
-  <p className="mt-3 text-base text-gray-600">
-    Four reasons your inbox, calendar, and relationships finally work together.
-  </p>
-</MotionDiv>
+      <MotionDiv
+        initial={{ opacity: 0, y: 16 }}
+        animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+        className="mx-auto mb-14 max-w-3xl text-center"
+      >
+        <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
+          The magic behind Context
+        </h2>
+        <p className="mt-3 text-base text-gray-600">
+          Four reasons your inbox, calendar, and relationships finally work
+          together.
+        </p>
+      </MotionDiv>
 
       {/* 2×2 Grid */}
       <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2">
@@ -95,7 +93,15 @@ export default function FeatureSection() {
 /* =======================
    Generic Feature Tile
    ======================= */
-function FeatureTile({ isVisible, delay, title, sub, Icon: IconComponent, accent = "indigo", children }) {
+function FeatureTile({
+  isVisible,
+  delay,
+  title,
+  sub,
+  Icon: IconComponent,
+  accent = "indigo",
+  children,
+}) {
   const styles = useAccent(accent);
   const IconEl = IconComponent;
 
@@ -108,7 +114,9 @@ function FeatureTile({ isVisible, delay, title, sub, Icon: IconComponent, accent
                   shadow-[0_8px_28px_rgba(15,23,42,.08)]`}
     >
       {/* Halo */}
-      <div className={`pointer-events-none absolute -inset-6 -z-10 blur-xl ${styles.halo}`} />
+      <div
+        className={`pointer-events-none absolute -inset-6 -z-10 blur-xl ${styles.halo}`}
+      />
 
       {/* Header */}
       <div className="mb-5 flex items-center gap-3">
@@ -134,27 +142,23 @@ function useAccent(accent) {
     case "emerald":
       return {
         ring: "ring-emerald-300/50",
-        halo:
-          "bg-[radial-gradient(circle_at_center,rgba(16,185,129,.14),transparent_62%)]",
+        halo: "bg-[radial-gradient(circle_at_center,rgba(16,185,129,.14),transparent_62%)]",
       };
     case "amber":
       return {
         ring: "ring-amber-300/50",
-        halo:
-          "bg-[radial-gradient(circle_at_center,rgba(245,158,11,.14),transparent_62%)]",
+        halo: "bg-[radial-gradient(circle_at_center,rgba(245,158,11,.14),transparent_62%)]",
       };
     case "sky":
       return {
         ring: "ring-sky-300/50",
-        halo:
-          "bg-[radial-gradient(circle_at_center,rgba(56,189,248,.14),transparent_62%)]",
+        halo: "bg-[radial-gradient(circle_at_center,rgba(56,189,248,.14),transparent_62%)]",
       };
     case "indigo":
     default:
       return {
         ring: "ring-indigo-300/50",
-        halo:
-          "bg-[radial-gradient(circle_at_center,rgba(99,102,241,.14),transparent_62%)]",
+        halo: "bg-[radial-gradient(circle_at_center,rgba(99,102,241,.14),transparent_62%)]",
       };
   }
 }
@@ -183,9 +187,15 @@ function TriageVisual({ active }) {
   const [showAI2, setShowAI2] = useState(prefersReducedMotion);
 
   // typewriter counts
-  const [aiCount, setAiCount] = useState(prefersReducedMotion ? AI_TEXT.length : 0);
-  const [userCount, setUserCount] = useState(prefersReducedMotion ? USER_TEXT.length : 0);
-  const [emailCount, setEmailCount] = useState(prefersReducedMotion ? EMAIL_TEXT.length : 0);
+  const [aiCount, setAiCount] = useState(
+    prefersReducedMotion ? AI_TEXT.length : 0,
+  );
+  const [userCount, setUserCount] = useState(
+    prefersReducedMotion ? USER_TEXT.length : 0,
+  );
+  const [emailCount, setEmailCount] = useState(
+    prefersReducedMotion ? EMAIL_TEXT.length : 0,
+  );
 
   const [typing, setTyping] = useState(null); // 'ai' | 'user' | 'email' | null
 
@@ -214,7 +224,8 @@ function TriageVisual({ active }) {
     setEmailCount(0);
     setTyping(null);
 
-    const wait = (ms) => new Promise((resolve) => timeouts.push(setTimeout(resolve, ms)));
+    const wait = (ms) =>
+      new Promise((resolve) => timeouts.push(setTimeout(resolve, ms)));
 
     const typeOut = (text, setCount, speed, who) =>
       new Promise((resolve) => {
@@ -316,7 +327,9 @@ function Bubble({ role, children, typing = false }) {
         <span className="leading-5">
           {children}
           {typing && !prefersReducedMotion && (
-            <span className={`${isUser ? "text-white/80" : "text-gray-400"} ml-0.5 animate-pulse`}>
+            <span
+              className={`${isUser ? "text-white/80" : "text-gray-400"} ml-0.5 animate-pulse`}
+            >
               ▍
             </span>
           )}
@@ -326,7 +339,12 @@ function Bubble({ role, children, typing = false }) {
   );
 }
 
-function EmailPreview({ sender = "Jennifer", label = "new email", body, typing = false }) {
+function EmailPreview({
+  sender = "Jennifer",
+  label = "new email",
+  body,
+  typing = false,
+}) {
   return (
     <div>
       <div className="mb-2 flex items-center gap-2 text-xs text-gray-500">
@@ -337,7 +355,9 @@ function EmailPreview({ sender = "Jennifer", label = "new email", body, typing =
       </div>
       <div className="leading-5 text-gray-900">
         {body}
-        {typing && <span className="ml-0.5 text-gray-400 animate-pulse">▍</span>}
+        {typing && (
+          <span className="ml-0.5 text-gray-400 animate-pulse">▍</span>
+        )}
       </div>
     </div>
   );
@@ -347,7 +367,9 @@ function DraftsVisual() {
   const prefersReducedMotion = useReducedMotion();
   const fullText =
     "Hi Jennifer — circling back on pricing. Friday 2pm works on my end if that’s still helpful. Quick agenda below.";
-  const [count, setCount] = useState(prefersReducedMotion ? fullText.length : 0);
+  const [count, setCount] = useState(
+    prefersReducedMotion ? fullText.length : 0,
+  );
 
   useEffect(() => {
     if (prefersReducedMotion) return;
@@ -412,38 +434,38 @@ function NudgesVisual({ animate }) {
       position: "left-6 top-6",
       text: "No reply to Daniel in 5d · typical 24h",
       tone: "amber",
-      delay: 0
+      delay: 0,
     },
     {
       position: "right-6 top-10",
       text: "Investor update overdue",
       tone: "rose",
-      delay: 0.4
+      delay: 0.4,
     },
     {
       position: "left-[22%] top-[38%]",
       text: "Team intro with Noah still pending",
       tone: "sky",
-      delay: 0.8
+      delay: 0.8,
     },
     {
       position: "left-[56%] top-[56%]",
       text: "Last touch with Jennifer · 9d ago",
       tone: "violet",
-      delay: 1.2
+      delay: 1.2,
     },
     {
       position: "left-[10%] bottom-[24%]",
       text: "Haven’t met Amy in 4w · schedule?",
       tone: "indigo",
-      delay: 1.6
+      delay: 1.6,
     },
     {
       position: "right-[10%] bottom-[10%]",
       text: "No follow-up with Sarah since last proposal",
       tone: "emerald",
-      delay: 2
-    }
+      delay: 2,
+    },
   ];
 
   if (!animate) {
@@ -521,14 +543,34 @@ function getChipStyles(tone) {
   return tone === "rose"
     ? { border: "border-rose-200", bg: "bg-rose-50/90", text: "text-rose-900" }
     : tone === "indigo"
-    ? { border: "border-indigo-200", bg: "bg-indigo-50/90", text: "text-indigo-900" }
-    : tone === "emerald"
-    ? { border: "border-emerald-200", bg: "bg-emerald-50/90", text: "text-emerald-900" }
-    : tone === "sky"
-    ? { border: "border-sky-200", bg: "bg-sky-50/90", text: "text-sky-900" }
-    : tone === "violet"
-    ? { border: "border-violet-200", bg: "bg-violet-50/90", text: "text-violet-900" }
-    : { border: "border-amber-200", bg: "bg-amber-50/90", text: "text-amber-900" };
+      ? {
+          border: "border-indigo-200",
+          bg: "bg-indigo-50/90",
+          text: "text-indigo-900",
+        }
+      : tone === "emerald"
+        ? {
+            border: "border-emerald-200",
+            bg: "bg-emerald-50/90",
+            text: "text-emerald-900",
+          }
+        : tone === "sky"
+          ? {
+              border: "border-sky-200",
+              bg: "bg-sky-50/90",
+              text: "text-sky-900",
+            }
+          : tone === "violet"
+            ? {
+                border: "border-violet-200",
+                bg: "bg-violet-50/90",
+                text: "text-violet-900",
+              }
+            : {
+                border: "border-amber-200",
+                bg: "bg-amber-50/90",
+                text: "text-amber-900",
+              };
 }
 
 /** 4) Privacy by Design — Enhanced visual with big shield & soft aura */
@@ -546,7 +588,8 @@ function PrivacyVisual({ animate }) {
           />
         </div>
         <p className="text-sm leading-6 text-gray-700">
-          Your data stays with Google. No auto-sending — you approve every action.
+          Your data stays with Google. No auto-sending — you approve every
+          action.
         </p>
         <div className="flex flex-wrap justify-center gap-2 text-[11px] text-gray-600">
           <span className="rounded-full border border-sky-200/60 bg-white px-2 py-1">

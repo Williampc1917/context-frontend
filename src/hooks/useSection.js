@@ -6,11 +6,8 @@ import { useReducedMotion } from "framer-motion";
  * Uses IntersectionObserver with optimized settings
  */
 export function useSection(options = {}) {
-  const { 
-    threshold = 0.1, 
-    rootMargin = "0px 0px -35% 0px",
-  } = options;
-  
+  const { threshold = 0.1, rootMargin = "0px 0px -35% 0px" } = options;
+
   const ref = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
   const prefersReducedMotion = useReducedMotion();
@@ -35,12 +32,12 @@ export function useSection(options = {}) {
           observer.disconnect(); // Only trigger once, then cleanup
         }
       },
-      { 
-        threshold, 
+      {
+        threshold,
         rootMargin,
         // Performance optimization - don't track changes after initial intersection
         trackVisibility: false,
-      }
+      },
     );
 
     observer.observe(element);
