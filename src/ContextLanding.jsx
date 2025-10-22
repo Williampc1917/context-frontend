@@ -659,6 +659,11 @@ export function BitBuildHeadline({
   const h1Ref = useRef(null);
   const rafRef = useRef(0);
 
+  // Swap timing (canvas tiles → DOM text)
+  const tileFadeMs = 360;
+  const textDelayMs = 120;
+  const textFadeMs = 260;
+
   const prefersReducedMotion =
     typeof window !== "undefined" &&
     window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
@@ -1123,13 +1128,23 @@ export function BitBuildHeadline({
       if (stage === "hold") {
         if (now - stageStart >= finalHoldMs) {
           stage = "swapToDom";
+          stageStart = now;
         }
       }
       if (stage === "swapToDom") {
-        tileOpacity += (0 - tileOpacity) * 0.16;
-        canvasTextAlpha += (1 - canvasTextAlpha) * 0.16;
+        const swapElapsed = now - stageStart;
+        const tileProgress =
+          tileFadeMs > 0 ? clamp01(swapElapsed / tileFadeMs) : 1;
+        const delayedElapsed = Math.max(0, swapElapsed - textDelayMs);
+        const textProgress =
+          textFadeMs > 0 ? clamp01(delayedElapsed / textFadeMs) : 1;
 
-        if (tileOpacity < 0.02 && canvasTextAlpha > 0.98) {
+        tileOpacity = 1 - easeOutCubic(tileProgress);
+        canvasTextAlpha =
+          swapElapsed >= textDelayMs ? easeOutCubic(textProgress) : 0;
+
+        const totalSwapDuration = tileFadeMs + textDelayMs + textFadeMs;
+        if (swapElapsed >= totalSwapDuration) {
           // one-frame swap: no overlap => no ghost
           canvas.style.opacity = "0";
           h1.style.opacity = "1";
