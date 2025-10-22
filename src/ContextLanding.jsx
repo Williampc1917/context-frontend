@@ -711,6 +711,7 @@ export function BitBuildHeadline({
     let stageStart = 0;
     let tileOpacity = 1.0;
     let canvasTextAlpha = 0.0;
+    let swapProgress = 0;
 
     const maxBits = window.innerWidth < 768 ? mobileMaxBits : desktopMaxBits;
     const hardStopMs =
@@ -1011,7 +1012,8 @@ export function BitBuildHeadline({
         const line = lines[li];
         for (let ci = 0; ci < line.length; ci++) {
           const gi = globalIndex(li, ci);
-          const a = clamp01((perLetterAlpha[gi] || 0) + alphaBoost);
+          const hintAlpha = (perLetterAlpha[gi] || 0) * (1 - canvasTextAlpha);
+          const a = clamp01(hintAlpha + alphaBoost);
           if (a <= 0) continue;
           ctx.globalAlpha = a;
           ctx.fillText(line[ci], lineCharXs[li][ci], baselineYs[li]);
@@ -1079,7 +1081,12 @@ export function BitBuildHeadline({
       for (let i = 0; i < totalChars; i++) {
         const total = perLetterTotal[i] || 1;
         const prog = perLetterArrived[i] / total;
-        const targetAlpha = prog >= letterCompleteThreshold ? 0.66 : 0.0;
+        const targetAlpha =
+          stage === "swapToDom"
+            ? 0
+            : prog >= letterCompleteThreshold
+              ? 0.66
+              : 0.0;
         perLetterAlpha[i] += (targetAlpha - perLetterAlpha[i]) * 0.16;
         if (prog < allCompleteThreshold) allDone = false;
       }
@@ -1123,13 +1130,16 @@ export function BitBuildHeadline({
       if (stage === "hold") {
         if (now - stageStart >= finalHoldMs) {
           stage = "swapToDom";
+          swapProgress = 0;
         }
       }
       if (stage === "swapToDom") {
-        tileOpacity += (0 - tileOpacity) * 0.16;
-        canvasTextAlpha += (1 - canvasTextAlpha) * 0.16;
+        swapProgress += (1 - swapProgress) * 0.16;
+        const eased = easeOutCubic(clamp01(swapProgress));
+        tileOpacity = 1 - eased;
+        canvasTextAlpha = eased;
 
-        if (tileOpacity < 0.02 && canvasTextAlpha > 0.98) {
+        if (eased > 0.999) {
           // one-frame swap: no overlap => no ghost
           canvas.style.opacity = "0";
           h1.style.opacity = "1";
@@ -1163,6 +1173,7 @@ export function BitBuildHeadline({
       // 3) Animate
       tileOpacity = 1.0;
       canvasTextAlpha = 0.0;
+      swapProgress = 0;
       stage = "build";
       stageStart = performance.now();
       startedAt = 0;
