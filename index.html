@@ -2,9 +2,37 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>context-landing-vite</title>
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+
+    <!-- Speed up Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Silkscreen (for the pixel pass in RevealHeadline) -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Optional: subtle selection color to match brand -->
+    <style>
+      ::selection { background: #E07A5F22; }
+      ::-moz-selection { background: #E07A5F22; }
+
+      /* Optional: calm brand-tinted page background (can remove if using Tailwind styles elsewhere) */
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        background:
+          radial-gradient(80% 60% at 50% 0%, #E07A5F14 0%, transparent 60%),
+          radial-gradient(60% 50% at 50% 100%, #3D405B12 0%, transparent 60%),
+          #fff;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
