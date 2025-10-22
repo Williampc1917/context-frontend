@@ -118,6 +118,20 @@ export function RevealHeadline({
   // ---------- utils ----------
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const lerp = (a, b, t) => a + (b - a) * t;
+  const responsiveStops = (width, stops) => {
+    if (!stops.length) return 0;
+    if (width <= stops[0][0]) return stops[0][1];
+    for (let i = 1; i < stops.length; i++) {
+      const [prevW, prevV] = stops[i - 1];
+      const [currW, currV] = stops[i];
+      if (width <= currW) {
+        const span = Math.max(1, currW - prevW);
+        const t = clamp((width - prevW) / span, 0, 1);
+        return lerp(prevV, currV, t);
+      }
+    }
+    return stops[stops.length - 1][1];
+  };
   const easeCubic = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
   const easeOut = (t) => 1 - Math.pow(1 - t, 2.2);
   const hexToRgb = (hex) => {
@@ -203,22 +217,62 @@ export function RevealHeadline({
     const narrowCap = St.w <= 640 ? 1.5 : 2;
     St.dpr = clamp(deviceDpr, 1, narrowCap);
 
-    const wClamped = clamp(St.w, 320, 1600);
-    const widthT = (wClamped - 320) / (1600 - 320);
-    const endMin = Math.max(1.5, tileEnd * 0.75);
+    const endStops = [
+      [0, Math.max(1.4, tileEnd * 0.72)],
+      [420, Math.max(1.5, tileEnd * 0.8)],
+      [640, tileEnd * 0.9],
+      [900, tileEnd],
+      [1280, tileEnd * 1.08],
+      [1600, tileEnd * 1.18],
+    ];
+    const endMin = Math.max(1.4, tileEnd * 0.7);
     const endMax = Math.max(endMin, tileEnd * 1.25);
-    const responsiveEnd = lerp(tileEnd * 0.85, tileEnd * 1.1, widthT);
+    const responsiveEnd = responsiveStops(St.w, endStops);
     St.tileEnd = clamp(responsiveEnd, endMin, endMax);
+
+    const startStops = [
+      [0, Math.max(St.tileEnd + 0.6, tileStart * 0.68)],
+      [420, tileStart * 0.76],
+      [640, tileStart * 0.88],
+      [900, tileStart * 0.96],
+      [1280, tileStart],
+      [1600, tileStart * 1.1],
+    ];
     const startMin = St.tileEnd + 0.5;
-    const startMax = Math.max(startMin, tileStart * 1.2);
-    const responsiveStart = lerp(tileStart * 0.72, tileStart * 1.05, widthT);
+    const startMax = Math.max(startMin, tileStart * 1.35);
+    const responsiveStart = responsiveStops(St.w, startStops);
     St.tileStart = clamp(responsiveStart, startMin, startMax);
 
-    const breathScale = lerp(0.6, 1.1, widthT);
-    St.breathAlphaBase = BREATH.alphaBase * lerp(0.9, 1.05, widthT);
-    St.breathAlphaAmp = BREATH.alphaAmp * breathScale;
-    St.breathSizeAmpPx = BREATH.sizeAmpPx * lerp(0.7, 1.3, widthT);
-    St.breathDriftPx = BREATH.driftPx * lerp(0.6, 1, widthT);
+    const alphaBaseStops = [
+      [0, BREATH.alphaBase * 0.85],
+      [480, BREATH.alphaBase * 0.92],
+      [768, BREATH.alphaBase],
+      [1280, BREATH.alphaBase * 1.05],
+    ];
+    const breathAmpStops = [
+      [0, BREATH.alphaAmp * 0.65],
+      [480, BREATH.alphaAmp * 0.78],
+      [768, BREATH.alphaAmp * 0.92],
+      [1024, BREATH.alphaAmp],
+      [1440, BREATH.alphaAmp * 1.15],
+    ];
+    const sizeStops = [
+      [0, BREATH.sizeAmpPx * 0.6],
+      [480, BREATH.sizeAmpPx * 0.75],
+      [768, BREATH.sizeAmpPx * 0.9],
+      [1024, BREATH.sizeAmpPx],
+      [1440, BREATH.sizeAmpPx * 1.25],
+    ];
+    const driftStops = [
+      [0, BREATH.driftPx * 0.55],
+      [640, BREATH.driftPx * 0.7],
+      [1024, BREATH.driftPx * 0.85],
+      [1440, BREATH.driftPx],
+    ];
+    St.breathAlphaBase = clamp(responsiveStops(St.w, alphaBaseStops), BREATH.alphaBase * 0.75, BREATH.alphaBase * 1.2);
+    St.breathAlphaAmp = clamp(responsiveStops(St.w, breathAmpStops), BREATH.alphaAmp * 0.6, BREATH.alphaAmp * 1.3);
+    St.breathSizeAmpPx = clamp(responsiveStops(St.w, sizeStops), BREATH.sizeAmpPx * 0.55, BREATH.sizeAmpPx * 1.35);
+    St.breathDriftPx = clamp(responsiveStops(St.w, driftStops), BREATH.driftPx * 0.5, BREATH.driftPx * 1.1);
 
     const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
     canvas.width = Math.round(St.w * St.dpr);
