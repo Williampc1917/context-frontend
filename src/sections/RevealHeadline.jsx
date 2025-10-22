@@ -209,7 +209,92 @@ export function RevealHeadline({
       h1.style.textAlign = "center";
     }
 
-    St.lines = String(text).split("\n");
+    const fragments = [];
+
+    const spans = wrap.querySelectorAll("[data-line]");
+    const tolerance = 0.5;
+    spans.forEach((node) => {
+      const range = document.createRange();
+      const walker = document.createTreeWalker(
+        node,
+        NodeFilter.SHOW_TEXT,
+        null
+      );
+      let current = null;
+      let textNode;
+      while ((textNode = walker.nextNode())) {
+        const content = textNode.textContent || "";
+        for (let i = 0; i < content.length; i++) {
+          range.setStart(textNode, i);
+          range.setEnd(textNode, i + 1);
+          const rectList = range.getClientRects();
+          let rect = null;
+          for (let j = 0; j < rectList.length; j++) {
+            const candidate = rectList[j];
+            if (candidate.width !== 0 || candidate.height !== 0) {
+              rect = candidate;
+              break;
+            }
+          }
+          if (!rect) {
+            if (current) {
+              current.text += content[i];
+            }
+            continue;
+          }
+
+          if (
+            !current ||
+            Math.abs(rect.top - current.top) > tolerance
+          ) {
+            if (current && current.text) {
+              const width = current.right - current.left;
+              const height = current.bottom - current.top;
+              fragments.push({
+                text: current.text,
+                cx: current.left + width / 2 - wrapRect.left,
+                cy: current.top + height / 2 - wrapRect.top,
+              });
+            }
+            current = {
+              text: content[i],
+              top: rect.top,
+              bottom: rect.bottom,
+              left: rect.left,
+              right: rect.right,
+            };
+          } else {
+            current.text += content[i];
+            current.left = Math.min(current.left, rect.left);
+            current.right = Math.max(current.right, rect.right);
+            current.bottom = Math.max(current.bottom, rect.bottom);
+          }
+        }
+      }
+
+      if (current && current.text) {
+        const width = current.right - current.left;
+        const height = current.bottom - current.top;
+        fragments.push({
+          text: current.text,
+          cx: current.left + width / 2 - wrapRect.left,
+          cy: current.top + height / 2 - wrapRect.top,
+        });
+      }
+
+      range.detach?.();
+    });
+
+    St.lines = fragments.map((f) => f.text);
+    St.centers = fragments.map((f) => ({ cx: f.cx, cy: f.cy }));
+    if (!St.lines.length) {
+      const fallbackLines = String(text).split("\n");
+      St.lines = fallbackLines;
+      St.centers = fallbackLines.map((_, i) => ({
+        cx: wrapRect.width / 2,
+        cy: (i + 0.5) * St.lineHeightPx,
+      }));
+    }
 
     // canvas dims: match the visible <h1> box exactly
     St.w = Math.max(1, Math.round(wrapRect.width));
@@ -283,17 +368,6 @@ export function RevealHeadline({
     ctx.setTransform(St.dpr, 0, 0, St.dpr, 0, 0);
     ctx.imageSmoothingEnabled = false;
 
-    // collect line centers from actual DOM <span data-line>
-    const spans = wrap.querySelectorAll("[data-line]");
-    St.centers = [];
-    spans.forEach((node) => {
-      const r = node.getBoundingClientRect();
-      St.centers.push({
-        cx: (r.left + r.width / 2) - wrapRect.left,
-        cy: (r.top + r.height / 2) - wrapRect.top,
-      });
-    });
-
     // build clean text mask (offscreen), with letter-spacing
     St.off = document.createElement("canvas");
     St.off.width = canvas.width;
@@ -309,7 +383,8 @@ export function RevealHeadline({
     St.octx.font = `${St.fontWeight} ${St.fontSize}px ${cleanFont}`;
     for (let i = 0; i < St.lines.length; i++) {
       const line = St.lines[i];
-      const c = St.centers[i] || { cx: St.w / 2, cy: (i + 0.5) * St.lineHeightPx };
+      const c = St.centers[i];
+      if (!line || !c) continue;
       drawLineWithSpacing(St.octx, line, c.cx, c.cy, St.letterSpacingPx);
     }
 
