@@ -55,6 +55,7 @@ export function RevealHeadline({
   // RAF + timer for the breathing overlay
   const breathRafRef = useRef(0);
   const breathTimeoutRef = useRef(0);
+  const breathIdleTimeoutRef = useRef(0);
 
   const S = useRef({
     dpr: 1,
@@ -76,11 +77,20 @@ export function RevealHeadline({
     // { x, y, rSeed, phase, rate, spatial, introKey }
     points: [],
     step: 0, // sampling grid spacing (CSS px)
+    tileStart: tileStart,
+    tileEnd: tileEnd,
+    breathAlphaBase: BREATH.alphaBase,
+    breathAlphaAmp: BREATH.alphaAmp,
+    breathSizeAmpPx: BREATH.sizeAmpPx,
+    breathDriftPx: BREATH.driftPx,
     // timing
     start: 0,
     progress: 0,
     running: false,
     visible: true,
+    docVisible: true,
+    pausedAt: 0,
+    lowPower: false,
     // breathing state
     breathStart: 0,
     lastNow: 0,
@@ -171,12 +181,44 @@ export function RevealHeadline({
         : Math.round(parseFloat(cs.lineHeight) || St.fontSize * 1.2);
     St.letterSpacingPx = cs.letterSpacing === "normal" ? 0 : parseFloat(cs.letterSpacing) || 0;
 
+    if (!Number.isFinite(St.fontSize) || St.fontSize <= 0) {
+      St.fontSize = 64;
+    }
+    if (!Number.isFinite(St.lineHeightPx) || St.lineHeightPx <= 0) {
+      St.lineHeightPx = Math.round(St.fontSize * 1.2);
+    }
+    if (!Number.isFinite(St.letterSpacingPx)) {
+      St.letterSpacingPx = 0;
+    }
+    if (cs.textAlign !== "center") {
+      h1.style.textAlign = "center";
+    }
+
     St.lines = String(text).split("\n");
 
     // canvas dims: match the visible <h1> box exactly
     St.w = Math.max(1, Math.round(wrapRect.width));
     St.h = Math.max(1, Math.round(wrapRect.height));
-    St.dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1)); // cap DPR
+    const deviceDpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+    const narrowCap = St.w <= 640 ? 1.5 : 2;
+    St.dpr = clamp(deviceDpr, 1, narrowCap);
+
+    const wClamped = clamp(St.w, 320, 1600);
+    const widthT = (wClamped - 320) / (1600 - 320);
+    const endMin = Math.max(1.5, tileEnd * 0.75);
+    const endMax = Math.max(endMin, tileEnd * 1.25);
+    const responsiveEnd = lerp(tileEnd * 0.85, tileEnd * 1.1, widthT);
+    St.tileEnd = clamp(responsiveEnd, endMin, endMax);
+    const startMin = St.tileEnd + 0.5;
+    const startMax = Math.max(startMin, tileStart * 1.2);
+    const responsiveStart = lerp(tileStart * 0.72, tileStart * 1.05, widthT);
+    St.tileStart = clamp(responsiveStart, startMin, startMax);
+
+    const breathScale = lerp(0.6, 1.1, widthT);
+    St.breathAlphaBase = BREATH.alphaBase * lerp(0.9, 1.05, widthT);
+    St.breathAlphaAmp = BREATH.alphaAmp * breathScale;
+    St.breathSizeAmpPx = BREATH.sizeAmpPx * lerp(0.7, 1.3, widthT);
+    St.breathDriftPx = BREATH.driftPx * lerp(0.6, 1, widthT);
 
     const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
     canvas.width = Math.round(St.w * St.dpr);
@@ -223,7 +265,7 @@ export function RevealHeadline({
 
     // pre-sample tile positions at final density
     S.current.points.length = 0;
-    const step = Math.max(2, tileEnd);
+    const step = Math.max(2, St.tileEnd);
     S.current.step = step; // track sampling grid
     for (let y = step * 0.5; y < St.h; y += step) {
       const row = Math.floor(y / step);
@@ -246,6 +288,7 @@ export function RevealHeadline({
     S.current.breathStart = now;
     S.current.lastNow = now;
     S.current.flow = 0;
+    S.current.lowPower = false;
   }
 
   // ---------- draw (original reveal) ----------
@@ -272,7 +315,7 @@ export function RevealHeadline({
 
     // Sharpening tiles
     const progEase = easeOut(progress);
-    const size = lerp(tileStart, tileEnd, progEase);
+    const size = lerp(St.tileStart, St.tileEnd, progEase);
     const cA = hexToRgb(activeColor);
     const cB = hexToRgb(cleanColor);
     const tint = mix(cA, cB, progEase);
@@ -292,8 +335,8 @@ export function RevealHeadline({
     }
 
     // Seam killers
-    const jitterAmt = Math.max(jitterBasePx, (size - tileEnd) * 0.12);
-    const targetEndSize = (St.step || tileEnd) + seamOverlapPx;
+    const jitterAmt = Math.max(jitterBasePx, (size - St.tileEnd) * 0.12);
+    const targetEndSize = (St.step || St.tileEnd) + seamOverlapPx;
     let s = size + (targetEndSize - size) * progEase;
 
     // snap to device pixels
@@ -339,7 +382,7 @@ export function RevealHeadline({
     ctx.clearRect(0, 0, St.w, St.h);
 
     const q = 1 / St.dpr;
-    const baseSize = Math.max(q, Math.round(((St.step || tileEnd) + seamOverlapPx) / q) * q);
+    const baseSize = Math.max(q, Math.round(((St.step || St.tileEnd) + seamOverlapPx) / q) * q);
 
     const cA = hexToRgb(activeColor);
     const cB = hexToRgb(cleanColor);
@@ -373,11 +416,11 @@ export function RevealHeadline({
       const theta = p.phase + (omega * (now - S.current.breathStart) * p.rate) + (p.spatial + S.current.flow);
       const v = 0.5 + 0.5 * Math.sin(theta); // 0..1
 
-      const a = (BREATH.alphaBase + BREATH.alphaAmp * v) * introAlphaScale;
-      let s = baseSize + BREATH.sizeAmpPx * (v - 0.5) * 2;
+      const a = (St.breathAlphaBase + St.breathAlphaAmp * v) * introAlphaScale;
+      let s = baseSize + St.breathSizeAmpPx * (v - 0.5) * 2;
 
-      const dx = p.rSeed * BREATH.driftPx * (v - 0.5) * 2;
-      const dy = -p.rSeed * BREATH.driftPx * (v - 0.5) * 2;
+      const dx = p.rSeed * St.breathDriftPx * (v - 0.5) * 2;
+      const dy = -p.rSeed * St.breathDriftPx * (v - 0.5) * 2;
 
       s = Math.max(q, Math.round(s / q) * q);
       const rx = Math.round((p.x + dx - s / 2) / q) * q;
@@ -400,9 +443,24 @@ export function RevealHeadline({
     if (!S.current.visible || prefersReducedMotion) {
       cancelAnimationFrame(breathRafRef.current);
       breathRafRef.current = 0;
+      cancelLowPowerBreath();
       return;
     }
+    cancelLowPowerBreath();
+    const dt = now - S.current.lastNow;
+    if (dt > 400) {
+      S.current.lowPower = true;
+    } else if (S.current.lowPower && dt < 160) {
+      S.current.lowPower = false;
+    }
     drawBreath(now);
+
+    if (!S.current.docVisible || S.current.lowPower) {
+      breathRafRef.current = 0;
+      scheduleLowPowerBreath();
+      return;
+    }
+
     breathRafRef.current = requestAnimationFrame(breathTick);
   }
 
@@ -411,6 +469,8 @@ export function RevealHeadline({
     const now = typeof performance !== "undefined" ? performance.now() : Date.now();
     S.current.breathStart = now;
     S.current.lastNow = now;
+    S.current.lowPower = false;
+    cancelLowPowerBreath();
     if (!breathRafRef.current) {
       breathRafRef.current = requestAnimationFrame(breathTick);
     }
@@ -419,6 +479,8 @@ export function RevealHeadline({
   function stopBreathing() {
     cancelAnimationFrame(breathRafRef.current);
     breathRafRef.current = 0;
+    cancelLowPowerBreath();
+    S.current.lowPower = false;
     const ctx = canvasRef.current?.getContext("2d");
     if (ctx && S.current) ctx.clearRect(0, 0, S.current.w, S.current.h);
   }
@@ -434,6 +496,17 @@ export function RevealHeadline({
   function tick(now) {
     const St = S.current;
     if (!St.running) return;
+    if (!St.docVisible) {
+      if (!St.pausedAt) {
+        St.pausedAt = now;
+      }
+      rafRef.current = 0;
+      return;
+    }
+    if (St.pausedAt) {
+      St.start += now - St.pausedAt;
+      St.pausedAt = 0;
+    }
     if (!St.start) St.start = now + delayMs;
     const t = clamp((now - St.start) / durationMs, 0, 1);
     St.progress = t;
@@ -488,6 +561,34 @@ export function RevealHeadline({
     rafRef.current = requestAnimationFrame(tick);
   }
 
+  function cancelLowPowerBreath() {
+    if (breathIdleTimeoutRef.current) {
+      clearTimeout(breathIdleTimeoutRef.current);
+      breathIdleTimeoutRef.current = 0;
+    }
+    S.current.lowPower = false;
+  }
+
+  function scheduleLowPowerBreath() {
+    if (breathIdleTimeoutRef.current || prefersReducedMotion) return;
+    if (!S.current.visible) return;
+    const delay = S.current.docVisible ? 160 : 650;
+    S.current.lowPower = true;
+    breathIdleTimeoutRef.current = window.setTimeout(() => {
+      breathIdleTimeoutRef.current = 0;
+      if (!S.current.visible || prefersReducedMotion) return;
+      const ts = typeof performance !== "undefined" ? performance.now() : Date.now();
+      if (!S.current.docVisible) {
+        drawBreath(ts);
+        if (S.current.lowPower) {
+          scheduleLowPowerBreath();
+        }
+        return;
+      }
+      breathRafRef.current = requestAnimationFrame(breathTick);
+    }, delay);
+  }
+
   // ---------- lifecycle ----------
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -529,7 +630,22 @@ export function RevealHeadline({
       rebuild();
     }
 
-    const ro = new ResizeObserver(rebuild);
+    let resizeTimeoutId = 0;
+    let resizeRafId = 0;
+    const flushResize = () => {
+      resizeTimeoutId = 0;
+      resizeRafId = requestAnimationFrame(() => {
+        resizeRafId = 0;
+        rebuild();
+      });
+    };
+    const handleResize = () => {
+      if (resizeTimeoutId) window.clearTimeout(resizeTimeoutId);
+      if (resizeRafId) cancelAnimationFrame(resizeRafId);
+      resizeTimeoutId = window.setTimeout(flushResize, 90);
+    };
+
+    const ro = new ResizeObserver(handleResize);
     ro.observe(wrap);
 
     const io = new IntersectionObserver(
@@ -548,6 +664,41 @@ export function RevealHeadline({
     );
     io.observe(wrap);
 
+    const handleVisibility = () => {
+      if (typeof document === "undefined") return;
+      const visible = document.visibilityState !== "hidden";
+      const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+      S.current.docVisible = visible;
+      if (!visible) {
+        if (S.current.running) {
+          S.current.pausedAt = now;
+        }
+        if (breathRafRef.current) {
+          cancelAnimationFrame(breathRafRef.current);
+          breathRafRef.current = 0;
+        }
+        if (S.current.revealedOnce && !prefersReducedMotion) {
+          scheduleLowPowerBreath();
+        }
+      } else {
+        if (S.current.pausedAt) {
+          S.current.start += now - S.current.pausedAt;
+          S.current.pausedAt = 0;
+        }
+        S.current.lastNow = now;
+        cancelLowPowerBreath();
+        if (S.current.running && !rafRef.current) {
+          rafRef.current = requestAnimationFrame(tick);
+        }
+        if (S.current.revealedOnce && !prefersReducedMotion && !breathRafRef.current) {
+          breathRafRef.current = requestAnimationFrame(breathTick);
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    handleVisibility();
+
     // autoplay once on mount
     startAnim();
 
@@ -560,6 +711,7 @@ export function RevealHeadline({
     return () => {
       ro.disconnect();
       io.disconnect();
+      document.removeEventListener("visibilitychange", handleVisibility);
       if (retriggerOnHover) {
         wrap.removeEventListener("mouseenter", trigger);
         wrap.removeEventListener("touchstart", trigger);
@@ -567,6 +719,9 @@ export function RevealHeadline({
       clearBreathDelay();
       cancelAnimationFrame(rafRef.current);
       cancelAnimationFrame(breathRafRef.current);
+      if (resizeTimeoutId) window.clearTimeout(resizeTimeoutId);
+      if (resizeRafId) cancelAnimationFrame(resizeRafId);
+      cancelLowPowerBreath();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
