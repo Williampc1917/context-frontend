@@ -72,6 +72,8 @@ export function RevealHeadline({
 
   const S = useRef({
     dpr: 1,
+    dprX: 1,
+    dprY: 1,
     w: 0,
     h: 0,
     lines: [],
@@ -171,8 +173,10 @@ export function RevealHeadline({
 
   function alphaAtCss(x, y) {
     const St = S.current;
-    const px = clamp(Math.round(x * St.dpr), 0, St.maskW - 1);
-    const py = clamp(Math.round(y * St.dpr), 0, St.maskH - 1);
+    const scaleX = St.dprX || St.dpr || 1;
+    const scaleY = St.dprY || St.dpr || 1;
+    const px = clamp(Math.round(x * scaleX), 0, St.maskW - 1);
+    const py = clamp(Math.round(y * scaleY), 0, St.maskH - 1);
     const idx = (py * St.maskW + px) * 4 + 3; // alpha
     return (St.maskData[idx] || 0) / 255;
   }
@@ -212,11 +216,11 @@ export function RevealHeadline({
     St.lines = String(text).split("\n");
 
     // canvas dims: match the visible <h1> box exactly
-    St.w = Math.max(1, Math.round(wrapRect.width));
-    St.h = Math.max(1, Math.round(wrapRect.height));
+    St.w = Math.max(1, wrapRect.width);
+    St.h = Math.max(1, wrapRect.height);
     const deviceDpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
     const narrowCap = St.w <= 640 ? 1.5 : 2;
-    St.dpr = clamp(deviceDpr, 1, narrowCap);
+    const targetDpr = clamp(deviceDpr, 1, narrowCap);
 
     const endStops = [
       [0, Math.max(1.4, tileEnd * 0.72)],
@@ -276,11 +280,18 @@ export function RevealHeadline({
     St.breathDriftPx = clamp(responsiveStops(St.w, driftStops), BREATH.driftPx * 0.5, BREATH.driftPx * 1.1);
 
     const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
-    canvas.width = Math.round(St.w * St.dpr);
-    canvas.height = Math.round(St.h * St.dpr);
-    canvas.style.width = "100%";
+    const pixelWidth = Math.max(1, Math.round(St.w * targetDpr));
+    const pixelHeight = Math.max(1, Math.round(St.h * targetDpr));
+    const scaleX = pixelWidth / St.w;
+    const scaleY = pixelHeight / St.h;
+    St.dpr = (scaleX + scaleY) * 0.5;
+    St.dprX = scaleX;
+    St.dprY = scaleY;
+    canvas.width = pixelWidth;
+    canvas.height = pixelHeight;
+    canvas.style.width = `${St.w}px`;
     canvas.style.height = `${St.h}px`;
-    ctx.setTransform(St.dpr, 0, 0, St.dpr, 0, 0);
+    ctx.setTransform(scaleX, 0, 0, scaleY, 0, 0);
     ctx.imageSmoothingEnabled = false;
 
     // collect line centers from actual DOM <span data-line>
@@ -296,10 +307,10 @@ export function RevealHeadline({
 
     // build clean text mask (offscreen), with letter-spacing
     St.off = document.createElement("canvas");
-    St.off.width = canvas.width;
-    St.off.height = canvas.height;
+    St.off.width = pixelWidth;
+    St.off.height = pixelHeight;
     St.octx = St.off.getContext("2d");
-    St.octx.setTransform(St.dpr, 0, 0, St.dpr, 0, 0);
+    St.octx.setTransform(scaleX, 0, 0, scaleY, 0, 0);
     St.octx.imageSmoothingEnabled = false;
     St.octx.clearRect(0, 0, St.w, St.h);
 
@@ -395,7 +406,8 @@ export function RevealHeadline({
     let s = size + (targetEndSize - size) * progEase;
 
     // snap to device pixels
-    const q = 1 / St.dpr;
+    const dprSnap = Math.max(St.dprX, St.dprY, 1);
+    const q = 1 / dprSnap;
     s = Math.max(q, Math.round(s / q) * q);
 
     for (let i = 0; i < St.points.length; i++) {
@@ -436,7 +448,8 @@ export function RevealHeadline({
     ctx.globalCompositeOperation = "source-over";
     ctx.clearRect(0, 0, St.w, St.h);
 
-    const q = 1 / St.dpr;
+    const dprSnap = Math.max(St.dprX, St.dprY, 1);
+    const q = 1 / dprSnap;
     const baseSize = Math.max(q, Math.round(((St.step || St.tileEnd) + seamOverlapPx) / q) * q);
 
     const cA = hexToRgb(activeColor);
