@@ -57,6 +57,19 @@ export function RevealHeadline({
   const breathTimeoutRef = useRef(0);
   const breathIdleTimeoutRef = useRef(0);
 
+    // ---- Breathing config (internal) ----
+  const BREATH = {
+    periodMs: 3200,       // full in/out cycle
+    alphaBase: 0.10,
+    alphaAmp:  0.18,
+    sizeAmpPx: 0.35,
+    tintMix:   0.45,      // 0..1 toward cleanColor (0 = activeColor)
+    driftPx:   0.25,      // micro subpixel wander
+    fieldFreqX: 0.018,    // radians per CSS px
+    fieldFreqY: 0.013,
+    fieldDrift: 0.0009,   // radians per ms (slow drift)
+  };
+
   const S = useRef({
     dpr: 1,
     w: 0,
@@ -102,18 +115,6 @@ export function RevealHeadline({
     typeof window !== "undefined" &&
     window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
-  // ---- Breathing config (internal) ----
-  const BREATH = {
-    periodMs: 3200,       // full in/out cycle
-    alphaBase: 0.10,
-    alphaAmp:  0.18,
-    sizeAmpPx: 0.35,
-    tintMix:   0.45,      // 0..1 toward cleanColor (0 = activeColor)
-    driftPx:   0.25,      // micro subpixel wander
-    fieldFreqX: 0.018,    // radians per CSS px
-    fieldFreqY: 0.013,
-    fieldDrift: 0.0009,   // radians per ms (slow drift)
-  };
 
   // ---------- utils ----------
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
