@@ -212,8 +212,8 @@ export function RevealHeadline({
     St.lines = String(text).split("\n");
 
     // canvas dims: match the visible <h1> box exactly
-    St.w = Math.max(1, Math.round(wrapRect.width));
-    St.h = Math.max(1, Math.round(wrapRect.height));
+    St.w = Math.max(1, wrapRect.width);
+    St.h = Math.max(1, wrapRect.height);
     const deviceDpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
     const narrowCap = St.w <= 640 ? 1.5 : 2;
     St.dpr = clamp(deviceDpr, 1, narrowCap);
@@ -276,9 +276,11 @@ export function RevealHeadline({
     St.breathDriftPx = clamp(responsiveStops(St.w, driftStops), BREATH.driftPx * 0.5, BREATH.driftPx * 1.1);
 
     const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
-    canvas.width = Math.round(St.w * St.dpr);
-    canvas.height = Math.round(St.h * St.dpr);
-    canvas.style.width = "100%";
+    const pixelWidth = Math.round(St.w * St.dpr);
+    const pixelHeight = Math.round(St.h * St.dpr);
+    canvas.width = pixelWidth;
+    canvas.height = pixelHeight;
+    canvas.style.width = `${St.w}px`;
     canvas.style.height = `${St.h}px`;
     ctx.setTransform(St.dpr, 0, 0, St.dpr, 0, 0);
     ctx.imageSmoothingEnabled = false;
@@ -296,8 +298,8 @@ export function RevealHeadline({
 
     // build clean text mask (offscreen), with letter-spacing
     St.off = document.createElement("canvas");
-    St.off.width = canvas.width;
-    St.off.height = canvas.height;
+    St.off.width = pixelWidth;
+    St.off.height = pixelHeight;
     St.octx = St.off.getContext("2d");
     St.octx.setTransform(St.dpr, 0, 0, St.dpr, 0, 0);
     St.octx.imageSmoothingEnabled = false;
