@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useReducedMotion, motion, AnimatePresence } from "framer-motion";
-import { Mic, ArrowRight, Menu, X } from "lucide-react";
+import { Mic, ArrowRight, Menu, X, Mail, Twitter, Linkedin } from "lucide-react";
 import "./index.css";
 import { rafThrottle } from "./utils/throttle";
 import { useForm, ValidationError } from "@formspree/react";
@@ -139,51 +139,37 @@ export default function ContextLanding() {
             : "bg-transparent"
         }`}
       >
-        <div className="relative mx-auto flex h-14 max-w-7xl items-center justify-between px-6 lg:px-8">
-          <div
+        <div className="relative mx-auto flex h-16 w-full max-w-6xl items-center gap-4 px-4 sm:px-6 lg:px-8">
+          <button
+            type="button"
             onClick={() => scrollTo("top")}
-            className="flex items-center gap-[10px] cursor-pointer select-none"
+            className="group flex items-center gap-3 rounded-full px-2 py-1 transition-colors hover:bg-white/70"
           >
-            {/* Waveform SVG logo */}
-            <img
-              src="/waveform.svg"
-              alt="ClaroAI waveform logo"
-              className="h-8 w-8 md:h-9 md:w-9 object-contain relative top-[1px]" // ⬆️ pushes logo up 1px visually
-            />
-
-            {/* Logotype */}
-            <span className="text-[20px] md:text-[22px] font-silkscreen tracking-tight leading-none relative top-[0.5px]">
-              <span className="text-[#E07A5F]">Claro </span>
-              <span className="text-[#3D405B]">AI</span>
+            <span className="flex size-10 items-center justify-center rounded-full border border-[#E07A5F]/40 bg-white/80 shadow-sm transition-transform duration-300 group-hover:scale-105">
+              <img
+                src="/waveform.svg"
+                alt="Claro AI waveform logo"
+                className="h-6 w-6 object-contain"
+              />
             </span>
+
+            <span className="text-[20px] font-silkscreen tracking-tight leading-none text-[#3D405B]">
+              <span className="text-[#E07A5F]">Claro</span>
+              <span className="ml-1">AI</span>
+            </span>
+          </button>
+
+          <div className="hidden flex-1 items-center justify-center md:flex">
+            <div className="flex items-center gap-10 text-[15px] font-medium text-[#3D405B]/80">
+              <NavLink label="The problem" onClick={() => scrollTo("problem")} />
+              <NavLink label="Solution" onClick={() => scrollTo("solution")} />
+              <NavLink label="Features" onClick={() => scrollTo("features")} />
+              <NavLink label="How it works" onClick={() => scrollTo("how")} />
+              <NavLink label="Waitlist" onClick={() => scrollTo("waitlist")} />
+            </div>
           </div>
-          <div className="hidden md:flex items-center gap-8 text-sm absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <button
-              onClick={() => scrollTo("problem")}
-              className="hover:text-gray-600 transition-colors"
-            >
-              The problem
-            </button>
-            <button
-              onClick={() => scrollTo("solution")}
-              className="hover:text-gray-600 transition-colors"
-            >
-              Solution
-            </button>
-            <button
-              onClick={() => scrollTo("features")}
-              className="hover:text-gray-600 transition-colors"
-            >
-              Features
-            </button>
-            <button
-              onClick={() => scrollTo("how")}
-              className="hover:text-gray-600 transition-colors"
-            >
-              How it works
-            </button>
-          </div>
-          <div className="flex items-center gap-3">
+
+          <div className="flex items-center justify-end gap-3 md:flex-1">
             <button
               onClick={() => scrollTo("waitlist")}
               className="hidden btn-primary sm:inline-flex"
@@ -209,7 +195,7 @@ export default function ContextLanding() {
             className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm md:hidden"
             onClick={() => setMenuOpen(false)}
           />
-          <div className="fixed top-14 inset-x-0 z-50 px-4 pt-4 pb-6 md:hidden">
+          <div className="fixed inset-x-0 top-16 z-50 px-4 pt-4 pb-6 md:hidden">
             <div className="rounded-3xl border border-white/60 bg-white/90 p-4 shadow-xl backdrop-blur-xl">
               <div className="space-y-2">
                 <MobileNavButton
@@ -347,11 +333,9 @@ export default function ContextLanding() {
         </div>
       </section>
 
-      <section className="section-plain w-full py-28 px-4">
-        <div className="max-w-4xl mx-auto text-center mb-20">
-          <h2 className="text-6xl md:text-7xl font-bold text-gray-900 tracking-tight">
-            How Claro Works
-          </h2>
+      <section id="how" className="section-plain w-full py-28 px-4">
+        <div className="mx-auto mb-20 flex max-w-4xl justify-center text-center">
+          <HowItWorksHeading />
         </div>
 
         <div className="flex justify-center">
@@ -379,38 +363,106 @@ export default function ContextLanding() {
       </section>
 
       {/* Footer */}
-      <footer className="section-plain px-6 py-12">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid gap-8 md:grid-cols-4">
-            <div>
-              <div className="text-xl font-semibold">Context</div>
-              <p className="mt-2 text-gray-600">
-                Relationship intelligence for busy professionals.
-              </p>
+      <footer className="relative mt-20 overflow-hidden border-t border-white/50 bg-[#111323] text-white">
+        <div className="pointer-events-none absolute inset-0 opacity-70">
+          <div className="absolute -left-20 top-[-10%] h-72 w-72 rounded-full bg-[radial-gradient(circle_at_center,rgba(224,122,95,0.45),transparent_65%)] blur-3xl" />
+          <div className="absolute right-[-10%] bottom-[-20%] h-80 w-80 rounded-full bg-[radial-gradient(circle_at_center,rgba(56,189,248,0.35),transparent_65%)] blur-3xl" />
+        </div>
+
+        <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-12 px-6 py-16 lg:flex-row lg:justify-between lg:gap-16">
+          <div className="max-w-sm">
+            <button
+              type="button"
+              onClick={() => scrollTo("top")}
+              className="flex items-center gap-3 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-left shadow-lg backdrop-blur"
+            >
+              <span className="flex size-9 items-center justify-center rounded-full bg-white/80">
+                <img src="/waveform.svg" alt="Claro AI" className="h-5 w-5" />
+              </span>
+              <span className="text-xl font-silkscreen tracking-tight text-white">
+                <span className="text-[#E07A5F]">Claro</span>
+                <span className="ml-1 text-white">AI</span>
+              </span>
+            </button>
+            <p className="mt-4 text-base text-white/70">
+              Claro AI is the relationship intelligence copilot that keeps your communications warm and the right follow-ups on track.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-white/70">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1">
+                <Mail size={16} />
+                hello@claro.ai
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1">
+                Based in San Francisco
+              </span>
             </div>
-            <FooterCol
+            <div className="mt-6 flex items-center gap-3">
+              <FooterSocialLink
+                href="https://twitter.com"
+                label="Follow Claro AI on X"
+              >
+                <Twitter size={18} />
+              </FooterSocialLink>
+              <FooterSocialLink
+                href="https://linkedin.com"
+                label="Connect with Claro AI on LinkedIn"
+              >
+                <Linkedin size={18} />
+              </FooterSocialLink>
+            </div>
+          </div>
+
+          <div className="flex flex-1 flex-col gap-12 sm:flex-row sm:justify-between lg:gap-16">
+            <FooterNavGroup
               title="Product"
-              items={[
-                { label: "Features", target: "features" },
+              links={[
                 { label: "Solution", target: "solution" },
+                { label: "Features", target: "features" },
+                { label: "How it works", target: "how" },
                 { label: "Waitlist", target: "waitlist" },
-                { label: "Security", href: "#" },
               ]}
               onNavigate={scrollTo}
             />
-            <FooterCol
+            <FooterNavGroup
               title="Company"
-              items={["About", "Blog", "Careers"]}
-              onNavigate={scrollTo}
+              links={[
+                { label: "About", href: "#" },
+                { label: "Careers", href: "#" },
+                { label: "Press", href: "#" },
+              ]}
             />
-            <FooterCol
-              title="Legal"
-              items={["Privacy", "Terms", "Contact"]}
-              onNavigate={scrollTo}
+            <FooterNavGroup
+              title="Resources"
+              links={[
+                { label: "Privacy", href: "#" },
+                { label: "Terms", href: "#" },
+                { label: "Support", href: "mailto:hello@claro.ai" },
+              ]}
             />
           </div>
-          <div className="mt-8 text-center text-gray-600">
-            © {new Date().getFullYear()} Context. All rights reserved.
+
+          <div className="max-w-sm rounded-3xl border border-white/15 bg-white/10 p-6 text-white/80 shadow-lg backdrop-blur">
+            <h4 className="text-lg font-semibold text-white">Be the first to know</h4>
+            <p className="mt-2 text-sm text-white/70">
+              Join the waitlist for early access to the Claro AI workspace experience.
+            </p>
+            <button
+              onClick={() => scrollTo("waitlist")}
+              className="mt-6 inline-flex items-center justify-center rounded-full bg-[#E07A5F] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(224,122,95,0.35)] transition-transform duration-300 hover:scale-[1.03]"
+            >
+              Join the waitlist
+              <ArrowRight size={16} className="ml-2" />
+            </button>
+          </div>
+        </div>
+
+        <div className="relative border-t border-white/10">
+          <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 py-6 text-sm text-white/60 md:flex-row md:items-center md:justify-between">
+            <p>© {new Date().getFullYear()} Claro AI. All rights reserved.</p>
+            <p className="flex items-center gap-2">
+              <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-[#E07A5F]" aria-hidden />
+              Built for teams who lead with context.
+            </p>
           </div>
         </div>
       </footer>
@@ -545,41 +597,156 @@ function WaitlistForm() {
   );
 }
 
-function FooterCol({ title, items, onNavigate }) {
+function NavLink({ label, onClick }) {
   return (
-    <div>
-      <div className="mb-3 font-semibold">{title}</div>
-      <ul className="space-y-2 text-gray-600">
-        {items.map((item) => {
-          const key = typeof item === "string" ? item : item.label;
-          const href =
-            typeof item === "string"
-              ? "#"
-              : item.target
-                ? `#${item.target}`
-                : item.href || "#";
+    <button
+      type="button"
+      onClick={onClick}
+      className="group relative text-[#3D405B]/75 transition-colors duration-200 hover:text-[#3D405B] focus:outline-none"
+    >
+      {label}
+      <span className="pointer-events-none absolute -bottom-2 left-1/2 h-0.5 w-0 -translate-x-1/2 rounded-full bg-[#E07A5F]/70 transition-all duration-300 group-hover:w-7" />
+    </button>
+  );
+}
 
-          const handleClick =
-            typeof item === "string" || !item.target
-              ? undefined
-              : (event) => {
-                  event.preventDefault();
-                  onNavigate?.(item.target);
-                };
+function HowItWorksHeading() {
+  const prefersReducedMotion = useReducedMotion();
+
+  const transition = prefersReducedMotion
+    ? { duration: 0 }
+    : { duration: 0.8, ease: [0.22, 1, 0.36, 1] };
+
+  return (
+    <motion.div
+      initial="initial"
+      whileInView="animate"
+      viewport={{ once: true, amount: 0.6 }}
+      className="relative inline-flex flex-col items-center gap-5"
+    >
+      <motion.span
+        variants={{
+          initial: { opacity: 0, y: 12 },
+          animate: { opacity: 1, y: 0, transition },
+        }}
+        className="inline-flex items-center gap-2 rounded-full border border-[#E07A5F]/40 bg-white/80 px-4 py-1 text-xs font-semibold uppercase tracking-[0.32em] text-[#E07A5F]"
+      >
+        Signal to impact
+      </motion.span>
+
+      <motion.div
+        variants={{
+          initial: { opacity: 0, y: 32 },
+          animate: {
+            opacity: 1,
+            y: 0,
+            transition: prefersReducedMotion
+              ? transition
+              : { ...transition, delay: 0.1 },
+          },
+        }}
+        className="relative"
+      >
+        <motion.h2 className="text-5xl font-bold text-[#1c1f33] sm:text-6xl md:text-7xl">
+          How Claro Works
+        </motion.h2>
+        <motion.span
+          aria-hidden
+          className="absolute left-1/2 top-full mt-3 h-[10px] w-full -translate-x-1/2 rounded-full bg-gradient-to-r from-[#E07A5F] via-[#F2CC8F] to-[#3D405B]/80 opacity-90"
+          variants={{
+            initial: { scaleX: 0, opacity: 0 },
+            animate: {
+              scaleX: 1,
+              opacity: 1,
+              transition: prefersReducedMotion
+                ? transition
+                : { ...transition, delay: 0.2 },
+            },
+          }}
+          style={{ transformOrigin: "center" }}
+        />
+        <motion.span
+          aria-hidden
+          className="pointer-events-none absolute -inset-x-6 -top-5 bottom-3 rounded-[40px] bg-gradient-to-r from-[#E07A5F]/10 via-transparent to-[#3D405B]/10 blur-3xl"
+          variants={{
+            initial: { opacity: 0 },
+            animate: {
+              opacity: prefersReducedMotion ? 0 : 1,
+              transition: prefersReducedMotion
+                ? transition
+                : { duration: 1.2, ease: [0.25, 0.8, 0.5, 1], delay: 0.25 },
+            },
+          }}
+        />
+      </motion.div>
+
+      <motion.p
+        variants={{
+          initial: { opacity: 0, y: 18 },
+          animate: {
+            opacity: 1,
+            y: 0,
+            transition: prefersReducedMotion
+              ? transition
+              : { ...transition, delay: 0.3 },
+          },
+        }}
+        className="max-w-2xl text-base text-[#3D405B]/80"
+      >
+        From triaging signals to crafting the perfect follow-up, Claro keeps every relationship on rhythm.
+      </motion.p>
+    </motion.div>
+  );
+}
+
+function FooterNavGroup({ title, links, onNavigate }) {
+  return (
+    <div className="min-w-[150px]">
+      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/60">
+        {title}
+      </p>
+      <ul className="mt-4 space-y-3 text-sm text-white/70">
+        {links.map((item) => {
+          const { label, href, target } = item;
+          const resolvedHref = target ? `#${target}` : href ?? "#";
+
+          const handleClick = target
+            ? (event) => {
+                event.preventDefault();
+                onNavigate?.(target);
+              }
+            : undefined;
 
           return (
-            <li key={key}>
+            <li key={label}>
               <a
-                className="hover:text-gray-900 transition-colors"
-                href={href}
+                href={resolvedHref}
                 onClick={handleClick}
+                className="group inline-flex items-center gap-2 transition-colors hover:text-white"
               >
-                {key}
+                <span>{label}</span>
+                {target && (
+                  <span className="pointer-events-none inline-block h-px w-4 bg-white/30 opacity-0 transition-opacity group-hover:opacity-100" />
+                )}
               </a>
             </li>
           );
         })}
       </ul>
     </div>
+  );
+}
+
+function FooterSocialLink({ href, label, children }) {
+  return (
+    <a
+      href={href}
+      aria-label={label}
+      className="inline-flex size-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/80 shadow-[0_8px_20px_rgba(17,19,35,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:border-white/40 hover:text-white"
+      target="_blank"
+      rel="noreferrer"
+    >
+      {children}
+    </a>
   );
 }
