@@ -139,7 +139,7 @@ export default function ContextLanding() {
             : "bg-transparent"
         }`}
       >
-        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6 lg:px-8">
+        <div className="relative mx-auto flex h-14 max-w-7xl items-center justify-between px-6 lg:px-8">
           <div
             onClick={() => scrollTo("top")}
             className="flex items-center gap-[10px] cursor-pointer select-none"
@@ -157,7 +157,7 @@ export default function ContextLanding() {
               <span className="text-[#3D405B]">AI</span>
             </span>
           </div>
-          <div className="hidden items-center gap-8 text-sm md:flex">
+          <div className="hidden md:flex items-center gap-8 text-sm absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             <button
               onClick={() => scrollTo("problem")}
               className="hover:text-gray-600 transition-colors"
@@ -314,6 +314,7 @@ export default function ContextLanding() {
             { label: "Writes like you", tag: "Tone" },
             { label: "Knows who matters", tag: "Relationships" },
           ]}
+          radiusX={440}
           />
         </div>
 
