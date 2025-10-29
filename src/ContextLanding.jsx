@@ -619,87 +619,29 @@ function HowItWorksHeading() {
 
   const headingVariants = {
     initial: prefersReducedMotion
-      ? { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }
-      : { opacity: 0, y: 20, scale: 0.95, filter: "blur(8px)" },
+      ? { opacity: 1, y: 0 }
+      : { opacity: 0, y: 16 },
     animate: {
       opacity: 1,
       y: 0,
-      scale: 1,
-      filter: "blur(0px)",
       transition,
-    },
-  };
-
-  const glowVariants = {
-    initial: prefersReducedMotion
-      ? { opacity: 0.35, scaleX: 1 }
-      : { opacity: 0, scaleX: 0.6 },
-    animate: {
-      opacity: prefersReducedMotion ? 0.35 : 1,
-      scaleX: 1,
-      transition: prefersReducedMotion
-        ? { duration: 0 }
-        : { ...transition, delay: 0.1 },
-    },
-  };
-
-  const highlightVariants = {
-    initial: prefersReducedMotion
-      ? { opacity: 1, scaleX: 1 }
-      : { opacity: 0, scaleX: 0.5 },
-    animate: {
-      opacity: 1,
-      scaleX: 1,
-      transition: prefersReducedMotion
-        ? { duration: 0 }
-        : { ...transition, delay: 0.15 },
-    },
-  };
-
-  const underlineVariants = {
-    initial: prefersReducedMotion
-      ? { opacity: 0.7, scaleX: 1 }
-      : { opacity: 0, scaleX: 0 },
-    animate: {
-      opacity: prefersReducedMotion ? 0.7 : 1,
-      scaleX: 1,
-      transition: prefersReducedMotion
-        ? { duration: 0 }
-        : { ...transition, delay: 0.25 },
     },
   };
 
   return (
     <motion.div
-      initial="initial"
-      whileInView="animate"
+      initial={{ opacity: prefersReducedMotion ? 1 : 0 }}
+      whileInView={{ opacity: 1 }}
       viewport={{ once: true, amount: 0.7 }}
-      className="relative inline-flex items-center justify-center px-10 py-6"
+      transition={prefersReducedMotion ? undefined : { duration: 0.6, ease: "easeOut" }}
+      className="flex items-center justify-center px-4 py-4"
     >
-      <motion.span
-        aria-hidden
-        variants={glowVariants}
-        className="absolute -inset-x-16 -inset-y-10 -z-20 rounded-[60px] bg-gradient-to-r from-[#E07A5F]/20 via-[#F4F1DE]/70 to-[#3D405B]/25 blur-3xl"
-        style={{ transformOrigin: "center" }}
-      />
-      <motion.span
-        aria-hidden
-        variants={highlightVariants}
-        className="absolute inset-x-4 inset-y-1 -z-10 rounded-full border border-white/60 bg-white/80 shadow-[0_18px_45px_rgba(61,64,91,0.18)]"
-        style={{ transformOrigin: "center" }}
-      />
       <motion.h2
         variants={headingVariants}
-        className="relative text-5xl font-bold tracking-tight text-[#1c1f33] sm:text-6xl md:text-7xl"
+        className="text-5xl font-bold tracking-tight text-[#1c1f33] sm:text-6xl md:text-7xl"
       >
         How Claro Works
       </motion.h2>
-      <motion.span
-        aria-hidden
-        variants={underlineVariants}
-        className="absolute left-1/2 bottom-0 h-1 w-full -translate-x-1/2 rounded-full bg-gradient-to-r from-[#E07A5F] via-[#F2CC8F] to-[#3D405B]/80"
-        style={{ transformOrigin: "center" }}
-      />
     </motion.div>
   );
 }
