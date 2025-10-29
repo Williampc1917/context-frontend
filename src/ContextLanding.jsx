@@ -12,7 +12,7 @@ import ProblemSection from "./sections/ProblemSection.jsx";
 import { RevealHeadline } from "./sections/RevealHeadline.jsx";
 import ClaroBrainOverlay from "./sections/ClaroBrainOverlay.jsx";
 import FloatingLogo from "./sections/FloatingLogo.jsx";
-import EmailCard from "./sections/EmailCard.jsx";
+import { howItWorksFeatures } from "./sections/how-it-works/index.js";
 
 export default function ContextLanding() {
   const [scrolled, setScrolled] = useState(false);
@@ -338,8 +338,10 @@ export default function ContextLanding() {
           <HowItWorksHeading />
         </div>
 
-        <div className="flex justify-center">
-          <EmailCard />
+        <div className="flex flex-col items-center gap-16">
+          {howItWorksFeatures.map(({ id, Component }) => (
+            <Component key={id} />
+          ))}
         </div>
       </section>
 
