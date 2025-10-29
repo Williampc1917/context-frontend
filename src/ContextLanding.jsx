@@ -249,65 +249,48 @@ export default function ContextLanding() {
         ref={heroRef}
         className="relative flex flex-col items-center justify-center min-h-[90vh] px-6 pt-28 md:pt-36 pb-18 lg:px-8 text-center"
       >
-        <FloatingLogo
-          src={`${import.meta.env.BASE_URL}gmail.svg`}
-          alt="Gmail"
-          className="absolute left-[8%] top-[22%] w-[90px] sm:w-[110px] lg:w-[140px]"
-          delay={0}
-          hideBelow="md"
-          targetRef={heroRef}
-        />
+        <div className="hero-shell w-full max-w-5xl px-6 py-16 md:py-20 lg:px-16 mx-auto">
+          {/* Hero text block */}
+          <div className="hero-content flex flex-col items-center justify-center w-full max-w-3xl lg:max-w-4xl mx-auto text-center">
+            <RevealHeadline
+              text={"Clarity for the way you\nconnect"}
+              className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.05]"
+              cleanColor="#3D405B"
+              activeColor="#E07A5F"
+              durationMs={2400}
+              tileEnd={3.2}
+              threshold={0.4}
+              breathDelayMs={1200} // ← gap between reveal end and breathing start
+            />
 
-        <FloatingLogo
-          src={`${import.meta.env.BASE_URL}google-calendar.svg`}
-          alt="Google Calendar"
-          className="absolute right-[8%] top-[22%] w-[85px] sm:w-[100px] lg:w-[130px]"
-          delay={0.4}
-          hideBelow="md"
-          targetRef={heroRef}
-        />
+            <p className="mt-6 text-lg sm:text-xl text-[#3D405B]/80 max-w-2xl mx-auto">
+              CLARO AI is a voice assistant for your email and calendar. It
+              understands how you connect — who matters, how you communicate,
+              and when to reach out.
+            </p>
 
-        {/* Hero text block */}
-        <div className="hero-content flex flex-col items-center justify-center w-full max-w-4xl mx-auto text-center">
-          <RevealHeadline
-            text={"Clarity for the way you\nconnect"}
-            className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.05]"
-            cleanColor="#3D405B"
-            activeColor="#E07A5F"
-            durationMs={2400}
-            tileEnd={3.2}
-            threshold={0.4}
-            breathDelayMs={1200} // ← gap between reveal end and breathing start
-          />
-
-          <p className="mt-6 text-lg sm:text-xl text-[#3D405B]/80 max-w-2xl mx-auto">
-            CLARO AI is a voice assistant for your email and calendar. It
-            understands how you connect — who matters, how you communicate, and
-            when to reach out.
-          </p>
-
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <button
-              onClick={() => scrollTo("waitlist")}
-              className="btn-primary bg-[#E07A5F] hover:bg-[#d36f56]"
-            >
-              Join the waitlist
-            </button>
-            <button
-              onClick={() => scrollTo("how")}
-              className="btn-glass text-[#3D405B] border-[#3D405B]/20 hover:bg-white/80"
-            >
-              See how it works <ArrowRight size={16} />
-            </button>
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <button
+                onClick={() => scrollTo("waitlist")}
+                className="btn-primary bg-[#E07A5F] hover:bg-[#d36f56]"
+              >
+                Join the waitlist
+              </button>
+              <button
+                onClick={() => scrollTo("how")}
+                className="btn-glass text-[#3D405B] border-[#3D405B]/20 hover:bg-white/80"
+              >
+                See how it works <ArrowRight size={16} />
+              </button>
+            </div>
           </div>
-        </div>
 
-        <ClaroBrainOverlay
-          className="mt-8"
-          aiLines={[
-            "Here’s your daily briefing — ready?",
-            "Jennifer’s note looks urgent — she’s waiting on pricing.",
-            "Reply ready — matches how you usually write to Sarah.",
+          <ClaroBrainOverlay
+            className="mt-10"
+            aiLines={[
+              "Here’s your daily briefing — ready?",
+              "Jennifer’s note looks urgent — she’s waiting on pricing.",
+              "Reply ready — matches how you usually write to Sarah.",
             "You promised Alex that update — want me to finish it?",
             "Tomorrow’s QBR with Jennifer — I’ve summarized your last thread.",
             "You’re free until 2 PM — want to catch up on pending replies?",
@@ -331,6 +314,25 @@ export default function ContextLanding() {
             { label: "Writes like you", tag: "Tone" },
             { label: "Knows who matters", tag: "Relationships" },
           ]}
+          />
+        </div>
+
+        <FloatingLogo
+          src={`${import.meta.env.BASE_URL}gmail.svg`}
+          alt="Gmail"
+          className="absolute left-[8%] top-[22%] w-[90px] sm:w-[110px] lg:w-[140px] z-30"
+          delay={0}
+          hideBelow="md"
+          targetRef={heroRef}
+        />
+
+        <FloatingLogo
+          src={`${import.meta.env.BASE_URL}google-calendar.svg`}
+          alt="Google Calendar"
+          className="absolute right-[8%] top-[22%] w-[85px] sm:w-[100px] lg:w-[130px] z-30"
+          delay={0.4}
+          hideBelow="md"
+          targetRef={heroRef}
         />
       </section>
 
@@ -344,7 +346,7 @@ export default function ContextLanding() {
         </div>
       </section>
 
-      <section className="w-full bg-gray-50 py-28 px-4">
+      <section className="section-plain w-full py-28 px-4">
         <div className="max-w-4xl mx-auto text-center mb-20">
           <h2 className="text-6xl md:text-7xl font-bold text-gray-900 tracking-tight">
             How Claro Works

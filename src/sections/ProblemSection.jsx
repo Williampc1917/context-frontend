@@ -312,7 +312,7 @@ export default function ProblemSection() {
   return (
     <section
       ref={sectionRef}
-      className={`relative overflow-hidden bg-white py-16 sm:py-20 md:py-28 ${play ? "is-play" : ""} ${reduce ? "is-reduced" : ""}`}
+      className={`relative overflow-hidden py-16 sm:py-20 md:py-28 ${play ? "is-play" : ""} ${reduce ? "is-reduced" : ""}`}
       style={vars}
     >
       <div
