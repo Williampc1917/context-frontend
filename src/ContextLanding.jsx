@@ -441,19 +441,6 @@ export default function ContextLanding() {
             />
           </div>
 
-          <div className="max-w-sm rounded-3xl border border-white/15 bg-white/10 p-6 text-white/80 shadow-lg backdrop-blur">
-            <h4 className="text-lg font-semibold text-white">Be the first to know</h4>
-            <p className="mt-2 text-sm text-white/70">
-              Join the waitlist for early access to the Claro AI workspace experience.
-            </p>
-            <button
-              onClick={() => scrollTo("waitlist")}
-              className="mt-6 inline-flex items-center justify-center rounded-full bg-[#E07A5F] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(224,122,95,0.35)] transition-transform duration-300 hover:scale-[1.03]"
-            >
-              Join the waitlist
-              <ArrowRight size={16} className="ml-2" />
-            </button>
-          </div>
         </div>
 
         <div className="relative border-t border-white/10">
@@ -461,7 +448,7 @@ export default function ContextLanding() {
             <p>© {new Date().getFullYear()} Claro AI. All rights reserved.</p>
             <p className="flex items-center gap-2">
               <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-[#E07A5F]" aria-hidden />
-              Built for teams who lead with context.
+              Based in New York.
             </p>
           </div>
         </div>
