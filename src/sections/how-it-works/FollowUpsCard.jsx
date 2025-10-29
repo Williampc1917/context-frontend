@@ -17,6 +17,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import FeatureLayout from "./FeatureLayout.jsx";
+import InboxRow from "./InboxRow.jsx";
 
 /* -------------------------------------------------
    Hook: typewriter
@@ -250,6 +251,9 @@ export default function FollowupCard() {
             replyHover={manualPhase === "reply_hover"}
             replyPressed={manualPhase === "reply_click"}
             dimmed={composeVisible}
+            chatPhase={chatPhase}
+            chatStarted={chatStarted}
+            aiDone={aiDone}
           />
         </motion.div>
 
@@ -410,16 +414,37 @@ export default function FollowupCard() {
    SUBCOMPONENTS
    ================================================= */
 
-function InboxPreviewCard({ phase, hasScrolled, replyHover, replyPressed, dimmed }) {
-  const statusMap = {
-    inbox_scroll: "Scrolling…",
+function InboxPreviewCard({
+  phase,
+  hasScrolled,
+  replyHover,
+  replyPressed,
+  dimmed,
+  chatPhase,
+  chatStarted,
+  aiDone,
+}) {
+  const manualStatusMap = {
+    inbox_idle: "Inbox hunting takes time…",
+    inbox_scroll: "Scrolling manually…",
     reply_hover: "Hunting for the reply button…",
     reply_click: "Opening reply…",
     compose_open: "Opening reply…",
-    compose_typing: "Typing manually…",
-    compose_done: "Typing manually…",
+    compose_typing: "Typing it yourself…",
+    compose_done: "Typing it yourself…",
   };
-  const statusLabel = statusMap[phase];
+
+  const chatStatusMap = {
+    user_voice: "Just tell Claro what you need…",
+    user_final: "Describe the intent once.",
+    ai_draft: "Claro drafts it instantly.",
+    ai_final: "Ready to send in seconds.",
+  };
+
+  let statusLabel = manualStatusMap[phase];
+  if (chatStarted && chatPhase) {
+    statusLabel = chatStatusMap[chatPhase] || statusLabel;
+  }
 
   const highlightSarah =
     phase === "reply_hover" ||
@@ -428,6 +453,9 @@ function InboxPreviewCard({ phase, hasScrolled, replyHover, replyPressed, dimmed
     phase === "compose_typing" ||
     phase === "compose_done";
 
+  const activeIndex = highlightSarah ? 1 : hasScrolled ? 0 : -1;
+  const replyShouldShow = replyHover || replyPressed;
+
   const rows = [
     {
       unread: true,
@@ -435,7 +463,7 @@ function InboxPreviewCard({ phase, hasScrolled, replyHover, replyPressed, dimmed
       time: "3:17 PM",
       subject: "Checking in on updated pricing",
       body:
-        "Just following up on the revised pricing you said you'd send yesterday. They're waiting on it to move forward.",
+        "Just following up on the revised pricing you said you’d send yesterday. They’re waiting on it to move forward.",
       chips: [
         { color: "amber", text: "waiting on you" },
         { color: "red", text: "deal at risk" },
@@ -448,7 +476,7 @@ function InboxPreviewCard({ phase, hasScrolled, replyHover, replyPressed, dimmed
       time: "2:41 PM",
       subject: "QBR tomorrow 10AM — need your final slide",
       body:
-        "I told leadership you'd send the updated pricing by 5pm so I can lock the deck. Can you add one line on margin justification?",
+        "You’re presenting slide 7. I told leadership you’d send the updated pricing by 5pm so I can lock the deck. Can you add one line on margin justification?",
       chips: [
         { color: "amber", text: "tomorrow 10am" },
         { color: "blue", text: "you own slide 7" },
@@ -461,7 +489,7 @@ function InboxPreviewCard({ phase, hasScrolled, replyHover, replyPressed, dimmed
       time: "1:09 PM",
       subject: "Can you confirm the final numbers before Friday?",
       body:
-        "If we don't lock them in by Friday, this slips to next week. Who's approving the changes?",
+        "I still don’t have the final numbers you said you’d send over. If we don’t lock them in by Friday, this slips to next week. Who’s giving the green light?",
       chips: [
         { color: "amber", text: "Friday deadline" },
         { color: "red", text: "blocked on you" },
@@ -469,16 +497,18 @@ function InboxPreviewCard({ phase, hasScrolled, replyHover, replyPressed, dimmed
       hasAttachment: false,
     },
     {
-      unread: false,
+      unread: true,
       from: "Maya Patel",
       time: "12:22 PM",
       subject: "Quick check-in on next steps",
       body:
-        "No rush — just wanted to see if you're still planning to send over the summary from last week's call.",
+        "No rush — just wanted to see if you’re still planning to send over the summary from last week’s call. Happy to wait until things calm down.",
       chips: [{ color: "blue", text: "friendly reminder" }],
       hasAttachment: false,
     },
   ];
+
+  const inboxIsChill = chatPhase === "ai_final" && aiDone;
 
   return (
     <div className="relative">
@@ -494,206 +524,92 @@ function InboxPreviewCard({ phase, hasScrolled, replyHover, replyPressed, dimmed
       )}
 
       <div
-        className="w-full max-w-[440px] rounded-xl overflow-hidden border border-black/5 ring-1 ring-black/5 bg-white shadow-[0_32px_80px_rgba(0,0,0,0.25)] transition-all duration-500"
+        className="relative w-full max-w-[380px] overflow-hidden rounded-xl border border-gray-200 bg-white/95 ring-1 ring-gray-100 shadow-[0_24px_60px_rgba(0,0,0,0.08)] transition-all duration-500"
         style={{
+          boxShadow: "0 28px 64px rgba(0,0,0,0.08), 0 6px 24px rgba(0,0,0,0.05)",
           filter: dimmed ? "saturate(0.85) brightness(0.96)" : "saturate(1) brightness(1)",
-          opacity: dimmed ? 0.82 : 1,
+          opacity: dimmed ? 0.85 : 1,
         }}
       >
-        <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-[#F6F8FC] border-b border-gray-200">
-          <div className="flex items-center gap-2 text-[12px] text-gray-600">
-            <span className="inline-flex items-center gap-1 font-semibold text-[#D93025]">
-              <span className="inline-block h-[10px] w-[10px] rounded-full bg-[#D93025]" />
-              Gmail
-            </span>
-            <span className="rounded-full border border-gray-200 bg-white px-2 py-[2px] text-[11px] font-medium text-gray-500 shadow-sm">
-              Inbox
-            </span>
-            <span className="rounded-full border border-gray-200 bg-white px-2 py-[2px] text-[11px] text-gray-400">
-              Starred
-            </span>
-          </div>
-          <div className="flex items-center gap-2 text-[11px] text-gray-400">
-            <span className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-[4px] shadow-sm">
-              <span className="text-gray-300">🔍</span>
-              <span>Search mail</span>
-            </span>
-            <span className="text-gray-300">⚙︎</span>
-          </div>
-        </div>
-
-        <div className="relative overflow-hidden">
+        <div className="pt-3">
           <motion.div
             animate={{ y: hasScrolled ? -36 : 0 }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="divide-y divide-gray-100"
           >
-            {rows.map((row, index) => (
-              <InboxRow
-                key={row.from}
-                index={index}
-                {...row}
-                active={index === 1 && highlightSarah}
-                showReply={index === 1 && (replyHover || replyPressed)}
-                replyHover={replyHover}
-                replyPressed={replyPressed}
-              />
-            ))}
+            {rows.map((row, index) => {
+              const isActive = index === activeIndex;
+
+              return (
+                <InboxRow
+                  key={row.from}
+                  index={index}
+                  calm={inboxIsChill}
+                  phase={inboxIsChill ? "calm" : "manual"}
+                  active={isActive}
+                  {...row}
+                >
+                  {index === 1 && replyShouldShow && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+                    >
+                      <motion.div
+                        animate={{
+                          scale: replyPressed ? 0.92 : replyHover ? 1.03 : 1,
+                          boxShadow: replyPressed
+                            ? "0 0 0 0 rgba(59,130,246,0)"
+                            : replyHover
+                              ? "0 10px 24px rgba(59,130,246,0.18)"
+                              : "0 6px 16px rgba(15,23,42,0.12)",
+                          backgroundColor: replyPressed
+                            ? "rgba(59,130,246,0.2)"
+                            : "rgba(255,255,255,0.95)",
+                          color: replyPressed ? "rgb(37,99,235)" : "rgb(75,85,99)",
+                          borderColor: replyHover
+                            ? "rgba(59,130,246,0.45)"
+                            : "rgba(209,213,219,1)",
+                        }}
+                        transition={{ duration: 0.2, ease: [0.42, 0, 0.58, 1] }}
+                        className="pointer-events-none inline-flex items-center rounded-full border px-4 py-1 text-[11px] font-medium"
+                      >
+                        Reply
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </InboxRow>
+              );
+            })}
           </motion.div>
         </div>
+
+        <motion.div
+          className="pointer-events-none absolute -top-4 -left-4 h-[120px] w-[120px] rounded-xl blur-2xl"
+          style={{
+            background: inboxIsChill
+              ? "radial-gradient(circle_at_20%_20%,rgba(156,163,175,0.12),rgba(255,255,255,0)_70%)"
+              : "radial-gradient(circle_at_20%_20%,rgba(224,122,95,0.18),rgba(255,255,255,0)_70%)",
+          }}
+          animate={{ opacity: inboxIsChill ? 0.15 : 0.6 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        />
       </div>
     </div>
   );
 }
 
-function InboxRow({
-  index,
-  unread,
-  from,
-  time,
-  subject,
-  body,
-  chips = [],
-  hasAttachment,
-  active,
-  showReply,
-  replyHover,
-  replyPressed,
-}) {
-  const chipPalette = {
-    amber: {
-      background: "rgba(251,191,36,0.16)",
-      color: "#92400e",
-      border: "rgba(251,191,36,0.35)",
-    },
-    red: {
-      background: "rgba(248,113,113,0.16)",
-      color: "#b91c1c",
-      border: "rgba(248,113,113,0.35)",
-    },
-    blue: {
-      background: "rgba(59,130,246,0.12)",
-      color: "#1d4ed8",
-      border: "rgba(59,130,246,0.35)",
-    },
-  };
-
-  const chipStyleFor = (color) => chipPalette[color] || chipPalette.blue;
-
-  return (
-    <motion.div
-      animate={{
-        backgroundColor: active ? "rgba(37,99,235,0.1)" : "rgba(255,255,255,1)",
-        boxShadow: active
-          ? "inset 0 0 0 1px rgba(37,99,235,0.18)"
-          : "inset 0 0 0 0 rgba(0,0,0,0)",
-      }}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: index * 0.02 }}
-      className="relative px-3 py-3 bg-white"
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-start gap-2 min-w-0">
-          <div className="relative flex-shrink-0 pt-[3px]">
-            {unread && (
-              <motion.span
-                layout
-                className="absolute -left-3 top-[7px] h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(37,99,235,0.55)]"
-              />
-            )}
-            <span className="mt-[2px] block h-[14px] w-[14px] rounded-[3px] border border-gray-300 bg-white" />
-          </div>
-
-          <button
-            className={`mt-[1px] text-[13px] leading-none flex-shrink-0 ${
-              unread ? "text-yellow-500" : "text-gray-300 hover:text-yellow-400"
-            }`}
-            aria-label="Star"
-          >
-            ★
-          </button>
-
-          <div className="min-w-0">
-            <p
-              className={`truncate text-[13px] leading-snug ${
-                unread ? "text-gray-900 font-medium" : "text-gray-700"
-              }`}
-            >
-              {from}
-            </p>
-            <p className="truncate text-[12px] text-gray-500">{subject}</p>
-          </div>
-        </div>
-
-        <div className="flex flex-shrink-0 items-start gap-2 text-[11px] text-gray-400">
-          {hasAttachment && <span className="text-[12px] leading-none text-gray-400">📎</span>}
-          <span>{time}</span>
-        </div>
-      </div>
-
-      <p className="mt-1 truncate text-[12px] leading-snug text-gray-500">{body}</p>
-
-      {chips.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-2">
-          {chips.map((chip, i) => {
-            const palette = chipStyleFor(chip.color);
-            return (
-              <span
-                key={chip.text + i}
-                className="rounded-full px-2 py-[2px] text-[11px] font-medium"
-                style={{
-                  background: palette.background,
-                  color: palette.color,
-                  border: `1px solid ${palette.border}`,
-                  boxShadow: active ? "0 2px 6px rgba(37,99,235,0.15)" : "0 1px 3px rgba(0,0,0,0.08)",
-                }}
-              >
-                {chip.text}
-              </span>
-            );
-          })}
-        </div>
-      )}
-
-      {showReply && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute right-3 top-1/2 -translate-y-1/2"
-        >
-          <motion.button
-            animate={{
-              scale: replyPressed ? 0.92 : replyHover ? 1.03 : 1,
-              boxShadow: replyPressed
-                ? "0 0 0 0 rgba(59,130,246,0.0)"
-                : replyHover
-                  ? "0 10px 24px rgba(59,130,246,0.18)"
-                  : "0 6px 16px rgba(15,23,42,0.12)",
-              backgroundColor: replyPressed ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.95)",
-              color: replyPressed ? "rgb(37,99,235)" : "rgb(75,85,99)",
-              borderColor: replyHover ? "rgba(59,130,246,0.45)" : "rgba(209,213,219,1)",
-            }}
-            transition={{ duration: 0.2, ease: [0.42, 0, 0.58, 1] }}
-            className="pointer-events-none rounded-full border px-4 py-1 text-[11px] font-medium"
-          >
-            Reply
-          </motion.button>
-        </motion.div>
-      )}
-    </motion.div>
-  );
-}
 
 function PointerCursor({ phase, visible }) {
   const targets = {
-    prestart: { opacity: 0, scale: 0.85, x: 220, y: 140 },
-    inbox_idle: { opacity: 1, scale: 1, x: 250, y: 92 },
-    inbox_scroll: { opacity: 1, scale: 1, x: 260, y: 150 },
-    reply_hover: { opacity: 1, scale: 1, x: 276, y: 188 },
-    reply_click: { opacity: 1, scale: 0.93, x: 276, y: 188 },
-    compose_open: { opacity: 1, scale: 1, x: 210, y: 256 },
-    compose_typing: { opacity: 0, scale: 0.9, x: 210, y: 276 },
-    compose_done: { opacity: 0, scale: 0.9, x: 210, y: 276 },
+    prestart: { opacity: 0, scale: 0.85, x: 190, y: 140 },
+    inbox_idle: { opacity: 1, scale: 1, x: 214, y: 92 },
+    inbox_scroll: { opacity: 1, scale: 1, x: 224, y: 148 },
+    reply_hover: { opacity: 1, scale: 1, x: 236, y: 186 },
+    reply_click: { opacity: 1, scale: 0.93, x: 236, y: 186 },
+    compose_open: { opacity: 1, scale: 1, x: 188, y: 246 },
+    compose_typing: { opacity: 0, scale: 0.9, x: 188, y: 266 },
+    compose_done: { opacity: 0, scale: 0.9, x: 188, y: 266 },
   };
 
   if (!visible) {
