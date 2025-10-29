@@ -344,7 +344,7 @@ export default function ContextLanding() {
         </div>
       </section>
 
-      <section className="w-full bg-gray-50 py-28 px-4">
+      <section className="section-plain w-full py-28 px-4">
         <div className="max-w-4xl mx-auto text-center mb-20">
           <h2 className="text-6xl md:text-7xl font-bold text-gray-900 tracking-tight">
             How Claro Works

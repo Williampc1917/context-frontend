@@ -74,19 +74,24 @@
   background:
     radial-gradient(
       60% 80% at 0% 0%,
-      rgba(99, 102, 241, 0.14),
+      rgba(224, 122, 95, 0.16),
       transparent 60%
     ),
     radial-gradient(
       70% 80% at 100% 0%,
-      rgba(56, 189, 248, 0.14),
+      rgba(61, 64, 91, 0.18),
       transparent 60%
     ),
-    linear-gradient(#ffffffcc, #ffffffc7);
-  @apply border-y border-white/40 backdrop-blur-xl;
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(250, 249, 247, 0.9));
+  @apply relative isolate border-y border-white/40 backdrop-blur-2xl;
 }
 .section-plain {
-  @apply bg-white/70 backdrop-blur-xl border-y border-white/40;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(250, 249, 247, 0.85) 100%
+  );
+  @apply relative isolate border-y border-white/40 backdrop-blur-2xl;
 }
 
 /* Grain overlay (SVG noise, no asset) */
