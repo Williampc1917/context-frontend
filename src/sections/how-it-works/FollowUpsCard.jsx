@@ -80,21 +80,20 @@ export default function FollowupCard() {
 
   useEffect(() => {
     if (!started || chatStarted || !emailDone) return;
+
+    const timers = [];
     const hold = setTimeout(() => {
-      // begin chat overlay sequence
       setChatStarted(true);
       setChatPhase("user_voice");
-      const t1 = setTimeout(() => setChatPhase("user_final"), 700);
-      const t2 = setTimeout(() => setChatPhase("ai_draft"), 1100);
-      const t3 = setTimeout(() => setChatPhase("ai_final"), 2400);
-      // cleanup
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-        clearTimeout(t3);
-      };
+      timers.push(setTimeout(() => setChatPhase("user_final"), 700));
+      timers.push(setTimeout(() => setChatPhase("ai_draft"), 1100));
+      timers.push(setTimeout(() => setChatPhase("ai_final"), 2400));
     }, 900); // extra time to admire the finished draft
-    return () => clearTimeout(hold);
+
+    return () => {
+      clearTimeout(hold);
+      timers.forEach(clearTimeout);
+    };
   }, [started, emailDone, chatStarted]);
 
   // Chat text typing for the user message (starts after chat begins)
@@ -140,150 +139,152 @@ export default function FollowupCard() {
         />
       }
     >
-      <div className="relative w-full max-w-[560px] mx-auto min-h-[390px]">
-        {/* BACK: Gmail compose. We type first, then blur once chat starts. */}
-        <AnimatePresence>
-          {started && (
-            <motion.div
-              key="compose"
-              initial={{ opacity: 0, y: 28, scale: 0.98 }}
-              animate={{
-                opacity: 1,
-                y: 86,
-                scale: 1,
-                filter: composeIsBlurred
-                  ? "blur(2.5px) saturate(0.92) brightness(0.98)"
-                  : "blur(0px) saturate(1) brightness(1)",
-              }}
-              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute left-0 bottom-0 z-10 pointer-events-none"
-            >
-              <GmailDraftCard
-                bodyText={emailTyped}
-                bodyDone={emailDone}
-                showCallouts={!chatStarted} // show callouts until blur/chat begins
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* BACK: Gmail compose. We type first, then blur once chat starts. */}
+      <AnimatePresence>
+        {started && (
+          <motion.div
+            key="compose"
+            initial={{ opacity: 0, y: 28, rotate: -0.6 }}
+            animate={{
+              opacity: started ? 1 : 0,
+              y: started ? 0 : 28,
+              rotate: -0.6,
+              filter: composeIsBlurred
+                ? "blur(2.6px) saturate(0.92) brightness(0.98)"
+                : "blur(0px) saturate(1) brightness(1)",
+            }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+            className="relative z-10 w-full max-w-[440px] pointer-events-none"
+          >
+            <GmailDraftCard bodyText={emailTyped} bodyDone={emailDone} />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        {/* FRONT: Chat overlay shows only after draft completes */}
-        {chatStarted && (
-          <div className="absolute top-0 right-0 z-40 flex flex-col gap-3 w-[320px] max-w-[80%] pointer-events-none">
-            {/* USER bubble */}
-            <AnimatePresence>
-              {showUserBubble && (
-                <motion.div
-                  key="user-bubble"
-                  initial={{ opacity: 0, y: 20, scale: 0.96 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 1 }}
-                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                  className="flex w-full justify-end gap-2 pointer-events-auto"
+      {/* FRONT: Chat overlay shows only after draft completes */}
+      {chatStarted && (
+        <div className="absolute top-6 right-4 w-[320px] max-w-[80%] z-40 flex flex-col gap-3 pointer-events-none">
+          {/* USER bubble (outgoing, right-aligned) */}
+          <AnimatePresence>
+            {showUserBubble && (
+              <motion.div
+                key="user-bubble"
+                initial={{ opacity: 0, y: 20, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 1 }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                className="flex w-full justify-end gap-2 pointer-events-auto"
+              >
+                <div
+                  className="
+                    max-w-[220px]
+                    rounded-2xl px-3 py-2 text-[13px] leading-snug
+                    text-white bg-gradient-to-br from-blue-500 to-blue-600
+                    shadow-[0_16px_40px_rgba(0,0,0,0.18)]
+                    ring-1 ring-blue-600/40 border border-white/10 break-words
+                  "
+                  style={{ borderTopRightRadius: "0.5rem" }}
                 >
-                  <div
-                    className="
-                      max-w-[240px]
-                      rounded-2xl px-3 py-2 text-[13px] leading-snug
-                      text-white bg-gradient-to-br from-blue-500 to-blue-600
-                      shadow-[0_16px_40px_rgba(0,0,0,0.18)]
-                      ring-1 ring-blue-600/40 border border-white/10 break-words
-                    "
-                    style={{ borderTopRightRadius: "0.5rem" }}
-                  >
-                    {chatPhase === "user_voice" ? (
-                      <div className="flex items-center gap-2">
-                        <span className="text-[12px] font-medium text-white/90">
-                          Listening…
-                        </span>
+                  {chatPhase === "user_voice" && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[12px] font-medium text-white/90">
+                        Listening…
+                      </span>
+                      <VoiceBars active />
+                    </div>
+                  )}
+
+                  {chatPhase !== "user_voice" && (
+                    <div className="text-[13px] font-medium text-white whitespace-pre-wrap">
+                      {userTyped}
+                      {!userDone && <CaretBlink light />}
+                    </div>
+                  )}
+                </div>
+
+                <div className="relative flex-shrink-0">
+                  <div className="w-7 h-7 rounded-full bg-gray-200 text-gray-700 text-[10px] font-medium flex items-center justify-center ring-1 ring-gray-300 pointer-events-auto">
+                    You
+                  </div>
+
+                  {chatPhase === "user_voice" && (
+                    <motion.div
+                      className="absolute inset-0 rounded-full pointer-events-none"
+                      style={{
+                        boxShadow:
+                          "0 0 8px rgba(59,130,246,0.6),0 0 16px rgba(59,130,246,0.4)",
+                      }}
+                      animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.08, 1] }}
+                      transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* AI bubble (incoming, left-aligned) */}
+          <AnimatePresence>
+            {showAiBubble && (
+              <motion.div
+                key="ai-bubble-row"
+                initial={{ opacity: 0, y: 28, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 1 }}
+                transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                className="flex w-full justify-start gap-2 items-start pointer-events-auto"
+              >
+                <div className="relative flex-shrink-0">
+                  <div className="w-7 h-7 rounded-full bg-[#FFE8DC] text-[#C76545] text-[10px] font-medium flex items-center justify-center ring-1 ring-orange-200">
+                    C
+                  </div>
+
+                  {aiStillTalkingForUI && (
+                    <motion.div
+                      className="absolute inset-0 rounded-full pointer-events-none"
+                      style={{
+                        boxShadow:
+                          "0 0 8px rgba(224,122,95,0.5),0 0 16px rgba(224,122,95,0.3)",
+                      }}
+                      animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.08, 1] }}
+                      transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                  )}
+                </div>
+
+                <div
+                  className="
+                    max-w-[260px]
+                    rounded-2xl px-4 py-3
+                    bg-gray-100 text-gray-900
+                    ring-1 ring-gray-200 border border-white/40
+                    shadow-[0_24px_48px_rgba(0,0,0,0.12)]
+                    text-[14px] leading-[1.4] font-medium
+                    whitespace-pre-wrap break-words
+                  "
+                  style={{
+                    borderTopLeftRadius: "0.5rem",
+                    boxShadow: "0 28px 64px rgba(0,0,0,0.12), 0 6px 28px rgba(0,0,0,0.06)",
+                  }}
+                >
+                  {aiStillTalkingForUI && (
+                    <div className="flex items-center gap-2 mb-2 text-[12px] font-medium text-gray-700">
+                      <span>Drafting…</span>
+                      <div className="text-gray-500">
                         <VoiceBars active />
                       </div>
-                    ) : (
-                      <div className="text-[13px] font-medium text-white whitespace-pre-wrap">
-                        {userTyped}
-                        {!userDone && <CaretBlink light />}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="relative flex-shrink-0">
-                    <div className="w-7 h-7 rounded-full bg-gray-200 text-gray-700 text-[10px] font-medium flex items-center justify-center ring-1 ring-gray-300 pointer-events-auto">
-                      You
                     </div>
-                    {chatPhase === "user_voice" && (
-                      <motion.div
-                        className="absolute inset-0 rounded-full pointer-events-none"
-                        style={{
-                          boxShadow:
-                            "0 0 8px rgba(59,130,246,0.6),0 0 16px rgba(59,130,246,0.4)",
-                        }}
-                        animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.08, 1] }}
-                        transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-                      />
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  )}
 
-            {/* CLARO bubble */}
-            <AnimatePresence>
-              {showAiBubble && (
-                <motion.div
-                  key="ai-bubble-row"
-                  initial={{ opacity: 0, y: 28, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 1 }}
-                  transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-                  className="flex w-full justify-start gap-2 items-start pointer-events-auto"
-                >
-                  <div className="relative flex-shrink-0">
-                    <div className="w-7 h-7 rounded-full bg-[#FFE8DC] text-[#C76545] text-[10px] font-medium flex items-center justify-center ring-1 ring-orange-200">
-                      C
-                    </div>
-                    {aiStillTalkingForUI && (
-                      <motion.div
-                        className="absolute inset-0 rounded-full pointer-events-none"
-                        style={{
-                          boxShadow:
-                            "0 0 8px rgba(224,122,95,0.5),0 0 16px rgba(224,122,95,0.3)",
-                        }}
-                        animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.08, 1] }}
-                        transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-                      />
-                    )}
+                  <div className="text-gray-900">
+                    Here’s how I’ll send it to Sarah — it sounds like you.
                   </div>
-
-                  <div
-                    className="
-                      max-w-[260px] rounded-2xl px-4 py-3 bg-gray-100 text-gray-900
-                      ring-1 ring-gray-200 border border-white/40
-                      shadow-[0_24px_48px_rgba(0,0,0,0.12)]
-                      text-[14px] leading-[1.4] font-medium whitespace-pre-wrap break-words
-                    "
-                    style={{
-                      borderTopLeftRadius: "0.5rem",
-                      boxShadow: "0 28px 64px rgba(0,0,0,0.12), 0 6px 28px rgba(0,0,0,0.06)",
-                    }}
-                  >
-                    {aiStillTalkingForUI && (
-                      <div className="flex items-center gap-2 mb-2 text-[12px] font-medium text-gray-700">
-                        <span>Drafting…</span>
-                        <div className="text-gray-500">
-                          <VoiceBars active />
-                        </div>
-                      </div>
-                    )}
-                    <div className="text-gray-900">
-                      Here’s how I’ll send it to Sarah — it sounds like you.
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
-      </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
     </FeatureLayout>
   );
 }
@@ -292,105 +293,70 @@ export default function FollowupCard() {
    SUBCOMPONENTS
    ================================================= */
 
-function GmailDraftCard({ bodyText, bodyDone, showCallouts }) {
+function GmailDraftCard({ bodyText, bodyDone }) {
   return (
-    <div className="relative">
-      {showCallouts && (
-        <>
-          <div className="absolute -left-32 top-24 z-50 hidden md:flex">
-            <CalloutTag label="Your normal greeting" direction="left" />
-          </div>
-          <div className="absolute -right-32 bottom-16 z-50 hidden md:flex">
-            <CalloutTag label="Your sign-off" direction="right" />
-          </div>
-        </>
-      )}
-
-      <div
-        className="
-          w-[360px] md:w-[400px]
-          rounded-lg overflow-hidden
-          bg-white text-gray-800
-          ring-1 ring-black/5 border border-black/5
-          shadow-[0_32px_80px_rgba(0,0,0,0.28)]
-          text-[13px] leading-[1.45]
-        "
-      >
-        {/* Header */}
-        <div className="flex items-start justify-between px-3 py-2 bg-[#202124] text-white border-b border-black/40 text-[12px]">
-          <span className="font-medium">New message</span>
-          <div className="flex items-center gap-3 text-white/70">
-            <span className="text-[12px] leading-none">▁</span>
-            <span className="text-[11px] leading-none">⧉</span>
-            <span className="text-[12px] leading-none">✕</span>
-          </div>
-        </div>
-
-        {/* To */}
-        <div className="px-3 py-2 border-b border-gray-200 text-[12px] leading-snug text-gray-700 flex items-start flex-wrap gap-2">
-          <span className="text-gray-500 min-w-[34px]">To</span>
-          <span className="inline-flex items-center rounded-full bg-gray-100 text-gray-800 px-2 py-[2px] text-[11px] font-medium leading-none ring-1 ring-gray-300 border border-white shadow-[0_2px_4px_rgba(0,0,0,0.06)]">
-            Sarah&nbsp;Quinn
-          </span>
-        </div>
-
-        {/* Subject */}
-        <div className="px-3 py-2 border-b border-gray-200 text-[12px] leading-snug text-gray-700 flex items-start flex-wrap gap-2">
-          <span className="text-gray-500 min-w-[54px]">Subject</span>
-          <span className="text-gray-900 font-medium">Pricing update</span>
-        </div>
-
-        {/* Body */}
-        <div className="px-3 py-3 whitespace-pre-wrap min-h-[140px] text-[13px] leading-[1.45] text-gray-800">
-          {bodyText}
-          {!bodyDone && <CaretBlink />}
-        </div>
-
-        {/* Footer */}
-        <div className="px-3 py-2 border-t border-gray-200 bg-gray-50 flex items-center gap-2">
-          <button
-            className="
-              inline-flex items-center justify-center rounded-md px-2.5 py-1.5
-              text-[12px] font-medium leading-none text-white
-              bg-[#0b57d0] shadow-[0_2px_4px_rgba(0,0,0,0.2)]
-            "
-          >
-            Send
-          </button>
-          <button
-            className="
-              inline-flex items-center justify-center rounded-md px-2.5 py-1.5
-              text-[12px] font-medium leading-none text-gray-700
-              bg-white ring-1 ring-gray-300 border border-white/60
-              shadow-[0_1px_2px_rgba(0,0,0,0.08)]
-            "
-          >
-            Edit
-          </button>
+    <div
+      className="
+        w-full
+        rounded-xl overflow-hidden
+        bg-white text-gray-800
+        ring-1 ring-black/5 border border-black/5
+        shadow-[0_32px_80px_rgba(0,0,0,0.28)]
+        text-[13px] leading-[1.45]
+      "
+    >
+      {/* Header */}
+      <div className="flex items-start justify-between px-3 py-2 bg-[#202124] text-white border-b border-black/40 text-[12px]">
+        <span className="font-medium">New message</span>
+        <div className="flex items-center gap-3 text-white/70">
+          <span className="text-[12px] leading-none">▁</span>
+          <span className="text-[11px] leading-none">⧉</span>
+          <span className="text-[12px] leading-none">✕</span>
         </div>
       </div>
-    </div>
-  );
-}
 
-function CalloutTag({ label, direction = "left" }) {
-  return (
-    <div className="relative flex items-center text-[10px] font-medium leading-none text-gray-700">
-      {direction === "left" ? (
-        <>
-          <div className="mr-1 rounded-[4px] bg-white text-gray-800 border border-gray-200 ring-1 ring-gray-100 shadow-[0_8px_16px_rgba(0,0,0,0.12)] px-1.5 py-[2px] whitespace-nowrap">
-            {label}
-          </div>
-          <div className="h-[1px] w-[32px] bg-gray-300" />
-        </>
-      ) : (
-        <>
-          <div className="h-[1px] w-[32px] bg-gray-300" />
-          <div className="ml-1 rounded-[4px] bg-white text-gray-800 border border-gray-200 ring-1 ring-gray-100 shadow-[0_8px_16px_rgba(0,0,0,0.12)] px-1.5 py-[2px] whitespace-nowrap">
-            {label}
-          </div>
-        </>
-      )}
+      {/* To */}
+      <div className="px-3 py-2 border-b border-gray-200 text-[12px] leading-snug text-gray-700 flex items-start flex-wrap gap-2">
+        <span className="text-gray-500 min-w-[34px]">To</span>
+        <span className="inline-flex items-center rounded-full bg-gray-100 text-gray-800 px-2 py-[2px] text-[11px] font-medium leading-none ring-1 ring-gray-300 border border-white shadow-[0_2px_4px_rgba(0,0,0,0.06)]">
+          Sarah&nbsp;Quinn
+        </span>
+      </div>
+
+      {/* Subject */}
+      <div className="px-3 py-2 border-b border-gray-200 text-[12px] leading-snug text-gray-700 flex items-start flex-wrap gap-2">
+        <span className="text-gray-500 min-w-[54px]">Subject</span>
+        <span className="text-gray-900 font-medium">Pricing update</span>
+      </div>
+
+      {/* Body */}
+      <div className="px-3 py-3 whitespace-pre-wrap min-h-[160px] text-[13px] leading-[1.45] text-gray-800">
+        {bodyText}
+        {!bodyDone && <CaretBlink />}
+      </div>
+
+      {/* Footer */}
+      <div className="px-3 py-2 border-t border-gray-200 bg-gray-50 flex items-center gap-2">
+        <button
+          className="
+            inline-flex items-center justify-center rounded-md px-2.5 py-1.5
+            text-[12px] font-medium leading-none text-white
+            bg-[#0b57d0] shadow-[0_2px_4px_rgba(0,0,0,0.2)]
+          "
+        >
+          Send
+        </button>
+        <button
+          className="
+            inline-flex items-center justify-center rounded-md px-2.5 py-1.5
+            text-[12px] font-medium leading-none text-gray-700
+            bg-white ring-1 ring-gray-300 border border-white/60
+            shadow-[0_1px_2px_rgba(0,0,0,0.08)]
+          "
+        >
+          Edit
+        </button>
+      </div>
     </div>
   );
 }
