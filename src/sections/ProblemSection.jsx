@@ -1,186 +1,412 @@
-import { motion } from "framer-motion";
-import { BellOff, Brain, Hourglass, Bot } from "lucide-react";
-import { useSection } from "../hooks/useSection";
+// ProblemSection.jsx
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
-const MotionDiv = motion.div;
-
-export default function ProblemSection() {
-  const { ref, isVisible } = useSection();
-
-  return (
-    <MotionDiv ref={ref} className="relative">
-      {/* soft background glows */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -top-24 left-[-8%] h-[380px] w-[380px] rounded-full blur-3xl opacity-80 bg-[radial-gradient(circle_at_center,rgba(244,63,94,.12),transparent_65%)]" />
-        <div className="absolute -bottom-24 right-[-6%] h-[420px] w-[420px] rounded-full blur-3xl opacity-80 bg-[radial-gradient(circle_at_center,rgba(99,102,241,.12),transparent_65%)]" />
-      </div>
-
-      {/* Heading */}
-      <MotionDiv
-        initial={{ opacity: 0, y: 20 }}
-        animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="relative mx-auto mb-12 max-w-3xl text-center"
-      >
-        <h2 className="text-5xl md:text-6xl font-bold tracking-tight leading-tight">
-          It's not neglect{" "}
-          <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-indigo-500 to-sky-500 animate-gradient-slow">
-            it's overload
-            <span className="absolute -bottom-2 left-0 h-[2px] w-full rounded-full bg-gradient-to-r from-rose-400/70 via-indigo-400/70 to-sky-400/70 animate-pulse-slow" />
-          </span>
-        </h2>
-
-        <p className="mt-6 text-xl text-gray-600/90 leading-relaxed max-w-2xl mx-auto">
-          You're not neglecting your network — you're drowning in threads,
-          follow-ups, and details that no one can remember
-        </p>
-      </MotionDiv>
-
-      {/* Stat cards */}
-      <div className="mx-auto mt-8 grid max-w-6xl gap-4 sm:grid-cols-2 md:grid-cols-4">
-        <StatCard
-          isVisible={isVisible}
-          delay={0}
-          tone="rose"
-          Icon={BellOff}
-          heading="Ghosting"
-          value="60%"
-          label="of deals"
-          sub="die from slow or no follow-up"
-          className="md:col-span-2 lg:scale-[1.05] lg:shadow-[0_12px_40px_rgba(244,63,94,0.25)]"
-        />
-
-        <StatCard
-          isVisible={isVisible}
-          delay={0.1}
-          tone="indigo"
-          Icon={Brain}
-          heading="Context overload"
-          value="9"
-          suffix="h/week"
-          label="lost searching for context"
-          sub="threads, notes & follow-ups"
-        />
-
-        <StatCard
-          isVisible={isVisible}
-          delay={0.2}
-          tone="amber"
-          Icon={Hourglass}
-          heading="Inbox chaos"
-          value="12"
-          suffix="h/week"
-          label="spent managing email"
-          sub="manual triage & drafts"
-        />
-
-        <StatCard
-          isVisible={isVisible}
-          delay={0.3}
-          tone="slate"
-          Icon={Bot}
-          heading="Robotic tone"
-          value="70%"
-          label="say AI"
-          sub="still feels unnatural"
-        />
-      </div>
-    </MotionDiv>
-  );
-}
-
-/* ============
-   Components
-   ============ */
-function StatCard({
-  isVisible,
-  delay,
-  tone = "indigo",
-  Icon,
-  heading,
-  value,
-  suffix,
-  label,
-  sub,
+/* =========================
+   VoiceParticles (Canvas) — Smooth Wave in Bits (no grid)
+   ========================= */
+function VoiceParticles({
+  play,
+  delay = 0,
+  reducedMotion = false,
+  height = 96,
 }) {
-  const styles = getToneStyles(tone);
+  const wrapRef = useRef(null);
+  const canvasRef = useRef(null);
+  const rafRef = useRef(0);
+  const roRef = useRef(null);
+  const startTimer = useRef(null);
+
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    const canvas = canvasRef.current;
+    if (!wrap || !canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    let running = false;
+
+    // animation state
+    let phase = 0;
+    let boost = 0;
+    let width = 0;
+    let heightPx = height;
+    let dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    let tPrev = 0;
+
+    const cfg = {
+      baseAmp: 18, // baseline amplitude (CSS px @ DPR 1)
+      speed: 0.015, // carrier phase speed
+      freq: 2.2, // carrier frequency
+      fadeAlpha: 0.36, // bits alpha
+      bitGapCss: 10, // horizontal spacing between bits (CSS px)
+      bitScale: 0.52, // bit size relative to gap
+      fillMain: "#ff8a3d",
+      fillEcho: "rgba(255,179,106,0.35)",
+    };
+
+    const resize = () => {
+      const rect = wrap.getBoundingClientRect();
+      width = Math.max(0, Math.floor(rect.width));
+      const small = width < 640;
+      heightPx = small ? Math.min(height, 64) : height;
+
+      // amplitude auto-scale for small widths
+      const ampScale = small ? 0.6 : 1;
+      cfg.baseAmp = 18 * ampScale;
+
+      canvas.style.width = width + "px";
+      canvas.style.height = heightPx + "px";
+      canvas.width = Math.max(1, Math.floor(width * dpr));
+      canvas.height = Math.max(1, Math.floor(heightPx * dpr));
+    };
+
+    const draw = () => {
+      if (!running) return;
+
+      const now = performance.now() / 1000;
+      const dt = tPrev ? Math.min(0.05, now - tPrev) : 0.016;
+      tPrev = now;
+
+      // gentle breathing so it never feels robotic
+      const breath = 0.9 + 0.1 * Math.sin(now * 0.65);
+      boost *= 0.94; // decay scroll boost
+      phase += cfg.speed;
+
+      const { width: cw, height: ch } = canvas;
+      ctx.clearRect(0, 0, cw, ch);
+
+      const midY = ch / 2;
+      const gapPx = Math.max(6, cfg.bitGapCss) * dpr; // device px
+      const bitSize = Math.max(2, Math.floor(gapPx * cfg.bitScale));
+      const ampPx = cfg.baseAmp * (breath + boost * 0.8) * dpr;
+
+      ctx.globalAlpha = reducedMotion ? 0.22 : cfg.fadeAlpha;
+
+      const count = Math.floor((cw / gapPx) | 0);
+
+      for (let i = 0; i <= count; i++) {
+        const x = i * gapPx + gapPx * 0.5; // center column
+
+        // normalized across 0..1
+        const t = i / Math.max(1, count);
+
+        // gaussian energy envelope (more motion near center)
+        const center = 0.5,
+          sigma = 0.22;
+        const gauss = Math.exp(-0.5 * Math.pow((t - center) / sigma, 2));
+
+        // carrier wave
+        const ySignal = Math.sin(t * Math.PI * 2 * cfg.freq + phase);
+        const y = midY + ySignal * ampPx * (0.35 + gauss * 0.65);
+
+        // square bit centered at (x, y)
+        const rx = Math.round(x - bitSize / 2);
+        const ry = Math.round(y - bitSize / 2);
+
+        // main bit
+        ctx.fillStyle = cfg.fillMain;
+        ctx.fillRect(rx, ry, bitSize, bitSize);
+
+        // faint echo/glow just above (adds depth while staying “bitty”)
+        ctx.fillStyle = cfg.fillEcho;
+        ctx.fillRect(
+          rx,
+          ry - 1 * dpr,
+          bitSize,
+          Math.max(1, Math.floor(bitSize * 0.85)),
+        );
+      }
+
+      rafRef.current = requestAnimationFrame(draw);
+    };
+
+    const onScroll = () => {
+      boost = Math.min(1, boost + 0.35);
+    };
+
+    const start = () => {
+      if (running) return;
+      running = true;
+      resize();
+      tPrev = performance.now() / 1000;
+      rafRef.current = requestAnimationFrame(draw);
+      window.addEventListener("scroll", onScroll, { passive: true });
+    };
+
+    const stop = () => {
+      running = false;
+      cancelAnimationFrame(rafRef.current);
+      window.removeEventListener("scroll", onScroll);
+    };
+
+    roRef.current = new ResizeObserver(() => resize());
+    roRef.current.observe(wrap);
+
+    if (play) {
+      if (reducedMotion) {
+        // static snapshot for reduced-motion
+        startTimer.current = setTimeout(() => {
+          resize();
+          const { width: cw, height: ch } = canvas;
+          ctx.clearRect(0, 0, cw, ch);
+
+          const midY = ch / 2;
+          const gapPx = Math.max(6, cfg.bitGapCss) * dpr;
+          const bitSize = Math.max(2, Math.floor(gapPx * cfg.bitScale));
+          const amp = cfg.baseAmp * dpr;
+          ctx.globalAlpha = 0.22;
+
+          const count = Math.floor((cw / gapPx) | 0);
+          for (let i = 0; i <= count; i++) {
+            const x = i * gapPx + gapPx * 0.5;
+            const t = i / Math.max(1, count);
+            const center = 0.5,
+              sigma = 0.22;
+            const gauss = Math.exp(-0.5 * Math.pow((t - center) / sigma, 2));
+            const ySignal = Math.sin(t * Math.PI * 2 * cfg.freq);
+            const y = midY + ySignal * amp * (0.35 + gauss * 0.65);
+
+            const rx = Math.round(x - bitSize / 2);
+            const ry = Math.round(y - bitSize / 2);
+            ctx.fillStyle = cfg.fillMain;
+            ctx.fillRect(rx, ry, bitSize, bitSize);
+          }
+        }, delay * 1000);
+      } else {
+        startTimer.current = setTimeout(start, delay * 1000);
+      }
+    }
+
+    return () => {
+      stop();
+      roRef.current?.disconnect();
+      if (startTimer.current) clearTimeout(startTimer.current);
+    };
+  }, [play, delay, reducedMotion, height]);
 
   return (
-    <MotionDiv
-      initial={{ opacity: 0, y: 12 }}
-      animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay }}
-      className={`relative overflow-hidden rounded-2xl border border-white/60 bg-white/80 p-5 backdrop-blur-xl shadow-[0_10px_24px_rgba(15,23,42,.08)] ring-1 ${styles.ring}`}
-    >
-      {/* halo */}
-      <MotionDiv
-        aria-hidden
-        className={`pointer-events-none absolute inset-0 -z-10 ${styles.halo}`}
-        animate={
-          isVisible ? { opacity: [0.9, 1, 0.9], scale: [1, 1.02, 1] } : {}
-        }
-        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-      />
-
-      {/* header row */}
-      <div className="mb-3 flex items-center gap-2">
-        <div
-          className={`grid size-9 place-items-center rounded-xl bg-white/80 ${styles.iconText}`}
-        >
-          {Icon ? <Icon size={18} /> : null}
-        </div>
-        <div className="text-sm font-semibold text-gray-800">{heading}</div>
-      </div>
-
-      {/* numbers */}
-      <div className="flex items-baseline gap-2">
-        <div className="text-5xl font-bold leading-none tracking-tight">
-          {value}
-        </div>
-        {suffix ? (
-          <div className="translate-y-[2px] text-sm font-medium text-gray-600">
-            {suffix}
-          </div>
-        ) : null}
-      </div>
-      <div className={`mt-2 text-sm font-semibold ${styles.accentText}`}>
-        {label}
-      </div>
-      <div className="text-sm text-gray-700">{sub}</div>
-    </MotionDiv>
+    <div ref={wrapRef} className="particlesWrap">
+      <canvas ref={canvasRef} />
+    </div>
   );
 }
 
-function getToneStyles(tone) {
-  switch (tone) {
-    case "rose":
-      return {
-        ring: "ring-rose-400/50",
-        accentText: "text-rose-600",
-        iconText: "text-rose-600",
-        halo: "bg-[radial-gradient(circle_at_center,rgba(244,63,94,.10),transparent_60%)]",
-      };
-    case "amber":
-      return {
-        ring: "ring-amber-400/50",
-        accentText: "text-amber-600",
-        iconText: "text-amber-600",
-        halo: "bg-[radial-gradient(circle_at_center,rgba(245,158,11,.10),transparent_60%)]",
-      };
-    case "slate":
-      return {
-        ring: "ring-slate-300/50",
-        accentText: "text-slate-600",
-        iconText: "text-slate-600",
-        halo: "bg-[radial-gradient(circle_at_center,rgba(100,116,139,.10),transparent_60%)]",
-      };
-    case "indigo":
-    default:
-      return {
-        ring: "ring-indigo-400/50",
-        accentText: "text-indigo-600",
-        iconText: "text-indigo-600",
-        halo: "bg-[radial-gradient(circle_at_center,rgba(99,102,241,.10),transparent_60%)]",
-      };
-  }
+/* =========================
+   Section (headline + typing, no clipping)
+   ========================= */
+export default function ProblemSection() {
+  const sectionRef = useRef(null);
+  const boxRef = useRef(null);
+  const measureRef = useRef(null);
+  const rafFitRef = useRef(0);
+
+  const [play, setPlay] = useState(false);
+  const [reduce, setReduce] = useState(false);
+  const [fontPx, setFontPx] = useState(180);
+  const [textWidthPx, setTextWidthPx] = useState(0);
+
+  const line1 = "You type. You scroll. You drown in inboxes.";
+  const line2 = "CLARO AI lets you talk your work into motion.";
+
+  const chars = useMemo(() => Array.from(line1).length, [line1]);
+  const typeSpeed = 0.045;
+  const typeDur = +(chars * typeSpeed).toFixed(2);
+  const waveDelay = typeDur + 0.05;
+
+  useEffect(() => {
+    const m = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    const on = () => setReduce(!!m?.matches);
+    on();
+    m?.addEventListener?.("change", on);
+    return () => m?.removeEventListener?.("change", on);
+  }, []);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setPlay(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.35 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // Fit single-line headline (no clipping, resize-safe)
+  useEffect(() => {
+    const fitNow = () => {
+      const box = boxRef.current,
+        meas = measureRef.current;
+      if (!box || !meas) return;
+
+      const MIN = 32,
+        BASE = 220,
+        MAX = 360;
+      const avail = box.clientWidth || 0;
+      if (!avail) return;
+
+      const MARGIN = Math.max(12, Math.round(avail * 0.012));
+      const SAFETY = 6;
+
+      meas.style.fontSize = `${BASE}px`;
+      const baseWidth = meas.getBoundingClientRect().width || 1;
+
+      const targetAvail = Math.max(1, avail - MARGIN - SAFETY);
+      const scale = targetAvail / baseWidth;
+      const proposed = Math.max(MIN, Math.min(MAX, BASE * scale));
+
+      meas.style.fontSize = `${proposed}px`;
+      const exactWidth = meas.getBoundingClientRect().width;
+
+      const finalFont =
+        exactWidth > targetAvail
+          ? Math.max(MIN, proposed * (targetAvail / exactWidth))
+          : proposed;
+
+      meas.style.fontSize = `${finalFont}px`;
+      const finalWidth = meas.getBoundingClientRect().width + SAFETY;
+
+      const r2 = (v) => Math.round(v * 100) / 100;
+      const nextFs = r2(finalFont);
+      const nextTw = r2(Math.min(finalWidth, targetAvail));
+
+      if (Math.abs(nextFs - fontPx) > 0.25) setFontPx(nextFs);
+      if (Math.abs(nextTw - textWidthPx) > 0.5) setTextWidthPx(nextTw);
+    };
+
+    const fit = () => {
+      if (rafFitRef.current) cancelAnimationFrame(rafFitRef.current);
+      rafFitRef.current = requestAnimationFrame(() => {
+        rafFitRef.current = 0;
+        fitNow();
+      });
+    };
+
+    fit();
+    const ro = new ResizeObserver(() => fit());
+    boxRef.current && ro.observe(boxRef.current);
+    window.addEventListener("resize", fit);
+    return () => {
+      if (rafFitRef.current) cancelAnimationFrame(rafFitRef.current);
+      ro.disconnect();
+      window.removeEventListener("resize", fit);
+    };
+  }, [line1, fontPx, textWidthPx]);
+
+  const vars = useMemo(
+    () => ({
+      ["--chars"]: chars,
+      ["--type-dur"]: `${typeDur}s`,
+      ["--wave-delay"]: `${waveDelay}s`,
+      ["--fs"]: `${fontPx}px`,
+      ["--text-w"]: `${Math.max(0, textWidthPx)}px`,
+      ["--reveal-pad"]: "0.18em", // protect descenders from clipping
+    }),
+    [chars, typeDur, waveDelay, fontPx, textWidthPx],
+  );
+
+  return (
+    <section
+      ref={sectionRef}
+      className={`relative overflow-hidden bg-white py-16 sm:py-20 md:py-28 ${play ? "is-play" : ""} ${reduce ? "is-reduced" : ""}`}
+      style={vars}
+    >
+      <div
+        className="mx-auto w-full px-4 sm:px-6 md:px-8"
+        style={{ maxWidth: "min(1800px, 100%)" }}
+      >
+        {/* offscreen measurer */}
+        <span ref={measureRef} className="measure" aria-hidden="true">
+          {line1}
+        </span>
+
+        <div ref={boxRef} className="headlineBox">
+          {/* Desktop typed */}
+          <h1 className="headline typedHead" style={{ fontSize: "var(--fs)" }}>
+            <span className="type">
+              <span className="type__text" aria-hidden="true">
+                {line1}
+              </span>
+              <span className="sr-only">{line1}</span>
+              <span className="caret" aria-hidden="true" />
+            </span>
+          </h1>
+
+          {/* ≤900px stacked */}
+          <h1 className="headline stackHead" aria-hidden="true">
+            <span className="stackLine">You type.</span>
+            <span className="stackLine">You scroll.</span>
+            <span className="stackLine">You drown in inboxes.</span>
+          </h1>
+        </div>
+
+        <p className="subline">{line2}</p>
+
+        <VoiceParticles
+          play={play}
+          delay={waveDelay}
+          reducedMotion={reduce}
+          height={96}
+        />
+      </div>
+
+      <style>{`
+        .headlineBox { width: 100%; overflow: visible; }
+        .headline {
+          margin: 0;
+          line-height: 1.06;
+          font-weight: 800;
+          color: #0b0d10;
+          letter-spacing: -0.012em;
+          text-rendering: optimizeLegibility;
+        }
+
+        .measure {
+          position: absolute; left: -9999px; top: -9999px;
+          white-space: nowrap; font-weight: 800; font-size: 220px; line-height: 1.06;
+          font-family: inherit; visibility: hidden; pointer-events: none;
+        }
+
+        .typedHead { display: block; }
+        .type { position: relative; display: inline-block; white-space: nowrap; margin-bottom: calc(var(--reveal-pad) * -1); }
+        .type__text { display: inline-block; overflow: hidden; width: 0; padding-bottom: var(--reveal-pad); }
+        .caret { position: absolute; top: 0; bottom: -0.05em; left: 0; width: 3px; background: #111827; transform: translateX(0); }
+
+        .stackHead { display: none; }
+        .stackLine { display: block; font-size: clamp(56px, 16vw, 120px); line-height: 1.02; letter-spacing: -0.015em; }
+
+        .subline { margin-top: 18px; font-size: clamp(26px, 4.5vw, 44px); color: #4b5563; opacity: 0; transform: translateY(6px); }
+
+        .particlesWrap { margin-top: 28px; opacity: 0; pointer-events: none; width: 100%; height: 96px; }
+        .particlesWrap canvas { width: 100%; height: 100%; display: block; }
+
+        .is-play .type__text { animation: typingPx var(--type-dur) steps(var(--chars)) forwards; }
+        .is-play .caret { animation: caretFollowPx var(--type-dur) steps(var(--chars)) forwards, caretBlink 0.9s step-end var(--type-dur) infinite; }
+        .is-play .subline { animation: fadeUp .6s ease-out calc(var(--wave-delay) + .15s) forwards; }
+        .is-play .particlesWrap { animation: voiceShow .6s ease var(--wave-delay) forwards; }
+
+        @keyframes typingPx      { from { width: 0; } to { width: var(--text-w); } }
+        @keyframes caretFollowPx { from { transform: translateX(0); } to { transform: translateX(var(--text-w)); } }
+        @keyframes caretBlink    { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
+        @keyframes fadeUp        { to { opacity: 1; transform: translateY(0); } }
+        @keyframes voiceShow     { to { opacity: 1; } }
+
+        @media (max-width: 900px) {
+          .typedHead { display: none; }
+          .stackHead { display: block; }
+          .subline   { font-size: clamp(22px, 7vw, 34px); }
+          .particlesWrap { height: 64px; }
+        }
+
+        .is-reduced .type__text { width: auto !important; }
+        .is-reduced .caret { animation: none !important; transform: translateX(var(--text-w)) !important; opacity: 1 !important; }
+        .is-reduced .subline { opacity: 1 !important; transform: none !important; }
+        .is-reduced .particlesWrap { opacity: 1 !important; }
+      `}</style>
+    </section>
+  );
 }

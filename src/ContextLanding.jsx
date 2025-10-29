@@ -9,11 +9,10 @@ import React from "react";
 
 // Import sections directly - no lazy loading
 import ProblemSection from "./sections/ProblemSection.jsx";
-import SolutionSection from "./sections/SolutionSection.jsx";
-import HowItWorksSection from "./sections/HowItWorksSection.jsx";
-import { AmbientHeadline } from "./sections/AmbientHeadline.jsx";
 import { RevealHeadline } from "./sections/RevealHeadline.jsx";
-
+import ClaroBrainOverlay from "./sections/ClaroBrainOverlay.jsx";
+import FloatingLogo from "./sections/FloatingLogo.jsx";
+import EmailCard from "./sections/EmailCard.jsx";
 
 export default function ContextLanding() {
   const [scrolled, setScrolled] = useState(false);
@@ -38,6 +37,8 @@ export default function ContextLanding() {
   }, []);
 
   const hasLoadedRef = useRef(document.readyState === "complete");
+
+  const heroRef = useRef(null);
 
   useEffect(() => {
     const onLoad = () => {
@@ -152,7 +153,7 @@ export default function ContextLanding() {
 
             {/* Logotype */}
             <span className="text-[20px] md:text-[22px] font-silkscreen tracking-tight leading-none relative top-[0.5px]">
-              <span className="text-[#E07A5F]">Claro</span>
+              <span className="text-[#E07A5F]">Claro </span>
               <span className="text-[#3D405B]">AI</span>
             </span>
           </div>
@@ -245,40 +246,42 @@ export default function ContextLanding() {
 
       <section
         id="top"
+        ref={heroRef}
         className="relative flex flex-col items-center justify-center min-h-[90vh] px-6 pt-28 md:pt-36 pb-18 lg:px-8 text-center"
       >
-        {/* Floating brand logos */}
         <FloatingLogo
           src={`${import.meta.env.BASE_URL}gmail.svg`}
           alt="Gmail"
-          className="absolute left-[10%] top-[22%] w-[90px] sm:w-[110px] lg:w-[140px]"
+          className="absolute left-[8%] top-[22%] w-[90px] sm:w-[110px] lg:w-[140px]"
           delay={0}
           hideBelow="md"
+          targetRef={heroRef}
         />
 
         <FloatingLogo
           src={`${import.meta.env.BASE_URL}google-calendar.svg`}
           alt="Google Calendar"
-          className="absolute right-[10%] bottom-[20%] w-[95px] sm:w-[115px] lg:w-[145px]"
+          className="absolute right-[8%] top-[22%] w-[85px] sm:w-[100px] lg:w-[130px]"
           delay={0.4}
           hideBelow="md"
+          targetRef={heroRef}
         />
 
         {/* Hero text block */}
         <div className="hero-content flex flex-col items-center justify-center w-full max-w-4xl mx-auto text-center">
-  <RevealHeadline
-  text={"Clarity for the way you\nconnect"}
-  className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.05]"
-  cleanColor="#3D405B"
-  activeColor="#E07A5F"
-  durationMs={2400}
-  tileEnd={3.2}
-  threshold={0.4}
-  breathDelayMs={1200}   // ← gap between reveal end and breathing start
-/>
+          <RevealHeadline
+            text={"Clarity for the way you\nconnect"}
+            className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.05]"
+            cleanColor="#3D405B"
+            activeColor="#E07A5F"
+            durationMs={2400}
+            tileEnd={3.2}
+            threshold={0.4}
+            breathDelayMs={1200} // ← gap between reveal end and breathing start
+          />
 
           <p className="mt-6 text-lg sm:text-xl text-[#3D405B]/80 max-w-2xl mx-auto">
-            ClaroAI is a voice assistant for your email and calendar. It
+            CLARO AI is a voice assistant for your email and calendar. It
             understands how you connect — who matters, how you communicate, and
             when to reach out.
           </p>
@@ -299,34 +302,36 @@ export default function ContextLanding() {
           </div>
         </div>
 
-        {/* Device preview */}
-        <div className="hero-iphone relative mx-auto mt-12 max-w-5xl">
-          <div className="iphone-shell">
-            <div className="iphone-notch" aria-hidden />
-            <div className="ls-card">
-              <div className="ls-left">
-                <div className="ls-mic">
-                  <Mic size={18} />
-                </div>
-              </div>
-              <div className="ls-bubble">
-                "Morning! 6 emails from your Top 20 need a nudge. Jennifer
-                hasn't heard from you in 9 days."
-              </div>
-            </div>
-            <div className="ls-your-reply">
-              "Draft a warm follow-up and suggest Friday 2pm."
-            </div>
-            <div className="ls-tip">
-              <span className="ls-tip-badge">Tip</span>
-              <span className="align-middle">
-                Try: "Draft a warm follow-up to Jennifer & propose Fri 2pm."
-              </span>
-            </div>
-          </div>
-
-          <div className="absolute -inset-4 -z-10 rounded-[32px] bg-[radial-gradient(60%_60%_at_50%_50%,rgba(99,102,241,.12),transparent_60%)]" />
-        </div>
+        <ClaroBrainOverlay
+          className="mt-8"
+          aiLines={[
+            "Here’s your daily briefing — ready?",
+            "Jennifer’s note looks urgent — she’s waiting on pricing.",
+            "Reply ready — matches how you usually write to Sarah.",
+            "You promised Alex that update — want me to finish it?",
+            "Tomorrow’s QBR with Jennifer — I’ve summarized your last thread.",
+            "You’re free until 2 PM — want to catch up on pending replies?",
+            "Here’s your schedule for tomorrow — one client call and one team sync.",
+            "No meeting logged since your last promise to Alex — should I set one?",
+          ]}
+          aiLineTags={[
+            ["Context", "Relationships"], // daily briefing
+            ["Relationships", "Context"], // urgent note
+            ["Tone", "Relationships"], // reply ready
+            ["Tone", "Memory"], // friendly tone
+            ["Memory", "Relationships"], // update reminder
+            ["Context", "Memory"], // QBR summary
+            ["Context", "Memory"], // free until 2pm
+            ["Context", "Relationships"], // schedule awareness
+            ["Memory", "Relationships"], // overdue meeting
+          ]}
+          capsules={[
+            { label: "Understands your world", tag: "Context" },
+            { label: "Remembers what matters", tag: "Memory" },
+            { label: "Writes like you", tag: "Tone" },
+            { label: "Knows who matters", tag: "Relationships" },
+          ]}
+        />
       </section>
 
       {/* Problem section */}
@@ -339,23 +344,15 @@ export default function ContextLanding() {
         </div>
       </section>
 
-      {/* Solution section */}
-      <section
-        id="solution"
-        className="section-grad px-6 py-24 lg:px-8 scroll-mt-24 lg:scroll-mt-32"
-      >
-        <div className="mx-auto max-w-7xl">
-          <SolutionSection />
+      <section className="w-full bg-gray-50 py-28 px-4">
+        <div className="max-w-4xl mx-auto text-center mb-20">
+          <h2 className="text-6xl md:text-7xl font-bold text-gray-900 tracking-tight">
+            How Claro Works
+          </h2>
         </div>
-      </section>
 
-      {/* How it works section */}
-      <section
-        id="how"
-        className="section-plain px-6 py-24 scroll-mt-24 lg:scroll-mt-32"
-      >
-        <div className="mx-auto max-w-7xl">
-          <HowItWorksSection />
+        <div className="flex justify-center">
+          <EmailCard />
         </div>
       </section>
 
@@ -581,31 +578,5 @@ function FooterCol({ title, items, onNavigate }) {
         })}
       </ul>
     </div>
-  );
-}
-
-function FloatingLogo({
-  src,
-  alt,
-  className = "",
-  delay = 0,
-  brightness = 0.38,
-  hideBelow,
-}) {
-  const prefersReducedMotion = useReducedMotion();
-  const visibilityClass = hideBelow ? `hidden ${hideBelow}:block` : "";
-
-  return (
-    <img
-      src={src}
-      alt={alt}
-      className={`floating-logo pointer-events-none absolute z-10 select-none drop-shadow-[0_10px_26px_rgba(0,0,0,.22)] ${visibilityClass} ${className} ${
-        prefersReducedMotion ? "floating-logo-static" : ""
-      }`}
-      style={{
-        opacity: brightness,
-        animationDelay: `${delay}s`,
-      }}
-    />
   );
 }

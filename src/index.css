@@ -20,15 +20,11 @@
       rgba(224, 122, 95, 0.012),
       transparent 70%
     ),
-    radial-gradient(
-      900px at 85% 75%,
-      rgba(61, 64, 91, 0.015),
-      transparent 70%
-    ),
+    radial-gradient(900px at 85% 75%, rgba(61, 64, 91, 0.015), transparent 70%),
     linear-gradient(
       135deg,
-      rgba(224, 122, 95, 0.010) 0%,
-      rgba(61, 64, 91, 0.010) 100%
+      rgba(224, 122, 95, 0.01) 0%,
+      rgba(61, 64, 91, 0.01) 100%
     ),
     linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
 
@@ -55,8 +51,9 @@
 
 /* Keyframes: ultra-slow, micro-contrast breathing */
 @keyframes surfacePulse {
-  0%, 100% {
-    filter: saturate(0.96) contrast(0.99) brightness(1.00);
+  0%,
+  100% {
+    filter: saturate(0.96) contrast(0.99) brightness(1);
   }
   50% {
     filter: saturate(0.98) contrast(1.02) brightness(1.02);
@@ -67,13 +64,9 @@
 @media (prefers-reduced-motion: reduce) {
   .bg-surface {
     animation: none !important;
-    filter: saturate(0.96) contrast(1.0) brightness(1.0);
+    filter: saturate(0.96) contrast(1) brightness(1);
   }
 }
-
-
-
-
 
 /* Alternating section helpers */
 .section-grad {
@@ -311,29 +304,6 @@ html {
   transform: translateZ(0); /* Force GPU layer */
 }
 
-.iphone-notch {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 160px;
-  height: 26px;
-  border-radius: 16px;
-  background: rgba(0, 0, 0, 0.9);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
-}
-
-.ls-card {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(18px);
-  padding: 14px 16px;
-  margin-top: 58px;
-}
 .ls-left {
   display: flex;
 }
@@ -346,43 +316,6 @@ html {
   border-radius: 9999px;
   background: #0f172a;
   color: #fff;
-}
-
-.ls-bubble {
-  color: #334155;
-  font-size: 16px;
-}
-
-.ls-your-reply {
-  margin: 14px 0 0 auto;
-  max-width: 70%;
-  border-radius: 18px 18px 4px 18px;
-  background: #0f172a;
-  color: white;
-  padding: 14px 16px;
-  font-size: 16px;
-}
-
-.ls-tip {
-  margin: 18px auto 0;
-  max-width: 70%;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(18px);
-  padding: 10px 12px;
-  text-align: center;
-  color: #334155;
-  font-size: 14px;
-}
-.ls-tip-badge {
-  display: inline-block;
-  margin-right: 8px;
-  border-radius: 8px;
-  padding: 2px 8px;
-  background: #0f172a;
-  color: white;
-  font-size: 12px;
 }
 
 /* Animated gradient for brand word "Context" */
@@ -542,11 +475,6 @@ html {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* iPhone mock - delayed fade in with subtle lift */
-.hero-iphone {
-  animation: iphoneFadeIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
 }
 
 @keyframes iphoneFadeIn {
@@ -753,9 +681,8 @@ section {
 nav,
 .hero-orb,
 .floating-logo,
-.iphone-shell {
-  will-change: transform;
-}
+
+
 
 /* Reset will-change after animations complete */
 .hero-content,
