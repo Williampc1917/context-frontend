@@ -42,6 +42,7 @@ function useTypewriter(fullText, active, speedMs = 22) {
    ================================================= */
 export default function FollowupCard() {
   const rootRef = useRef(null);
+  const chatTimelineRef = useRef([]);
 
   // one-shot view trigger
   const [started, setStarted] = useState(false);
@@ -79,22 +80,27 @@ export default function FollowupCard() {
   const emailDone = emailTyped.length === draftFull.length;
 
   useEffect(() => {
-    if (!started || chatStarted || !emailDone) return;
+    if (!started || !emailDone) return;
 
-    const timers = [];
-    const hold = setTimeout(() => {
+    const queueTimeout = (callback, delay) => {
+      const id = setTimeout(callback, delay);
+      chatTimelineRef.current.push(id);
+      return id;
+    };
+
+    queueTimeout(() => {
       setChatStarted(true);
       setChatPhase("user_voice");
-      timers.push(setTimeout(() => setChatPhase("user_final"), 700));
-      timers.push(setTimeout(() => setChatPhase("ai_draft"), 1100));
-      timers.push(setTimeout(() => setChatPhase("ai_final"), 2400));
+      queueTimeout(() => setChatPhase("user_final"), 700);
+      queueTimeout(() => setChatPhase("ai_draft"), 1100);
+      queueTimeout(() => setChatPhase("ai_final"), 2400);
     }, 900); // extra time to admire the finished draft
 
     return () => {
-      clearTimeout(hold);
-      timers.forEach(clearTimeout);
+      chatTimelineRef.current.forEach(clearTimeout);
+      chatTimelineRef.current = [];
     };
-  }, [started, emailDone, chatStarted]);
+  }, [started, emailDone]);
 
   // Chat text typing for the user message (starts after chat begins)
   const userTypeActive =
