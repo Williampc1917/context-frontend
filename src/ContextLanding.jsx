@@ -247,7 +247,7 @@ export default function ContextLanding() {
       <section
         id="top"
         ref={heroRef}
-        className="relative flex flex-col items-center justify-center min-h-[90vh] px-6 pt-28 md:pt-36 pb-18 lg:px-8 text-center"
+        className="hero-canvas relative flex flex-col items-center justify-center min-h-[90vh] px-6 pt-28 md:pt-36 pb-18 lg:px-8 text-center"
       >
         <div className="hero-shell w-full max-w-5xl px-6 py-16 md:py-20 lg:px-16 mx-auto">
           {/* Hero text block */}
