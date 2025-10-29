@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+import FeatureLayout from "./FeatureLayout.jsx";
+
 /* -------------------------------------------------
    Hook: typewriter / live captions
    - When `active` is true, reveal `fullText` char by char
@@ -117,22 +119,30 @@ export default function InboxToClarity() {
   const showAiBubble = phase === "ai_voice" || phase === "ai_final";
 
   return (
-    <section
+    <FeatureLayout
       ref={rootRef}
-      className="relative w-full max-w-6xl mx-auto py-20 px-6 grid md:grid-cols-2 gap-12 items-center overflow-hidden"
+      eyebrow="Feature 01"
+      title="Your daily briefing, in a single command."
+      description={[
+        <p key="catch" className="text-base leading-relaxed text-gray-700">
+          Say “Catch me up,” and Claro speaks your priorities — your key
+          relationships, urgent follow-ups, and open promises.
+        </p>,
+        <p key="briefing" className="text-sm leading-relaxed text-gray-500">
+          No scrolling, no searching — just a simple voice briefing that keeps you ahead.
+        </p>,
+      ]}
+      background={
+        <div
+          className="pointer-events-none absolute inset-0 mx-auto max-w-6xl blur-[100px] opacity-40"
+          style={{
+            background:
+              "radial-gradient(circle at 60% 40%, rgba(224,122,95,0.10) 0%, rgba(255,255,255,0) 70%)",
+          }}
+        />
+      }
     >
-      {/* soft warm bg glow */}
-      <div
-        className="pointer-events-none absolute inset-0 mx-auto max-w-6xl blur-[100px] opacity-40"
-        style={{
-          background:
-            "radial-gradient(circle at 60% 40%, rgba(224,122,95,0.10) 0%, rgba(255,255,255,0) 70%)",
-        }}
-      />
-
-      {/* LEFT COLUMN (Inbox + chat overlay) */}
-      <div className="relative w-full flex justify-center">
-        {/* INBOX CARD */}
+      {/* INBOX CARD */}
         <motion.div
           initial={{ opacity: 0, y: 30, rotate: -1.5 }}
           animate={{
@@ -400,21 +410,7 @@ export default function InboxToClarity() {
             )}
           </AnimatePresence>
         </div>
-      </div>
-
-      {/* RIGHT COLUMN COPY */}
-      <div className="relative w-full max-w-[500px]">
-        <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-gray-900 leading-[1.1]">
-          Your inbox, summarized for you
-        </h2>
-
-        <p className="text-[15px] text-gray-600 leading-relaxed mt-4">
-          Claro sorts your day by what matters most. It prioritizes key
-          relationships, urgent follow-ups, and open promises, all through a
-          simple voice command.
-        </p>
-      </div>
-    </section>
+    </FeatureLayout>
   );
 }
 
