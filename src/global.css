@@ -1,0 +1,45 @@
+@keyframes fade-in-slow {
+  0% {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 0.2;
+    r: 1.5;
+  }
+  50% {
+    opacity: 0.8;
+    r: 3;
+  }
+}
+
+@keyframes line-flow {
+  0% {
+    stroke-dasharray: 2 10;
+    stroke-dashoffset: 100;
+  }
+  100% {
+    stroke-dasharray: 10 2;
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-fade-in-slow {
+  animation: fade-in-slow 2s ease-out forwards;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 3s ease-in-out infinite;
+}
+
+.animate-line-flow {
+  animation: line-flow 4s ease-in-out infinite alternate;
+}

@@ -21,11 +21,11 @@ export function RevealHeadline({
   durationMs = 2200,
   delayMs = 120,
   waveEase = "cubic", // 'linear' | 'cubic'
-  direction = "ltr",  // 'ltr' | 'rtl' | 'center'
+  direction = "ltr", // 'ltr' | 'rtl' | 'center'
 
   // Tiles
-  tileStart = 12,  // px at t=0
-  tileEnd = 2.5,   // px at t=1 (grid density / spacing)
+  tileStart = 12, // px at t=0
+  tileEnd = 2.5, // px at t=1 (grid density / spacing)
   threshold = 0.5,
   tileShape = "square", // "square" | "circle"
 
@@ -34,18 +34,18 @@ export function RevealHeadline({
   revealTo = 0.98,
 
   // Seam-control additions (REVEAL)
-  jitterBasePx = 0.5,   // keep tiny randomness at end so grid never aligns perfectly
+  jitterBasePx = 0.5, // keep tiny randomness at end so grid never aligns perfectly
   seamOverlapPx = 0.75, // overlap by the finish so no gutters/lines
 
   // Start breathing after this delay (gap between reveal end and overlay start)
   breathDelayMs = 900,
 
   // Staged breathing intro (tiles appear gradually)
-  breathIntroMs = 7500,        // total time to bring overlay to full density
-  breathPerTileRampMs = 220,   // fade-in time for each tile after it "activates"
+  breathIntroMs = 7500, // total time to bring overlay to full density
+  breathPerTileRampMs = 220, // fade-in time for each tile after it "activates"
 
   // Interactivity
-  retriggerOnHover = false,    // <-- ADDED BACK
+  retriggerOnHover = false, // <-- ADDED BACK
 }) {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
@@ -57,17 +57,17 @@ export function RevealHeadline({
   const breathTimeoutRef = useRef(0);
   const breathIdleTimeoutRef = useRef(0);
 
-    // ---- Breathing config (internal) ----
+  // ---- Breathing config (internal) ----
   const BREATH = {
-    periodMs: 3200,       // full in/out cycle
-    alphaBase: 0.10,
-    alphaAmp:  0.18,
+    periodMs: 3200, // full in/out cycle
+    alphaBase: 0.1,
+    alphaAmp: 0.18,
     sizeAmpPx: 0.35,
-    tintMix:   0.45,      // 0..1 toward cleanColor (0 = activeColor)
-    driftPx:   0.25,      // micro subpixel wander
-    fieldFreqX: 0.018,    // radians per CSS px
+    tintMix: 0.45, // 0..1 toward cleanColor (0 = activeColor)
+    driftPx: 0.25, // micro subpixel wander
+    fieldFreqX: 0.018, // radians per CSS px
     fieldFreqY: 0.013,
-    fieldDrift: 0.0009,   // radians per ms (slow drift)
+    fieldDrift: 0.0009, // radians per ms (slow drift)
   };
 
   const S = useRef({
@@ -115,7 +115,6 @@ export function RevealHeadline({
     typeof window !== "undefined" &&
     window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
-
   // ---------- utils ----------
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -137,7 +136,15 @@ export function RevealHeadline({
   const easeOut = (t) => 1 - Math.pow(1 - t, 2.2);
   const hexToRgb = (hex) => {
     const s = hex.replace("#", "");
-    const n = parseInt(s.length === 3 ? s.split("").map(c => c + c).join("") : s, 16);
+    const n = parseInt(
+      s.length === 3
+        ? s
+            .split("")
+            .map((c) => c + c)
+            .join("")
+        : s,
+      16,
+    );
     return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
   };
   const mix = (ca, cb, t) => ({
@@ -194,7 +201,8 @@ export function RevealHeadline({
       cs.lineHeight === "normal"
         ? Math.round(St.fontSize * 1.2)
         : Math.round(parseFloat(cs.lineHeight) || St.fontSize * 1.2);
-    St.letterSpacingPx = cs.letterSpacing === "normal" ? 0 : parseFloat(cs.letterSpacing) || 0;
+    St.letterSpacingPx =
+      cs.letterSpacing === "normal" ? 0 : parseFloat(cs.letterSpacing) || 0;
 
     if (!Number.isFinite(St.fontSize) || St.fontSize <= 0) {
       St.fontSize = 64;
@@ -209,12 +217,95 @@ export function RevealHeadline({
       h1.style.textAlign = "center";
     }
 
-    St.lines = String(text).split("\n");
+    const fragments = [];
+
+    const spans = wrap.querySelectorAll("[data-line]");
+    const tolerance = 0.5;
+    spans.forEach((node) => {
+      const range = document.createRange();
+      const walker = document.createTreeWalker(
+        node,
+        NodeFilter.SHOW_TEXT,
+        null,
+      );
+      let current = null;
+      let textNode;
+      while ((textNode = walker.nextNode())) {
+        const content = textNode.textContent || "";
+        for (let i = 0; i < content.length; i++) {
+          range.setStart(textNode, i);
+          range.setEnd(textNode, i + 1);
+          const rectList = range.getClientRects();
+          let rect = null;
+          for (let j = 0; j < rectList.length; j++) {
+            const candidate = rectList[j];
+            if (candidate.width !== 0 || candidate.height !== 0) {
+              rect = candidate;
+              break;
+            }
+          }
+          if (!rect) {
+            if (current) {
+              current.text += content[i];
+            }
+            continue;
+          }
+
+          if (!current || Math.abs(rect.top - current.top) > tolerance) {
+            if (current && current.text) {
+              const width = current.right - current.left;
+              const height = current.bottom - current.top;
+              fragments.push({
+                text: current.text,
+                cx: current.left + width / 2 - wrapRect.left,
+                cy: current.top + height / 2 - wrapRect.top,
+              });
+            }
+            current = {
+              text: content[i],
+              top: rect.top,
+              bottom: rect.bottom,
+              left: rect.left,
+              right: rect.right,
+            };
+          } else {
+            current.text += content[i];
+            current.left = Math.min(current.left, rect.left);
+            current.right = Math.max(current.right, rect.right);
+            current.bottom = Math.max(current.bottom, rect.bottom);
+          }
+        }
+      }
+
+      if (current && current.text) {
+        const width = current.right - current.left;
+        const height = current.bottom - current.top;
+        fragments.push({
+          text: current.text,
+          cx: current.left + width / 2 - wrapRect.left,
+          cy: current.top + height / 2 - wrapRect.top,
+        });
+      }
+
+      range.detach?.();
+    });
+
+    St.lines = fragments.map((f) => f.text);
+    St.centers = fragments.map((f) => ({ cx: f.cx, cy: f.cy }));
+    if (!St.lines.length) {
+      const fallbackLines = String(text).split("\n");
+      St.lines = fallbackLines;
+      St.centers = fallbackLines.map((_, i) => ({
+        cx: wrapRect.width / 2,
+        cy: (i + 0.5) * St.lineHeightPx,
+      }));
+    }
 
     // canvas dims: match the visible <h1> box exactly
     St.w = Math.max(1, Math.round(wrapRect.width));
     St.h = Math.max(1, Math.round(wrapRect.height));
-    const deviceDpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+    const deviceDpr =
+      typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
     const narrowCap = St.w <= 640 ? 1.5 : 2;
     St.dpr = clamp(deviceDpr, 1, narrowCap);
 
@@ -270,10 +361,26 @@ export function RevealHeadline({
       [1024, BREATH.driftPx * 0.85],
       [1440, BREATH.driftPx],
     ];
-    St.breathAlphaBase = clamp(responsiveStops(St.w, alphaBaseStops), BREATH.alphaBase * 0.75, BREATH.alphaBase * 1.2);
-    St.breathAlphaAmp = clamp(responsiveStops(St.w, breathAmpStops), BREATH.alphaAmp * 0.6, BREATH.alphaAmp * 1.3);
-    St.breathSizeAmpPx = clamp(responsiveStops(St.w, sizeStops), BREATH.sizeAmpPx * 0.55, BREATH.sizeAmpPx * 1.35);
-    St.breathDriftPx = clamp(responsiveStops(St.w, driftStops), BREATH.driftPx * 0.5, BREATH.driftPx * 1.1);
+    St.breathAlphaBase = clamp(
+      responsiveStops(St.w, alphaBaseStops),
+      BREATH.alphaBase * 0.75,
+      BREATH.alphaBase * 1.2,
+    );
+    St.breathAlphaAmp = clamp(
+      responsiveStops(St.w, breathAmpStops),
+      BREATH.alphaAmp * 0.6,
+      BREATH.alphaAmp * 1.3,
+    );
+    St.breathSizeAmpPx = clamp(
+      responsiveStops(St.w, sizeStops),
+      BREATH.sizeAmpPx * 0.55,
+      BREATH.sizeAmpPx * 1.35,
+    );
+    St.breathDriftPx = clamp(
+      responsiveStops(St.w, driftStops),
+      BREATH.driftPx * 0.5,
+      BREATH.driftPx * 1.1,
+    );
 
     const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
     canvas.width = Math.round(St.w * St.dpr);
@@ -282,17 +389,6 @@ export function RevealHeadline({
     canvas.style.height = `${St.h}px`;
     ctx.setTransform(St.dpr, 0, 0, St.dpr, 0, 0);
     ctx.imageSmoothingEnabled = false;
-
-    // collect line centers from actual DOM <span data-line>
-    const spans = wrap.querySelectorAll("[data-line]");
-    St.centers = [];
-    spans.forEach((node) => {
-      const r = node.getBoundingClientRect();
-      St.centers.push({
-        cx: (r.left + r.width / 2) - wrapRect.left,
-        cy: (r.top + r.height / 2) - wrapRect.top,
-      });
-    });
 
     // build clean text mask (offscreen), with letter-spacing
     St.off = document.createElement("canvas");
@@ -309,7 +405,8 @@ export function RevealHeadline({
     St.octx.font = `${St.fontWeight} ${St.fontSize}px ${cleanFont}`;
     for (let i = 0; i < St.lines.length; i++) {
       const line = St.lines[i];
-      const c = St.centers[i] || { cx: St.w / 2, cy: (i + 0.5) * St.lineHeightPx };
+      const c = St.centers[i];
+      if (!line || !c) continue;
       drawLineWithSpacing(St.octx, line, c.cx, c.cy, St.letterSpacingPx);
     }
 
@@ -327,19 +424,29 @@ export function RevealHeadline({
       const rowOffset = row % 2 ? step * 0.33 : 0; // faint diagonal flow
       for (let x = step * 0.5 + rowOffset; x < St.w; x += step) {
         if (alphaAtCss(x, y) >= threshold) {
-          const cx = Math.floor(x / step), cy = Math.floor(y / step);
-          const seed = rand2(cx, cy) - 0.5;        // -0.5..0.5 (deterministic)
+          const cx = Math.floor(x / step),
+            cy = Math.floor(y / step);
+          const seed = rand2(cx, cy) - 0.5; // -0.5..0.5 (deterministic)
           const phase = seed * Math.PI * 2;
-          const rate  = 0.85 + 0.3 * Math.abs(seed);
+          const rate = 0.85 + 0.3 * Math.abs(seed);
           const spatial = x * BREATH.fieldFreqX + y * BREATH.fieldFreqY;
-          const introKey = seed + 0.5;             // 0..1 → staged activation order
-          S.current.points.push({ x, y, rSeed: seed, phase, rate, spatial, introKey });
+          const introKey = seed + 0.5; // 0..1 → staged activation order
+          S.current.points.push({
+            x,
+            y,
+            rSeed: seed,
+            phase,
+            rate,
+            spatial,
+            introKey,
+          });
         }
       }
     }
 
     // reset breathing timers
-    const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+    const now =
+      typeof performance !== "undefined" ? performance.now() : Date.now();
     S.current.breathStart = now;
     S.current.lastNow = now;
     S.current.flow = 0;
@@ -362,8 +469,8 @@ export function RevealHeadline({
         progress <= revealFrom
           ? 0
           : progress >= revealTo
-          ? 1
-          : (progress - revealFrom) / (revealTo - revealFrom);
+            ? 1
+            : (progress - revealFrom) / (revealTo - revealFrom);
       const domOpacity = easeOut(t);
       h1.style.opacity = String(domOpacity);
     }
@@ -378,7 +485,8 @@ export function RevealHeadline({
     ctx.globalAlpha = 0.95;
 
     const tFill = waveEase === "cubic" ? easeCubic(progress) : progress;
-    let xLeft = 0, xRight = St.w;
+    let xLeft = 0,
+      xRight = St.w;
     if (direction === "ltr") {
       xRight = St.w * tFill;
     } else if (direction === "rtl") {
@@ -406,7 +514,8 @@ export function RevealHeadline({
       const ry = Math.round((p.y + j - s / 2) / q) * q;
 
       if (tileShape === "circle") {
-        const cx = rx + s / 2, cy = ry + s / 2;
+        const cx = rx + s / 2,
+          cy = ry + s / 2;
         ctx.beginPath();
         ctx.arc(cx, cy, s / 2, 0, Math.PI * 2);
         ctx.fill();
@@ -437,7 +546,10 @@ export function RevealHeadline({
     ctx.clearRect(0, 0, St.w, St.h);
 
     const q = 1 / St.dpr;
-    const baseSize = Math.max(q, Math.round(((St.step || St.tileEnd) + seamOverlapPx) / q) * q);
+    const baseSize = Math.max(
+      q,
+      Math.round(((St.step || St.tileEnd) + seamOverlapPx) / q) * q,
+    );
 
     const cA = hexToRgb(activeColor);
     const cB = hexToRgb(cleanColor);
@@ -451,7 +563,9 @@ export function RevealHeadline({
 
     // Global intro progress 0..1 for staged density
     const introT =
-      breathIntroMs > 0 ? clamp((now - S.current.breathStart) / breathIntroMs, 0, 1) : 1;
+      breathIntroMs > 0
+        ? clamp((now - S.current.breathStart) / breathIntroMs, 0, 1)
+        : 1;
 
     for (let i = 0; i < S.current.points.length; i++) {
       const p = S.current.points[i];
@@ -463,12 +577,19 @@ export function RevealHeadline({
       let introAlphaScale = 1;
       if (introT < 1 && breathPerTileRampMs > 0) {
         const t0 = p.introKey * breathIntroMs; // tile's activation time
-        const local = clamp((now - (S.current.breathStart + t0)) / breathPerTileRampMs, 0, 1);
-        introAlphaScale = easeOut(local);      // 0→1 per tile after activation
+        const local = clamp(
+          (now - (S.current.breathStart + t0)) / breathPerTileRampMs,
+          0,
+          1,
+        );
+        introAlphaScale = easeOut(local); // 0→1 per tile after activation
       }
 
       // low-frequency phase per tile with gentle spatial drift
-      const theta = p.phase + (omega * (now - S.current.breathStart) * p.rate) + (p.spatial + S.current.flow);
+      const theta =
+        p.phase +
+        omega * (now - S.current.breathStart) * p.rate +
+        (p.spatial + S.current.flow);
       const v = 0.5 + 0.5 * Math.sin(theta); // 0..1
 
       const a = (St.breathAlphaBase + St.breathAlphaAmp * v) * introAlphaScale;
@@ -521,7 +642,8 @@ export function RevealHeadline({
 
   function startBreathing() {
     if (h1Ref.current) h1Ref.current.style.opacity = "1";
-    const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+    const now =
+      typeof performance !== "undefined" ? performance.now() : Date.now();
     S.current.breathStart = now;
     S.current.lastNow = now;
     S.current.lowPower = false;
@@ -575,11 +697,14 @@ export function RevealHeadline({
 
       // Delay the breathing overlay (then it ramps in gradually)
       clearBreathDelay();
-      breathTimeoutRef.current = window.setTimeout(() => {
-        if (S.current.visible && !prefersReducedMotion) {
-          startBreathing();
-        }
-      }, Math.max(0, breathDelayMs));
+      breathTimeoutRef.current = window.setTimeout(
+        () => {
+          if (S.current.visible && !prefersReducedMotion) {
+            startBreathing();
+          }
+        },
+        Math.max(0, breathDelayMs),
+      );
     }
   }
 
@@ -603,9 +728,12 @@ export function RevealHeadline({
 
       if (!prefersReducedMotion && St.visible) {
         clearBreathDelay();
-        breathTimeoutRef.current = window.setTimeout(() => {
-          startBreathing();
-        }, Math.max(0, breathDelayMs));
+        breathTimeoutRef.current = window.setTimeout(
+          () => {
+            startBreathing();
+          },
+          Math.max(0, breathDelayMs),
+        );
       }
       return;
     }
@@ -632,7 +760,8 @@ export function RevealHeadline({
     breathIdleTimeoutRef.current = window.setTimeout(() => {
       breathIdleTimeoutRef.current = 0;
       if (!S.current.visible || prefersReducedMotion) return;
-      const ts = typeof performance !== "undefined" ? performance.now() : Date.now();
+      const ts =
+        typeof performance !== "undefined" ? performance.now() : Date.now();
       if (!S.current.docVisible) {
         drawBreath(ts);
         if (S.current.lowPower) {
@@ -715,14 +844,15 @@ export function RevealHeadline({
           }
         }
       },
-      { root: null, threshold: 0 }
+      { root: null, threshold: 0 },
     );
     io.observe(wrap);
 
     const handleVisibility = () => {
       if (typeof document === "undefined") return;
       const visible = document.visibilityState !== "hidden";
-      const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+      const now =
+        typeof performance !== "undefined" ? performance.now() : Date.now();
       S.current.docVisible = visible;
       if (!visible) {
         if (S.current.running) {
@@ -745,7 +875,11 @@ export function RevealHeadline({
         if (S.current.running && !rafRef.current) {
           rafRef.current = requestAnimationFrame(tick);
         }
-        if (S.current.revealedOnce && !prefersReducedMotion && !breathRafRef.current) {
+        if (
+          S.current.revealedOnce &&
+          !prefersReducedMotion &&
+          !breathRafRef.current
+        ) {
           breathRafRef.current = requestAnimationFrame(breathTick);
         }
       }
@@ -802,14 +936,17 @@ export function RevealHeadline({
     breathDelayMs,
     breathIntroMs,
     breathPerTileRampMs,
-    retriggerOnHover,          // <-- now defined
+    retriggerOnHover, // <-- now defined
     prefersReducedMotion,
   ]);
 
   const domLines = String(text).split("\n");
 
   return (
-    <div ref={wrapRef} className="relative mx-auto w-full text-center select-none">
+    <div
+      ref={wrapRef}
+      className="relative mx-auto w-full text-center select-none"
+    >
       {/* Real, crisp DOM text for accessibility/SEO */}
       <h1 ref={h1Ref} className={className}>
         {domLines.map((ln, i) => (
