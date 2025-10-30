@@ -192,7 +192,7 @@ export default function FollowupCard() {
   const [started, setStarted] = useState(false);
   const [manualPhase, setManualPhase] = useState("prestart");
   const [chatStarted, setChatStarted] = useState(false);
-  const [chatPhase, setChatPhase] = useState(null); // 'user_voice' | 'user_final' | 'ai_voice' | 'ai_final'
+  const [chatPhase, setChatPhase] = useState(null); // 'user_voice' | 'user_final' | 'ai_voice' | 'ai_final' | 'user_followup' | 'ai_wrap'
   const [sendHovering, setSendHovering] = useState(false);
 
   useEffect(() => {
@@ -373,6 +373,8 @@ export default function FollowupCard() {
 
   const aiStartQueuedRef = useRef(false);
   const aiFinishQueuedRef = useRef(false);
+  const userConfirmQueuedRef = useRef(false);
+  const aiWrapQueuedRef = useRef(false);
 
   useEffect(() => {
     if (!started) return;
@@ -381,6 +383,8 @@ export default function FollowupCard() {
     chatTimelineRef.current = [];
     aiStartQueuedRef.current = false;
     aiFinishQueuedRef.current = false;
+    userConfirmQueuedRef.current = false;
+    aiWrapQueuedRef.current = false;
 
     const queueTimeout = (callback, delay) => {
       const id = setTimeout(callback, delay);
@@ -397,6 +401,8 @@ export default function FollowupCard() {
       chatTimelineRef.current = [];
       aiStartQueuedRef.current = false;
       aiFinishQueuedRef.current = false;
+      userConfirmQueuedRef.current = false;
+      aiWrapQueuedRef.current = false;
     };
   }, [started]);
 
@@ -410,13 +416,31 @@ export default function FollowupCard() {
   });
 
   const aiResponse =
-    "Draft ready — matches how you usually write to Sarah. Want me to send it?\n\nHi Sarah —\n\nThanks again for being patient on pricing. I'll send the updated numbers tomorrow morning.\n\nAppreciate you,\nJ";
+    "Got it — drafting your reply to Sarah in your usual tone.\n\nHi Sarah —\n\nThanks again for being patient on pricing. I’ll send the updated numbers tomorrow morning.\n\nAppreciate you,\nJ\n\nWant me to send it?";
   const aiTypeActive = chatPhase === "ai_voice" || chatPhase === "ai_final";
   const { text: aiTyped, done: aiDone } = useTypewriter({
     fullText: aiResponse,
     active: aiTypeActive,
     baseSpeed: 20,
     randomVariance: 20,
+  });
+
+  const userConfirm = "Send.";
+  const userConfirmActive = chatPhase === "user_followup" || chatPhase === "ai_wrap";
+  const { text: userConfirmTyped, done: userConfirmDone } = useTypewriter({
+    fullText: userConfirm,
+    active: userConfirmActive,
+    baseSpeed: 32,
+    randomVariance: 12,
+  });
+
+  const aiWrapResponse = "Sent. I’ll remind you tomorrow morning to send the pricing to Sarah.";
+  const aiWrapTypeActive = chatPhase === "ai_wrap";
+  const { text: aiWrapTyped, done: aiWrapDone } = useTypewriter({
+    fullText: aiWrapResponse,
+    active: aiWrapTypeActive,
+    baseSpeed: 24,
+    randomVariance: 16,
   });
 
   useEffect(() => {
@@ -450,13 +474,51 @@ export default function FollowupCard() {
     return () => clearTimeout(id);
   }, [chatPhase, aiDone]);
 
+  useEffect(() => {
+    if (chatPhase !== "ai_final") return;
+    if (userConfirmQueuedRef.current) return;
+
+    userConfirmQueuedRef.current = true;
+    const id = setTimeout(() => {
+      setChatPhase("user_followup");
+    }, 420);
+
+    chatTimelineRef.current.push(id);
+
+    return () => clearTimeout(id);
+  }, [chatPhase]);
+
+  useEffect(() => {
+    if (chatPhase !== "user_followup") return;
+    if (!userConfirmDone) return;
+    if (aiWrapQueuedRef.current) return;
+
+    aiWrapQueuedRef.current = true;
+    const id = setTimeout(() => {
+      setChatPhase("ai_wrap");
+    }, 260);
+
+    chatTimelineRef.current.push(id);
+
+    return () => clearTimeout(id);
+  }, [chatPhase, userConfirmDone]);
+
   const showUserBubble =
     chatPhase === "user_voice" ||
     chatPhase === "user_final" ||
     chatPhase === "ai_voice" ||
-    chatPhase === "ai_final";
-  const showAiBubble = chatPhase === "ai_voice" || chatPhase === "ai_final";
+    chatPhase === "ai_final" ||
+    chatPhase === "user_followup" ||
+    chatPhase === "ai_wrap";
+  const showAiBubble =
+    chatPhase === "ai_voice" ||
+    chatPhase === "ai_final" ||
+    chatPhase === "user_followup" ||
+    chatPhase === "ai_wrap";
+  const showUserConfirmBubble = chatPhase === "user_followup" || chatPhase === "ai_wrap";
+  const showAiWrapBubble = chatPhase === "ai_wrap";
   const aiStillTalkingForUI = showAiBubble && !aiDone;
+  const aiWrapTalkingForUI = showAiWrapBubble && !aiWrapDone;
 
   return (
     <FeatureLayout
@@ -655,6 +717,87 @@ export default function FollowupCard() {
                       <div className="text-gray-900">
                         {aiTyped}
                         {!aiDone && <CaretBlink />}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence>
+                {chatStarted && showUserConfirmBubble && (
+                  <motion.div
+                    key="user-confirm-bubble"
+                    initial={{ opacity: 0, y: 16, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 1 }}
+                    transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex w-full justify-end gap-2 pointer-events-auto"
+                  >
+                    <div
+                      className="max-w-[230px] rounded-2xl px-3 py-2 text-[13px] leading-snug text-white bg-gradient-to-br from-blue-500 to-blue-600 shadow-[0_16px_40px_rgba(0,0,0,0.18)] ring-1 ring-blue-600/40 border border-white/10 break-words"
+                      style={{ borderTopRightRadius: "0.5rem" }}
+                    >
+                      <div className="text-[13px] font-medium text-white whitespace-pre-wrap">
+                        {userConfirmTyped}
+                        {!userConfirmDone && <CaretBlink light />}
+                      </div>
+                    </div>
+
+                    <div className="relative flex-shrink-0">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200 text-[10px] font-medium text-gray-700 ring-1 ring-gray-300">
+                        You
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence>
+                {chatStarted && showAiWrapBubble && (
+                  <motion.div
+                    key="ai-wrap-bubble"
+                    initial={{ opacity: 0, y: 22, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 1 }}
+                    transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex w-full justify-start gap-2 items-start pointer-events-auto"
+                  >
+                    <div className="relative flex-shrink-0">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFE8DC] text-[10px] font-medium text-[#C76545] ring-1 ring-orange-200">
+                        C
+                      </div>
+                      {aiWrapTalkingForUI && (
+                        <motion.div
+                          className="pointer-events-none absolute inset-0 rounded-full"
+                          style={{
+                            boxShadow:
+                              "0 0 8px rgba(224,122,95,0.5),0 0 16px rgba(224,122,95,0.3)",
+                          }}
+                          animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.08, 1] }}
+                          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                      )}
+                    </div>
+
+                    <div
+                      className="max-w-[260px] rounded-2xl px-4 py-3 bg-gray-100 text-gray-900 ring-1 ring-gray-200 border border-white/40 shadow-[0_24px_48px_rgba(0,0,0,0.12)] text-[14px] leading-[1.4] font-medium whitespace-pre-wrap break-words"
+                      style={{
+                        borderTopLeftRadius: "0.5rem",
+                        boxShadow: "0 28px 64px rgba(0,0,0,0.12), 0 6px 28px rgba(0,0,0,0.06)",
+                      }}
+                    >
+                      {aiWrapTalkingForUI && (
+                        <div className="mb-2 flex items-center gap-2 text-[12px] font-medium text-gray-700">
+                          <span>Speaking…</span>
+                          <div className="text-gray-500">
+                            <VoiceBars active />
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="text-gray-900">
+                        {aiWrapTyped}
+                        {!aiWrapDone && <CaretBlink />}
                       </div>
                     </div>
                   </motion.div>
