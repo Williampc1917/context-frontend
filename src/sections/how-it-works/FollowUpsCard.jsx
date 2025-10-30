@@ -73,29 +73,38 @@ const FOLLOW_UP_ROWS = [
 
 const SIGN_OFF_SNIPPET = "Appreciate you,\nJ";
 
-const MANUAL_SEQUENCE = [
-  { phase: "inbox_scroll", duration: 400 },
-  { phase: "thread_open", duration: 300 },
-  { phase: "smart_reply", duration: 700 },
-  { phase: "greeting_tone", duration: 1000 },
-  { phase: "smart_compose", duration: 1100 },
-  { phase: "clarity_pass", duration: 1000 },
-  { phase: "signoff", duration: 1000 },
-  { phase: "subject_edit", duration: 1000 },
-  { phase: "attachment_hover", duration: 1000 },
-  { phase: "hover_send", duration: 1400 },
+const MANUAL_PHASE_ORDER = [
+  "prestart",
+  "inbox_scroll",
+  "thread_open",
+  "smart_reply",
+  "greeting_tone",
+  "draft_reorder",
+  "add_specificity",
+  "signoff",
+  "hover_send",
 ];
 
-const MANUAL_LOOP_DELAY = 500;
+const MANUAL_SEQUENCE = [
+  { phase: "inbox_scroll", duration: 400 },
+  { phase: "thread_open", duration: 400 },
+  { phase: "smart_reply", duration: 800 },
+  { phase: "greeting_tone", duration: 1200 },
+  { phase: "draft_reorder", duration: 1500 },
+  { phase: "add_specificity", duration: 1100 },
+  { phase: "signoff", duration: 1400 },
+  { phase: "hover_send", duration: 2000 },
+];
+
+const MANUAL_LOOP_DELAY = 1200;
 
 const MICRO_COPY = {
   smart_reply: "Too generic for this.",
   greeting_tone: "Tweaking tone.",
-  smart_compose: "Sounds more like me.",
-  clarity_pass: "Avoiding ambiguity.",
-  signoff: "Choosing the right sign-off.",
-  subject_edit: "Subject fiddling.",
-  attachment_hover: "Do I need an attachment?",
+  draft_reorder: "Reordering for clarity.",
+  add_specificity: "Clarifying timing.",
+  signoff: "Choosing sign-off.",
+  hover_send: "Re-reading before sending.",
 };
 
 /* -------------------------------------------------
@@ -299,25 +308,11 @@ export default function FollowupCard() {
     };
   }, []);
 
-  const phaseOrder = [
-    "prestart",
-    "inbox_scroll",
-    "thread_open",
-    "smart_reply",
-    "greeting_tone",
-    "smart_compose",
-    "clarity_pass",
-    "signoff",
-    "subject_edit",
-    "attachment_hover",
-    "hover_send",
-  ];
+  const phaseOrder = MANUAL_PHASE_ORDER;
   const phaseIndex = phaseOrder.indexOf(manualPhase);
   const hasReached = (phase) => phaseIndex >= phaseOrder.indexOf(phase);
 
   const composeVisible = hasReached("thread_open");
-  const composeTypingActive =
-    hasReached("greeting_tone") && !hasReached("hover_send");
 
   useEffect(() => {
     if (microChipTimeoutRef.current) {
@@ -353,56 +348,6 @@ export default function FollowupCard() {
   const userTranscript =
     "Need a reply for Sarah. Thank her for waiting and confirm pricing lands tomorrow.";
 
-  const draftFull = `Hi Sarah —\n\nThanks again for being patient on pricing. I'll send the updated numbers tomorrow morning.\n\n${SIGN_OFF_SNIPPET}`;
-
-  const manualScript = useMemo(
-    () => [
-      { type: "text", value: "Hi Sarah,", speedMs: 68 },
-      { type: "pause", ms: 220 },
-      { type: "backspace", count: 1, speedMs: 130 },
-      { type: "text", value: " —", speedMs: 70 },
-      { type: "pause", ms: 140 },
-      { type: "text", value: "\n\n", speedMs: 60 },
-      { type: "pause", ms: 260 },
-      {
-        type: "text",
-        value: "Thanks again for your patience on pricing.",
-        speedMs: 18,
-      },
-      { type: "pause", ms: 240 },
-      { type: "backspace", count: 21, speedMs: 55 },
-      { type: "backspace", count: 4, speedMs: 70 },
-      {
-        type: "text",
-        value: "being patient on pricing.",
-        speedMs: 56,
-      },
-      { type: "pause", ms: 260 },
-      {
-        type: "text",
-        value: "\n\nI'll send the updated numbers tomorrow.",
-        speedMs: 62,
-      },
-      { type: "pause", ms: 320 },
-      { type: "backspace", count: 1, speedMs: 120 },
-      { type: "text", value: " morning.", speedMs: 70 },
-      { type: "pause", ms: 340 },
-      { type: "text", value: "\n\nBest,", speedMs: 64 },
-      { type: "pause", ms: 360 },
-      { type: "backspace", count: 5, speedMs: 110 },
-      { type: "text", value: "Appreciate you,\nJ", speedMs: 60 },
-    ],
-    [],
-  );
-
-  const { text: emailTyped, done: emailDone } = useTypewriter({
-    fullText: draftFull,
-    script: manualScript,
-    active: composeTypingActive,
-    baseSpeed: 58,
-    randomVariance: 22,
-    backspaceSpeed: 120,
-  });
 
   useEffect(() => {
     if (!started) return;
@@ -437,8 +382,7 @@ export default function FollowupCard() {
     randomVariance: 24,
   });
 
-  const aiResponse =
-    "Claro drafted your reply in seconds — ready to send?\n\nHi Sarah —\n\nThanks again for being patient on pricing. I'll send the updated numbers tomorrow morning.\n\nAppreciate you,\nJ";
+  const aiResponse = `Claro drafted your reply in seconds — ready to send?\n\nHi Sarah —\n\nI'll send the updated numbers tomorrow morning.\nThanks again for being patient on pricing.\n\n${SIGN_OFF_SNIPPET}`;
   const aiTypeActive = chatPhase === "ai_draft" || chatPhase === "ai_final";
   const { text: aiTyped, done: aiDone } = useTypewriter({
     fullText: aiResponse,
@@ -520,8 +464,8 @@ export default function FollowupCard() {
                 >
                   <GmailDraftCard
                     phase={manualPhase}
-                    bodyText={emailTyped}
-                    bodyDone={emailDone}
+                    phaseIndex={phaseIndex}
+                    phaseOrder={phaseOrder}
                     showQuotedThread={composeVisible}
                     microChip={microChip}
                     loopIteration={loopIteration}
@@ -763,11 +707,9 @@ function PointerCursor({ phase, visible }) {
     thread_open: { opacity: 1, scale: 0.96, x: 238, y: 188 },
     smart_reply: { opacity: 1, scale: 1, x: 210, y: 256 },
     greeting_tone: { opacity: 1, scale: 1, x: 176, y: 296 },
-    smart_compose: { opacity: 1, scale: 1, x: 198, y: 304 },
-    clarity_pass: { opacity: 1, scale: 1, x: 152, y: 362 },
-    signoff: { opacity: 1, scale: 1, x: 202, y: 328 },
-    subject_edit: { opacity: 1, scale: 1, x: 174, y: 242 },
-    attachment_hover: { opacity: 1, scale: 1, x: 128, y: 358 },
+    draft_reorder: { opacity: 1, scale: 1, x: 204, y: 310 },
+    add_specificity: { opacity: 1, scale: 1, x: 200, y: 300 },
+    signoff: { opacity: 1, scale: 1, x: 202, y: 332 },
     hover_send: { opacity: 1, scale: 0.94, x: 152, y: 362 },
   };
 
@@ -802,52 +744,121 @@ function PointerCursor({ phase, visible }) {
   );
 }
 
-function GmailDraftCard({ phase, bodyText, bodyDone, showQuotedThread, microChip, loopIteration }) {
-  const typingPhases = new Set([
-    "greeting_tone",
-    "smart_compose",
-    "clarity_pass",
-    "signoff",
-    "subject_edit",
-    "attachment_hover",
-    "hover_send",
-  ]);
+function GmailDraftCard({
+  phase,
+  phaseIndex,
+  phaseOrder,
+  showQuotedThread,
+  microChip,
+  loopIteration,
+}) {
+  const indexOf = (name) => phaseOrder.indexOf(name);
+  const hasReachedPhase = (name) => phaseIndex >= indexOf(name);
 
-  const displayedBody = typingPhases.has(phase) ? bodyText : "";
-  const showCaret = typingPhases.has(phase) && !bodyDone;
-
-  const baseSubject = "Pricing update";
-  const altSubject = "Pricing — updated numbers";
-  const [subjectText, setSubjectText] = useState(baseSubject);
-  const subjectTimeoutRef = useRef(null);
-
+  const [quoteHighlight, setQuoteHighlight] = useState(false);
   useEffect(() => {
-    if (subjectTimeoutRef.current) {
-      clearTimeout(subjectTimeoutRef.current);
-      subjectTimeoutRef.current = null;
+    if (phase === "thread_open") {
+      setQuoteHighlight(true);
+      const highlightTimeout = setTimeout(() => {
+        setQuoteHighlight(false);
+      }, 600);
+      return () => {
+        clearTimeout(highlightTimeout);
+      };
     }
 
-    if (phase === "subject_edit") {
-      setSubjectText(altSubject);
-      subjectTimeoutRef.current = setTimeout(() => {
-        setSubjectText(baseSubject);
-        subjectTimeoutRef.current = null;
-      }, 700);
-    } else {
-      setSubjectText(baseSubject);
+    if (phaseIndex < indexOf("thread_open")) {
+      setQuoteHighlight(false);
+    }
+  }, [phase, phaseIndex, loopIteration, phaseOrder]);
+
+  const [greetingVariant, setGreetingVariant] = useState("hidden");
+  useEffect(() => {
+    if (phaseIndex < indexOf("greeting_tone")) {
+      setGreetingVariant("hidden");
+      return;
     }
 
-    return () => {
-      if (subjectTimeoutRef.current) {
-        clearTimeout(subjectTimeoutRef.current);
-        subjectTimeoutRef.current = null;
-      }
-    };
-  }, [phase, loopIteration]);
+    if (phase === "greeting_tone") {
+      setGreetingVariant("comma");
+      const tweakTimeout = setTimeout(() => {
+        setGreetingVariant("dash");
+      }, 420);
+      return () => {
+        clearTimeout(tweakTimeout);
+      };
+    }
+
+    setGreetingVariant("dash");
+  }, [phase, phaseIndex, loopIteration, phaseOrder]);
+
+  const [reorderStep, setReorderStep] = useState("initial");
+  useEffect(() => {
+    if (phaseIndex < indexOf("draft_reorder")) {
+      setReorderStep("initial");
+      return;
+    }
+
+    if (phase === "draft_reorder") {
+      setReorderStep("typing");
+      const selectTimeout = setTimeout(() => setReorderStep("selecting"), 420);
+      const reorderTimeout = setTimeout(() => setReorderStep("reordered"), 840);
+      return () => {
+        clearTimeout(selectTimeout);
+        clearTimeout(reorderTimeout);
+      };
+    }
+
+    setReorderStep("reordered");
+  }, [phase, phaseIndex, loopIteration, phaseOrder]);
+
+  const [specificityAdded, setSpecificityAdded] = useState(false);
+  const [specificityFlash, setSpecificityFlash] = useState(false);
+  useEffect(() => {
+    if (phaseIndex < indexOf("add_specificity")) {
+      setSpecificityAdded(false);
+      setSpecificityFlash(false);
+      return;
+    }
+
+    if (phase === "add_specificity") {
+      setSpecificityAdded(false);
+      setSpecificityFlash(false);
+      const appendTimeout = setTimeout(() => {
+        setSpecificityAdded(true);
+        setSpecificityFlash(true);
+      }, 420);
+      const clearFlashTimeout = setTimeout(() => setSpecificityFlash(false), 1200);
+      return () => {
+        clearTimeout(appendTimeout);
+        clearTimeout(clearFlashTimeout);
+      };
+    }
+
+    setSpecificityAdded(true);
+    setSpecificityFlash(false);
+  }, [phase, phaseIndex, loopIteration, phaseOrder]);
+
+  const [signoffVariant, setSignoffVariant] = useState("none");
+  useEffect(() => {
+    if (phaseIndex < indexOf("signoff")) {
+      setSignoffVariant("none");
+      return;
+    }
+
+    if (phase === "signoff") {
+      setSignoffVariant("best");
+      const switchTimeout = setTimeout(() => setSignoffVariant("appreciate"), 520);
+      return () => {
+        clearTimeout(switchTimeout);
+      };
+    }
+
+    setSignoffVariant("appreciate");
+  }, [phase, phaseIndex, loopIteration, phaseOrder]);
 
   const [hoverTimer, setHoverTimer] = useState(6);
   const hoverIntervalRef = useRef(null);
-
   useEffect(() => {
     if (hoverIntervalRef.current) {
       clearInterval(hoverIntervalRef.current);
@@ -888,27 +899,57 @@ function GmailDraftCard({ phase, bodyText, bodyDone, showQuotedThread, microChip
 
   const showTimer = phase === "hover_send";
   const showDraftSaved = phase === "hover_send";
-  const showAttachmentTooltip = phase === "attachment_hover";
   const showSmartReply = phase === "smart_reply";
-  const showSmartComposeGhost =
-    phase === "smart_compose" && !displayedBody.includes("Thanks again for being patient on pricing.");
-
-  const sendHoverScale =
-    phase === "hover_send" ? 1.04 : phase === "clarity_pass" ? 1.02 : 1;
-  const sendHoverShadow =
-    phase === "hover_send"
-      ? "0 14px 32px rgba(26,115,232,0.32)"
-      : phase === "clarity_pass"
-        ? "0 10px 24px rgba(26,115,232,0.24)"
-        : "0 2px 4px rgba(0,0,0,0.2)";
-  const sendBackground =
-    phase === "hover_send" ? "#1a73e8" : phase === "clarity_pass" ? "#1967d2" : "#0b57d0";
 
   const smartReplyOptions = [
     "Sure, I’ll send it by 5",
     "Working on it",
     "Thanks for the nudge",
   ];
+
+  const hasBodyContent =
+    reorderStep !== "initial" ||
+    hasReachedPhase("add_specificity") ||
+    hasReachedPhase("signoff") ||
+    hasReachedPhase("hover_send");
+  const hasReordered =
+    reorderStep === "reordered" ||
+    hasReachedPhase("add_specificity") ||
+    hasReachedPhase("signoff") ||
+    hasReachedPhase("hover_send");
+
+  const updateBase = "I'll send the updated numbers tomorrow";
+
+  const bodyLines = [];
+  if (hasBodyContent) {
+    const thanksLine = {
+      id: "thanks",
+      text: "Thanks again for being patient on pricing.",
+      highlight: reorderStep === "typing",
+    };
+    const updateLineText = specificityAdded
+      ? `${updateBase} morning.`
+      : `${updateBase}.`;
+    const updateLine = {
+      id: "update",
+      text: updateLineText,
+      highlight: reorderStep === "selecting" || specificityFlash,
+      specificityFlash,
+    };
+
+    if (hasReordered) {
+      bodyLines.push(updateLine, thanksLine);
+    } else {
+      bodyLines.push(thanksLine, updateLine);
+    }
+  }
+
+  const sendHoverScale = phase === "hover_send" ? 1.05 : 1;
+  const sendHoverShadow =
+    phase === "hover_send"
+      ? "0 14px 32px rgba(26,115,232,0.32)"
+      : "0 3px 8px rgba(0,0,0,0.18)";
+  const sendBackground = phase === "hover_send" ? "#1a73e8" : "#0b57d0";
 
   return (
     <div
@@ -917,7 +958,7 @@ function GmailDraftCard({ phase, bodyText, bodyDone, showQuotedThread, microChip
         rounded-xl overflow-hidden
         bg-white text-gray-800
         ring-1 ring-black/5 border border-black/5
-        shadow-[0_32px_80px_rgba(0,0,0,0.28)]
+        shadow-[0_32px_80px_rgba(0,0,0,0.24)]
         text-[13px] leading-[1.45]
       "
     >
@@ -939,18 +980,10 @@ function GmailDraftCard({ phase, bodyText, bodyDone, showQuotedThread, microChip
 
       <div className="px-3 py-2 border-b border-gray-200 text-[12px] leading-snug text-gray-700 flex items-start flex-wrap gap-2">
         <span className="text-gray-500 min-w-[54px]">Subject</span>
-        <motion.span
-          key={subjectText}
-          initial={{ opacity: 0, x: -4 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="text-gray-900 font-medium"
-        >
-          {subjectText}
-        </motion.span>
+        <span className="text-gray-900 font-medium">Pricing update</span>
       </div>
 
-      <div className="relative px-3 py-3 whitespace-pre-wrap min-h-[200px] text-[13px] leading-[1.45] text-gray-800">
+      <div className="relative px-3 py-3 min-h-[210px] text-[13px] leading-[1.45] text-gray-800">
         <AnimatePresence>
           {showTimer && (
             <motion.div
@@ -958,8 +991,8 @@ function GmailDraftCard({ phase, bodyText, bodyDone, showQuotedThread, microChip
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="pointer-events-none absolute right-3 top-3 rounded-md bg-white/85 px-2 py-[2px] text-[11px] font-medium text-gray-600 ring-1 ring-gray-200 shadow-sm"
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="pointer-events-none absolute right-3 top-3 rounded-md bg-white/90 px-2 py-[2px] text-[11px] font-medium text-gray-600 ring-1 ring-gray-200 shadow-sm"
             >
               {formattedTimer}
             </motion.div>
@@ -967,9 +1000,26 @@ function GmailDraftCard({ phase, bodyText, bodyDone, showQuotedThread, microChip
         </AnimatePresence>
 
         {showQuotedThread && (
-          <div className="mb-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[12px] leading-relaxed text-gray-500">
-            <span className="font-medium text-gray-600">Sarah Quinn</span> • "Can you send the updated pricing by 5 so I can lock the deck?"
-          </div>
+          <motion.div
+            key={`quoted-${loopIteration}`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className={`mb-3 rounded-lg border px-3 py-2 text-[12px] leading-relaxed transition-colors duration-300 ${
+              quoteHighlight
+                ? "border-orange-300 bg-orange-50/90 text-orange-800"
+                : "border-gray-200 bg-gray-50 text-gray-500"
+            }`}
+          >
+            <span
+              className={`font-medium ${
+                quoteHighlight ? "text-orange-900" : "text-gray-600"
+              }`}
+            >
+              Sarah Quinn
+            </span>{" "}
+            • "Can you send the updated pricing by 5 so I can lock the deck?"
+          </motion.div>
         )}
 
         <AnimatePresence>
@@ -997,23 +1047,85 @@ function GmailDraftCard({ phase, bodyText, bodyDone, showQuotedThread, microChip
           )}
         </AnimatePresence>
 
-        <div className="relative min-h-[120px] whitespace-pre-wrap text-[13px] leading-[1.45] text-gray-800">
-          <span>{displayedBody}</span>
-          <AnimatePresence>
-            {showSmartComposeGhost && (
-              <motion.span
-                key="ghost"
-                initial={{ opacity: 0, x: 4 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 4 }}
+        <div className="space-y-2">
+          <AnimatePresence mode="wait">
+            {greetingVariant !== "hidden" && (
+              <motion.div
+                key={`greeting-${greetingVariant}-${loopIteration}`}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                className="text-gray-400/90"
+                className="text-gray-900"
               >
-                Thanks again for your patience on pricing.
-              </motion.span>
+                {greetingVariant === "comma" ? "Hi Sarah," : "Hi Sarah —"}
+              </motion.div>
             )}
           </AnimatePresence>
-          {showCaret && <CaretBlink />}
+
+          {hasBodyContent && (
+            <div className="space-y-2">
+              {bodyLines.map((line) => (
+                <motion.div
+                  key={`${line.id}-${loopIteration}`}
+                  layout
+                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                  className={`rounded-md px-2 py-1 ${
+                    line.highlight
+                      ? "bg-blue-50 text-blue-900 ring-1 ring-blue-200 shadow-[0_10px_24px_rgba(59,130,246,0.12)]"
+                      : "bg-transparent"
+                  }`}
+                >
+                  {line.id === "update" && specificityAdded ? (
+                    <span>
+                      {updateBase}
+                      <motion.span
+                        key={`specificity-${specificityAdded}-${loopIteration}`}
+                        initial={{ opacity: 0, x: 2 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                        className={`ml-1 inline-block ${
+                          specificityFlash ? "rounded bg-blue-100 px-1 text-blue-900" : ""
+                        }`}
+                      >
+                        morning.
+                      </motion.span>
+                    </span>
+                  ) : (
+                    line.text
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          )}
+
+          {(signoffVariant === "best" || signoffVariant === "appreciate") && (
+            <div className="space-y-1 pt-2">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`signoff-line-${signoffVariant}-${loopIteration}`}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                  className="text-gray-900"
+                >
+                  {signoffVariant === "best" ? "Best," : "Appreciate you,"}
+                </motion.div>
+              </AnimatePresence>
+              {signoffVariant === "appreciate" && (
+                <motion.div
+                  key={`signoff-j-${loopIteration}`}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                  className="text-gray-900"
+                >
+                  J
+                </motion.div>
+              )}
+            </div>
+          )}
         </div>
 
         <MicroChipCallout chip={microChip} />
@@ -1039,29 +1151,6 @@ function GmailDraftCard({ phase, bodyText, bodyDone, showQuotedThread, microChip
         >
           Edit
         </button>
-
-        <div className="relative ml-1">
-          <button
-            type="button"
-            className="flex h-7 w-7 items-center justify-center rounded-md text-[14px] leading-none text-gray-500 transition-colors"
-          >
-            📎
-          </button>
-          <AnimatePresence>
-            {showAttachmentTooltip && (
-              <motion.div
-                key="attach-tip"
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 6 }}
-                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                className="pointer-events-none absolute left-1/2 top-[-28px] -translate-x-1/2 rounded-md bg-gray-900 px-2 py-[2px] text-[10px] font-medium text-white shadow-[0_6px_14px_rgba(15,23,42,0.3)]"
-              >
-                Attach files
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
 
         <div className="ml-auto flex items-center gap-2 text-[11px] text-gray-500">
           <AnimatePresence>
