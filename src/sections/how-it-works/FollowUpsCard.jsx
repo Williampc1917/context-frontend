@@ -414,6 +414,7 @@ export default function FollowupCard() {
     baseSpeed: 26,
     randomVariance: 24,
   });
+  const userStillTalkingForUI = chatPhase === "user_voice" || !userDone;
 
   const aiResponse =
     "Got it — drafting your reply to Sarah in your usual tone.\n\nHi Sarah —\n\nThanks again for being patient on pricing. I’ll send the updated numbers tomorrow morning.\n\nAppreciate you,\nJ\n\nWant me to send it?";
@@ -627,10 +628,10 @@ export default function FollowupCard() {
                       "
                       style={{ borderTopRightRadius: "0.5rem" }}
                     >
-                      {chatPhase === "user_voice" && (
-                        <div className="flex items-center gap-2">
+                      {userStillTalkingForUI && (
+                        <div className="flex items-center gap-2 mb-1">
                           <span className="text-[12px] font-medium text-white/90">Listening…</span>
-                          <VoiceBars active />
+                          <VoiceBars active={chatPhase === "user_voice"} />
                         </div>
                       )}
 
@@ -649,7 +650,7 @@ export default function FollowupCard() {
 
                       {chatPhase === "user_voice" && (
                         <motion.div
-                          className="pointer-events-none absolute inset-0 rounded-full"
+                          className="pointer-events-none absolute inset-0 rounded-full -z-10"
                           style={{
                             boxShadow:
                               "0 0 8px rgba(59,130,246,0.6),0 0 16px rgba(59,130,246,0.4)",

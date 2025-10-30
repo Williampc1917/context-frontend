@@ -100,6 +100,7 @@ export default function InboxToClarity() {
     phase === "user_final" || phase === "ai_voice" || phase === "ai_final";
   const userTypedText = useTypewriter(userTranscript, userTypeActive, 20);
   const userDoneTyping = userTypedText.length === userTranscript.length;
+  const userStillTalkingForUI = userIsSpeaking || !userDoneTyping;
 
   const aiTypedText = useTypewriter(aiFull, aiHasStartedTalking, 15);
   const aiDoneTyping = aiTypedText.length === aiFull.length;
@@ -279,12 +280,12 @@ export default function InboxToClarity() {
                   }}
                 >
                   {/* while you're still speaking */}
-                  {userIsSpeaking && (
-                    <div className="flex items-center gap-2">
+                  {userStillTalkingForUI && (
+                    <div className="flex items-center gap-2 mb-1">
                       <span className="text-[12px] font-medium text-white/90">
                         Listening…
                       </span>
-                      <VoiceBars active />
+                      <VoiceBars active={userIsSpeaking} />
                     </div>
                   )}
 
@@ -305,7 +306,7 @@ export default function InboxToClarity() {
 
                   {userIsSpeaking && (
                     <motion.div
-                      className="absolute inset-0 rounded-full pointer-events-none"
+                      className="absolute inset-0 rounded-full pointer-events-none -z-10"
                       style={{
                         boxShadow:
                           "0 0 8px rgba(59,130,246,0.6),0 0 16px rgba(59,130,246,0.4)",
