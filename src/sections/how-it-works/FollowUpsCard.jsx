@@ -223,11 +223,12 @@ export default function FollowupCard() {
       return id;
     };
 
-    queueStage(() => setManualPhase("reply_target"), 1100);
-    queueStage(() => setManualPhase("reply_hover"), 1850);
-    queueStage(() => setManualPhase("reply_click"), 2350);
-    queueStage(() => setManualPhase("compose_open"), 3000);
-    queueStage(() => setManualPhase("compose_typing"), 3600);
+    queueStage(() => setManualPhase("row_hover"), 1100);
+    queueStage(() => setManualPhase("row_context"), 1850);
+    queueStage(() => setManualPhase("reply_menu_hover"), 2400);
+    queueStage(() => setManualPhase("reply_menu_click"), 2850);
+    queueStage(() => setManualPhase("compose_open"), 3400);
+    queueStage(() => setManualPhase("compose_typing"), 4000);
 
     return () => {
       stageTimelineRef.current.forEach(clearTimeout);
@@ -247,9 +248,10 @@ export default function FollowupCard() {
   const phaseOrder = [
     "prestart",
     "inbox_idle",
-    "reply_target",
-    "reply_hover",
-    "reply_click",
+    "row_hover",
+    "row_context",
+    "reply_menu_hover",
+    "reply_menu_click",
     "compose_open",
     "compose_typing",
     "compose_rewrite",
@@ -404,8 +406,12 @@ export default function FollowupCard() {
             >
               <InboxPreviewCard
                 phase={manualPhase}
-                replyHover={manualPhase === "reply_hover"}
-                replyPressed={manualPhase === "reply_click"}
+                replyHover={
+                  manualPhase === "row_hover" ||
+                  manualPhase === "row_context" ||
+                  manualPhase === "reply_menu_hover"
+                }
+                replyPressed={manualPhase === "reply_menu_click"}
                 dimmed={composeVisible}
                 chatPhase={chatPhase}
                 chatStarted={chatStarted}
@@ -597,9 +603,10 @@ function InboxPreviewCard({
 
   const manualStatusMap = {
     inbox_idle: `Inbox piling up — ${contactFirstName} still needs pricing.`,
-    reply_target: `There it is — hover the reply.`,
-    reply_hover: `${contactFirstName}’s waiting — find the reply button.`,
-    reply_click: "Clock’s ticking — opening reply…",
+    row_hover: `Hover over ${contactFirstName}’s thread to reply.`,
+    row_context: "Right click opens options — still no reply sent.",
+    reply_menu_hover: "Reply is right there — just click it.",
+    reply_menu_click: "Clock’s ticking — opening reply…",
     compose_open: "Reply window finally open — you’re still on the hook.",
     compose_typing: "Still typing it yourself…",
     compose_rewrite: "Fixing typos instead of sending…",
@@ -622,9 +629,10 @@ function InboxPreviewCard({
   }
 
   const highlightSarah =
-    phase === "reply_target" ||
-    phase === "reply_hover" ||
-    phase === "reply_click" ||
+    phase === "row_hover" ||
+    phase === "row_context" ||
+    phase === "reply_menu_hover" ||
+    phase === "reply_menu_click" ||
     phase === "compose_open" ||
     phase === "compose_typing" ||
     phase === "compose_rewrite" ||
@@ -640,6 +648,11 @@ function InboxPreviewCard({
     statusTone === "manual"
       ? "absolute -top-10 left-4 z-20 flex max-w-[260px] flex-wrap items-center gap-2 rounded-full bg-[#fff2ed]/95 px-3.5 py-1.5 text-[11px] font-semibold text-[#b45309] shadow-[0_12px_28px_rgba(225,96,54,0.18)] ring-1 ring-[#fb923c]/40 border border-white/70"
       : "absolute -top-10 left-4 z-20 flex max-w-[260px] flex-wrap items-center gap-2 rounded-full bg-white/95 px-3.5 py-1.5 text-[11px] font-medium text-gray-600 shadow-[0_10px_30px_rgba(15,23,42,0.12)] ring-1 ring-gray-200 border border-white/70";
+
+  const showContextMenu =
+    phase === "row_context" || phase === "reply_menu_hover" || phase === "reply_menu_click";
+  const contextMenuHover = phase === "reply_menu_hover";
+  const contextMenuPressed = phase === "reply_menu_click";
 
   return (
     <div className="relative">
@@ -717,6 +730,36 @@ function InboxPreviewCard({
           </motion.div>
         </div>
 
+        <AnimatePresence>
+          {showContextMenu && (
+            <motion.div
+              key="context-menu"
+              initial={{ opacity: 0, scale: 0.94, y: -6 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -4 }}
+              transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+              className="pointer-events-none absolute left-[208px] top-[122px] z-30"
+            >
+              <div className="min-w-[140px] rounded-xl border border-gray-200/80 bg-white/98 p-1 text-[11px] text-gray-600 shadow-[0_20px_40px_rgba(15,23,42,0.16)] ring-1 ring-gray-100 backdrop-blur">
+                <div
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2 font-medium transition-colors duration-200 ${
+                    contextMenuPressed
+                      ? "bg-blue-100 text-blue-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
+                      : contextMenuHover
+                        ? "bg-blue-50 text-blue-600"
+                        : "text-gray-600"
+                  }`}
+                >
+                  <span className="flex h-5 w-5 items-center justify-center rounded-md bg-blue-100/80 text-[10px] font-semibold text-blue-600">
+                    ↩
+                  </span>
+                  Reply
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <motion.div
           className="pointer-events-none absolute -top-4 -left-4 h-[120px] w-[120px] rounded-xl blur-2xl"
           style={{
@@ -736,10 +779,11 @@ function InboxPreviewCard({
 function PointerCursor({ phase, visible }) {
   const targets = {
     prestart: { opacity: 0, scale: 0.85, x: 190, y: 140 },
-    inbox_idle: { opacity: 1, scale: 1, x: 214, y: 92 },
-    reply_target: { opacity: 1, scale: 1, x: 220, y: 150 },
-    reply_hover: { opacity: 1, scale: 1, x: 236, y: 186 },
-    reply_click: { opacity: 1, scale: 0.93, x: 236, y: 186 },
+    inbox_idle: { opacity: 1, scale: 1, x: 208, y: 88 },
+    row_hover: { opacity: 1, scale: 1, x: 214, y: 132 },
+    row_context: { opacity: 1, scale: 0.98, x: 214, y: 132 },
+    reply_menu_hover: { opacity: 1, scale: 1, x: 268, y: 176 },
+    reply_menu_click: { opacity: 1, scale: 0.94, x: 268, y: 176 },
     compose_open: { opacity: 1, scale: 1, x: 188, y: 246 },
     compose_typing: { opacity: 0, scale: 0.9, x: 188, y: 266 },
     compose_rewrite: { opacity: 0, scale: 0.9, x: 188, y: 266 },
@@ -760,14 +804,38 @@ function PointerCursor({ phase, visible }) {
       className="pointer-events-none absolute z-40"
       style={{ transformOrigin: "top left" }}
     >
-      <div className="pointer-events-none drop-shadow-[0_8px_20px_rgba(15,23,42,0.22)]">
+      <div className="pointer-events-none relative drop-shadow-[0_10px_22px_rgba(15,23,42,0.24)]">
+        <AnimatePresence>
+          {phase === "row_context" && (
+            <motion.div
+              key="right-click-ring"
+              initial={{ opacity: 0.5, scale: 0.6 }}
+              animate={{ opacity: 0, scale: 1.6 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className="pointer-events-none absolute -left-1 -top-1 h-10 w-10 rounded-full border-2 border-blue-400/70"
+            />
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {phase === "reply_menu_click" && (
+            <motion.div
+              key="reply-click-ring"
+              initial={{ opacity: 0.6, scale: 0.7 }}
+              animate={{ opacity: 0, scale: 1.5 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.36, ease: "easeOut" }}
+              className="pointer-events-none absolute -left-1 -top-1 h-10 w-10 rounded-full border-2 border-blue-500/60"
+            />
+          )}
+        </AnimatePresence>
         <svg
           width="28"
           height="28"
           viewBox="0 0 24 24"
-          fill="white"
-          stroke="#111827"
-          strokeWidth="1.2"
+          fill="#f9fafb"
+          stroke="#0f172a"
+          strokeWidth="1.4"
           strokeLinejoin="round"
         >
           <path d="M4 3.5 9.8 17l1.9-5.4 6.2 4.1-13.9-12.2z" />
