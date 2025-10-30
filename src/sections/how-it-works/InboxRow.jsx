@@ -31,6 +31,7 @@ export default function InboxRow({
   hasAttachment = false,
   active = false,
   children,
+  dataPointerTarget,
 }) {
   const isChaos = phase === "chaos";
 
@@ -72,6 +73,7 @@ export default function InboxRow({
 
   return (
     <motion.div
+      data-pointer-target={dataPointerTarget}
       animate={rowAnimate}
       className={[
         "relative px-3 py-2 border-b border-gray-100 transition-colors",
