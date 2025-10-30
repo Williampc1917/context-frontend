@@ -270,7 +270,7 @@ export default function FollowupCard() {
   const draftSavedVisible = hasReached("compose_pause");
 
   const userTranscript =
-    "Need a reply for Sarah. Thank her for waiting and confirm pricing lands tomorrow.";
+    "Draft a reply for Sarah. Thank her for waiting and confirm pricing lands tomorrow.";
 
   const draftFull =
     "Hi Sarah —\n\nThanks again for being patient on pricing. I'll send the updated numbers tomorrow morning.\n\nAppreciate you,\nJ";
