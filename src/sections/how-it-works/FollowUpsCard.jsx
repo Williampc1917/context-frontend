@@ -410,7 +410,7 @@ export default function FollowupCard() {
   });
 
   const aiResponse =
-    "Claro drafted your reply in seconds — ready to send?\n\nHi Sarah —\n\nThanks again for being patient on pricing. I'll send the updated numbers tomorrow morning.\n\nAppreciate you,\nJ";
+    "Draft ready — matches how you usually write to Sarah. Want me to send it?\n\nHi Sarah —\n\nThanks again for being patient on pricing. I'll send the updated numbers tomorrow morning.\n\nAppreciate you,\nJ";
   const aiTypeActive = chatPhase === "ai_voice" || chatPhase === "ai_final";
   const { text: aiTyped, done: aiDone } = useTypewriter({
     fullText: aiResponse,
@@ -523,7 +523,7 @@ export default function FollowupCard() {
               <GmailDraftCard
                 bodyText={emailTyped}
                 bodyDone={emailDone}
-                showQuotedThread={manualPhase === "compose_open"}
+                showQuotedThread={false}
                 signOff={SIGN_OFF_SNIPPET}
                 sendHovering={sendHovering}
                 draftSavedVisible={draftSavedVisible}
