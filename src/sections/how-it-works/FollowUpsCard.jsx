@@ -691,8 +691,8 @@ function InboxPreviewCard({
                 >
                   {index === 1 && (
                     <motion.div
-                      initial={false}
-                      animate={{ opacity: replyHover || replyPressed ? 1 : 0.45, scale: replyPressed ? 0.92 : replyHover ? 1.03 : 0.96 }}
+                      initial={{ opacity: 0.85, scale: 0.98 }}
+                      animate={{ opacity: replyHover || replyPressed ? 1 : 0.85, scale: replyPressed ? 0.94 : replyHover ? 1.05 : 0.98 }}
                       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
                       className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
                     >
@@ -738,7 +738,7 @@ function InboxPreviewCard({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: -4 }}
               transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
-              className="pointer-events-none absolute left-[208px] top-[122px] z-30"
+              className="pointer-events-none absolute left-[152px] top-[118px] z-30"
             >
               <div className="min-w-[140px] rounded-xl border border-gray-200/80 bg-white/98 p-1 text-[11px] text-gray-600 shadow-[0_20px_40px_rgba(15,23,42,0.16)] ring-1 ring-gray-100 backdrop-blur">
                 <div
@@ -778,23 +778,20 @@ function InboxPreviewCard({
 
 function PointerCursor({ phase, visible }) {
   const targets = {
-    prestart: { opacity: 0, scale: 0.85, x: 190, y: 140 },
-    inbox_idle: { opacity: 1, scale: 1, x: 208, y: 88 },
-    row_hover: { opacity: 1, scale: 1, x: 214, y: 132 },
-    row_context: { opacity: 1, scale: 0.98, x: 214, y: 132 },
-    reply_menu_hover: { opacity: 1, scale: 1, x: 268, y: 176 },
-    reply_menu_click: { opacity: 1, scale: 0.94, x: 268, y: 176 },
-    compose_open: { opacity: 1, scale: 1, x: 188, y: 246 },
-    compose_typing: { opacity: 0, scale: 0.9, x: 188, y: 266 },
-    compose_rewrite: { opacity: 0, scale: 0.9, x: 188, y: 266 },
-    compose_done: { opacity: 0, scale: 0.9, x: 188, y: 266 },
+    prestart: { opacity: 0, scale: 0.9, x: 176, y: 126 },
+    inbox_idle: { opacity: 1, scale: 1, x: 188, y: 92 },
+    row_hover: { opacity: 1, scale: 1, x: 194, y: 134 },
+    row_context: { opacity: 1, scale: 0.98, x: 194, y: 134 },
+    reply_menu_hover: { opacity: 1, scale: 1, x: 228, y: 172 },
+    reply_menu_click: { opacity: 1, scale: 0.96, x: 228, y: 172 },
+    compose_open: { opacity: 1, scale: 1, x: 176, y: 242 },
+    compose_typing: { opacity: 0, scale: 0.92, x: 176, y: 262 },
+    compose_rewrite: { opacity: 0, scale: 0.92, x: 176, y: 262 },
+    compose_done: { opacity: 0, scale: 0.92, x: 176, y: 262 },
   };
 
-  if (!visible) {
-    return null;
-  }
-
-  const target = targets[phase] || targets.prestart;
+  const activeTarget = targets[phase] || targets.prestart;
+  const target = visible ? activeTarget : { ...activeTarget, opacity: 0 };
 
   return (
     <motion.div
@@ -804,16 +801,17 @@ function PointerCursor({ phase, visible }) {
       className="pointer-events-none absolute z-40"
       style={{ transformOrigin: "top left" }}
     >
-      <div className="pointer-events-none relative drop-shadow-[0_10px_22px_rgba(15,23,42,0.24)]">
+      <div className="pointer-events-none relative drop-shadow-[0_12px_28px_rgba(15,23,42,0.26)]">
+        <div className="pointer-events-none absolute -left-3 -top-3 h-16 w-16 rounded-full bg-white/90 blur-xl" />
         <AnimatePresence>
           {phase === "row_context" && (
             <motion.div
               key="right-click-ring"
               initial={{ opacity: 0.5, scale: 0.6 }}
-              animate={{ opacity: 0, scale: 1.6 }}
+              animate={{ opacity: 0, scale: 1.7 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
-              className="pointer-events-none absolute -left-1 -top-1 h-10 w-10 rounded-full border-2 border-blue-400/70"
+              className="pointer-events-none absolute -left-1 -top-1 h-12 w-12 rounded-full border-[3px] border-blue-400/70"
             />
           )}
         </AnimatePresence>
@@ -822,29 +820,53 @@ function PointerCursor({ phase, visible }) {
             <motion.div
               key="reply-click-ring"
               initial={{ opacity: 0.6, scale: 0.7 }}
-              animate={{ opacity: 0, scale: 1.5 }}
+              animate={{ opacity: 0, scale: 1.6 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.36, ease: "easeOut" }}
-              className="pointer-events-none absolute -left-1 -top-1 h-10 w-10 rounded-full border-2 border-blue-500/60"
+              className="pointer-events-none absolute -left-1 -top-1 h-12 w-12 rounded-full border-[3px] border-blue-500/60"
             />
           )}
         </AnimatePresence>
         <svg
-          width="40"
-          height="40"
-          viewBox="0 0 32 32"
+          width="56"
+          height="56"
+          viewBox="0 0 64 64"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <path
-            d="M5.25 3.25v22.6l5.84-4.58 3.82 9.54 4.78-1.92-3.78-9.46h9.77L5.25 3.25Z"
-            fill="#0f172a"
-          />
-          <path
-            d="M11.09 21.27 6.5 24.87V5.58l17.33 12.3h-9.64l3.58 8.96-2.74 1.1-3.94-9.67Z"
-            fill="#f8fafc"
-            fillOpacity="0.22"
-          />
+          <g filter="url(#cursor-shadow)">
+            <path d="M14 8v41.5l9.8-7.4 6.9 16.4 8.6-3.3-6.6-16h18.2L14 8Z" fill="white" />
+            <path d="M17 15.16v27.92l7.66-5.78 7.58 18.14 5.52-2.12-7.35-17.74h19.28L17 15.16Z" fill="#0f172a" />
+            <path
+              d="M24.34 37.56 19 41.64V18.92l24.94 17.44H28.42l7.26 17.18-3.78 1.42-7.56-19.4Z"
+              fill="#e2e8f0"
+            />
+          </g>
+          <defs>
+            <filter
+              id="cursor-shadow"
+              x="4"
+              y="0"
+              width="56"
+              height="64"
+              filterUnits="userSpaceOnUse"
+              colorInterpolationFilters="sRGB"
+            >
+              <feFlood floodOpacity="0" result="BackgroundImageFix" />
+              <feColorMatrix
+                in="SourceAlpha"
+                type="matrix"
+                values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                result="hardAlpha"
+              />
+              <feOffset dy="2" />
+              <feGaussianBlur stdDeviation="2" />
+              <feComposite in2="hardAlpha" operator="out" />
+              <feColorMatrix type="matrix" values="0 0 0 0 0.06 0 0 0 0 0.12 0 0 0 0 0.2 0 0 0 0.28 0" />
+              <feBlend in2="BackgroundImageFix" result="effect1_dropShadow" />
+              <feBlend in="SourceGraphic" in2="effect1_dropShadow" result="shape" />
+            </filter>
+          </defs>
         </svg>
       </div>
     </motion.div>
