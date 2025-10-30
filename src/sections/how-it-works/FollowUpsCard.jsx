@@ -14,7 +14,7 @@
 //
 // Requires Tailwind + framer-motion + your FeatureLayout component.
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import FeatureLayout from "./FeatureLayout.jsx";
 import InboxRow from "./InboxRow.jsx";
@@ -193,6 +193,7 @@ export default function FollowupCard() {
   const [manualPhase, setManualPhase] = useState("prestart");
   const [chatStarted, setChatStarted] = useState(false);
   const [chatPhase, setChatPhase] = useState(null); // 'user_voice' | 'user_final' | 'ai_draft' | 'ai_final'
+  const pointerLayerRef = useRef(null);
 
   useEffect(() => {
     const el = rootRef.current;
@@ -314,11 +315,11 @@ export default function FollowupCard() {
   const composeDoneReached = hasReached("compose_done");
 
   useEffect(() => {
-    console.debug("[FollowUpsCard] manualPhase →", manualPhase);
+    console.log("[FollowUpsCard] manualPhase →", manualPhase);
   }, [manualPhase]);
 
   useEffect(() => {
-    console.debug(
+    console.log(
       "[FollowUpsCard] composeVisible:",
       composeVisible,
       "composeDoneReached:",
@@ -406,7 +407,7 @@ export default function FollowupCard() {
     >
       <div className="relative flex w-full flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex flex-1 flex-col items-start gap-6">
-          <div className="relative w-full max-w-[460px]">
+          <div ref={pointerLayerRef} className="relative w-full max-w-[460px]">
             <motion.div
               initial={{ opacity: 0, y: 30, rotate: 0 }}
               animate={{
@@ -454,7 +455,7 @@ export default function FollowupCard() {
               )}
             </AnimatePresence>
 
-            <PointerCursor phase={manualPhase} />
+            <PointerCursor phase={manualPhase} containerRef={pointerLayerRef} />
           </div>
 
         </div>
@@ -686,6 +687,7 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
                     calm={inboxIsChill}
                     phase={inboxIsChill ? "calm" : "manual"}
                     active={isActive}
+                    dataPointerTarget={index === 1 ? "inbox-row" : undefined}
                     {...row}
                   >
                   </InboxRow>
@@ -715,6 +717,7 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
               exit={{ opacity: 0, scale: 0.9, y: -4 }}
               transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
               className="pointer-events-none absolute left-[152px] top-[118px] z-30"
+              data-pointer-target="reply-menu"
             >
               <div className="min-w-[140px] rounded-xl border border-gray-200/80 bg-white/98 p-1 text-[11px] text-gray-600 shadow-[0_20px_40px_rgba(15,23,42,0.16)] ring-1 ring-gray-100 backdrop-blur">
                 <div
@@ -741,21 +744,89 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
 }
 
 
-function PointerCursor({ phase }) {
-  const targets = {
-    prestart: { opacity: 0, scale: 0.9, x: 176, y: 126 },
-    inbox_idle: { opacity: 1, scale: 1, x: 188, y: 92 },
-    row_hover: { opacity: 1, scale: 1, x: 194, y: 134 },
-    row_context: { opacity: 1, scale: 0.98, x: 194, y: 134 },
-    reply_menu_hover: { opacity: 1, scale: 1, x: 228, y: 172 },
-    reply_menu_click: { opacity: 1, scale: 0.96, x: 228, y: 172 },
-    compose_open: { opacity: 1, scale: 1, x: 176, y: 242 },
-    compose_typing: { opacity: 1, scale: 1, x: 182, y: 256 },
-    compose_rewrite: { opacity: 1, scale: 1, x: 182, y: 256 },
-    compose_done: { opacity: 1, scale: 1, x: 228, y: 172 },
-  };
+const POINTER_ANCHOR_CONFIG = {
+  "inbox-row": { px: 0.58, py: 0.54 },
+  "reply-menu": { px: 0.58, py: 0.52 },
+  "compose-area": { px: 0.34, py: 0.24 },
+};
 
-  const activeTarget = targets[phase] || targets.prestart;
+const POINTER_PHASE_TARGETS = {
+  prestart: { opacity: 0, scale: 0.9, anchor: "inbox-row", fallback: { x: 176, y: 126 } },
+  inbox_idle: { opacity: 1, scale: 1, anchor: "inbox-row", fallback: { x: 188, y: 92 } },
+  row_hover: { opacity: 1, scale: 1, anchor: "inbox-row", fallback: { x: 194, y: 134 } },
+  row_context: { opacity: 1, scale: 0.98, anchor: "inbox-row", fallback: { x: 194, y: 134 } },
+  reply_menu_hover: { opacity: 1, scale: 1, anchor: "reply-menu", fallback: { x: 228, y: 172 } },
+  reply_menu_click: { opacity: 1, scale: 0.96, anchor: "reply-menu", fallback: { x: 228, y: 172 } },
+  compose_open: { opacity: 1, scale: 1, anchor: "compose-area", fallback: { x: 176, y: 242 } },
+  compose_typing: { opacity: 1, scale: 1, anchor: "compose-area", fallback: { x: 182, y: 256 } },
+  compose_rewrite: { opacity: 1, scale: 1, anchor: "compose-area", fallback: { x: 182, y: 256 } },
+  compose_done: { opacity: 1, scale: 1, anchor: "reply-menu", fallback: { x: 228, y: 172 } },
+};
+
+function PointerCursor({ phase, containerRef }) {
+  const [anchorPositions, setAnchorPositions] = useState({});
+
+  const measureTargets = useCallback(() => {
+    const container = containerRef?.current;
+    if (!container) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const nextPositions = {};
+
+    Object.entries(POINTER_ANCHOR_CONFIG).forEach(([anchor, config]) => {
+      const el = container.querySelector(`[data-pointer-target="${anchor}"]`);
+      if (!el) return;
+
+      const rect = el.getBoundingClientRect();
+      const x =
+        rect.left - containerRect.left + rect.width * (config.px ?? 0.5) + (config.dx ?? 0);
+      const y = rect.top - containerRect.top + rect.height * (config.py ?? 0.5) + (config.dy ?? 0);
+      nextPositions[anchor] = { x, y };
+    });
+
+    if (Object.keys(nextPositions).length > 0) {
+      setAnchorPositions((prev) => ({ ...prev, ...nextPositions }));
+    }
+  }, [containerRef]);
+
+  useLayoutEffect(() => {
+    measureTargets();
+  }, [measureTargets]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const handleResize = () => {
+      measureTargets();
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [measureTargets]);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      measureTargets();
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [phase, measureTargets]);
+
+  const baseTarget = POINTER_PHASE_TARGETS[phase] || POINTER_PHASE_TARGETS.prestart;
+  const measuredAnchor = baseTarget.anchor
+    ? anchorPositions[baseTarget.anchor]
+    : undefined;
+
+  const activeTarget = {
+    opacity: baseTarget.opacity,
+    scale: baseTarget.scale,
+    x: measuredAnchor?.x ?? baseTarget.fallback.x,
+    y: measuredAnchor?.y ?? baseTarget.fallback.y,
+  };
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.85, x: activeTarget.x, y: activeTarget.y }}
@@ -881,7 +952,10 @@ function GmailDraftCard({ bodyText, bodyDone, showQuotedThread, highlightTone, s
       </div>
 
       {/* Body */}
-      <div className="px-3 py-3 whitespace-pre-wrap min-h-[180px] text-[13px] leading-[1.45] text-gray-800">
+      <div
+        className="px-3 py-3 whitespace-pre-wrap min-h-[180px] text-[13px] leading-[1.45] text-gray-800"
+        data-pointer-target="compose-area"
+      >
         {showQuotedThread && (
           <div className="mb-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[12px] leading-relaxed text-gray-500">
             <span className="font-medium text-gray-600">Sarah Quinn</span> • "Can you send the updated pricing by 5 so I can lock the deck?"
