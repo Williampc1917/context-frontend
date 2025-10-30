@@ -86,14 +86,14 @@ const MANUAL_PHASE_ORDER = [
 ];
 
 const MANUAL_SEQUENCE = [
-  { phase: "inbox_scroll", duration: 400 },
-  { phase: "thread_open", duration: 400 },
-  { phase: "smart_reply", duration: 800 },
-  { phase: "greeting_tone", duration: 1200 },
-  { phase: "draft_reorder", duration: 1500 },
-  { phase: "add_specificity", duration: 1100 },
-  { phase: "signoff", duration: 1400 },
-  { phase: "hover_send", duration: 2000 },
+  { phase: "inbox_scroll", duration: 420 },
+  { phase: "thread_open", duration: 520 },
+  { phase: "smart_reply", duration: 860 },
+  { phase: "greeting_tone", duration: 1400 },
+  { phase: "draft_reorder", duration: 2000 },
+  { phase: "add_specificity", duration: 1200 },
+  { phase: "signoff", duration: 1500 },
+  { phase: "hover_send", duration: 1600 },
 ];
 
 const MANUAL_LOOP_DELAY = 1200;
@@ -772,25 +772,22 @@ function GmailDraftCard({
     }
   }, [phase, phaseIndex, loopIteration, phaseOrder]);
 
-  const [greetingVariant, setGreetingVariant] = useState("hidden");
-  useEffect(() => {
-    if (phaseIndex < indexOf("greeting_tone")) {
-      setGreetingVariant("hidden");
-      return;
-    }
-
-    if (phase === "greeting_tone") {
-      setGreetingVariant("comma");
-      const tweakTimeout = setTimeout(() => {
-        setGreetingVariant("dash");
-      }, 420);
-      return () => {
-        clearTimeout(tweakTimeout);
-      };
-    }
-
-    setGreetingVariant("dash");
-  }, [phase, phaseIndex, loopIteration, phaseOrder]);
+  const greetingScript = useMemo(
+    () => [
+      { type: "text", value: "Hi Sarah," },
+      { type: "pause", ms: 260 },
+      { type: "backspace", count: 1, speedMs: 70 },
+      { type: "text", value: " —" },
+    ],
+    [loopIteration],
+  );
+  const { text: greetingTyped } = useTypewriter({
+    script: greetingScript,
+    active: phase === "greeting_tone",
+    baseSpeed: 32,
+    randomVariance: 26,
+    backspaceSpeed: 60,
+  });
 
   const [reorderStep, setReorderStep] = useState("initial");
   useEffect(() => {
@@ -801,8 +798,8 @@ function GmailDraftCard({
 
     if (phase === "draft_reorder") {
       setReorderStep("typing");
-      const selectTimeout = setTimeout(() => setReorderStep("selecting"), 420);
-      const reorderTimeout = setTimeout(() => setReorderStep("reordered"), 840);
+      const selectTimeout = setTimeout(() => setReorderStep("selecting"), 1100);
+      const reorderTimeout = setTimeout(() => setReorderStep("reordered"), 1600);
       return () => {
         clearTimeout(selectTimeout);
         clearTimeout(reorderTimeout);
@@ -812,92 +809,146 @@ function GmailDraftCard({
     setReorderStep("reordered");
   }, [phase, phaseIndex, loopIteration, phaseOrder]);
 
-  const [specificityAdded, setSpecificityAdded] = useState(false);
+  const thanksScript = useMemo(
+    () => [
+      { type: "text", value: "Thanks again for being " },
+      { type: "text", value: "paitent", speedMs: 48 },
+      { type: "pause", ms: 240 },
+      { type: "backspace", count: 7, speedMs: 60 },
+      { type: "text", value: "patient", speedMs: 46 },
+      { type: "text", value: " on pricing.", speedMs: 40 },
+    ],
+    [loopIteration],
+  );
+  const { text: thanksTyped } = useTypewriter({
+    script: thanksScript,
+    active: phase === "draft_reorder",
+    baseSpeed: 30,
+    randomVariance: 26,
+    backspaceSpeed: 58,
+  });
+
+  const updateScript = useMemo(
+    () => [
+      { type: "text", value: "I'll send the updated numbers " },
+      { type: "text", value: "tomorow", speedMs: 46 },
+      { type: "pause", ms: 200 },
+      { type: "backspace", count: 2, speedMs: 55 },
+      { type: "text", value: "row", speedMs: 42 },
+      { type: "text", value: ".", speedMs: 40 },
+    ],
+    [loopIteration],
+  );
+  const { text: updateTyped } = useTypewriter({
+    script: updateScript,
+    active: phase === "draft_reorder",
+    baseSpeed: 30,
+    randomVariance: 24,
+    backspaceSpeed: 58,
+  });
+
+  const appendScript = useMemo(
+    () => [
+      { type: "pause", ms: 140 },
+      { type: "text", value: " morning.", speedMs: 38 },
+    ],
+    [loopIteration],
+  );
+  const { text: appendTyped } = useTypewriter({
+    script: appendScript,
+    active: phase === "add_specificity",
+    baseSpeed: 30,
+    randomVariance: 22,
+    backspaceSpeed: 58,
+  });
+
   const [specificityFlash, setSpecificityFlash] = useState(false);
   useEffect(() => {
     if (phaseIndex < indexOf("add_specificity")) {
-      setSpecificityAdded(false);
       setSpecificityFlash(false);
       return;
     }
 
     if (phase === "add_specificity") {
-      setSpecificityAdded(false);
-      setSpecificityFlash(false);
-      const appendTimeout = setTimeout(() => {
-        setSpecificityAdded(true);
-        setSpecificityFlash(true);
-      }, 420);
-      const clearFlashTimeout = setTimeout(() => setSpecificityFlash(false), 1200);
+      setSpecificityFlash(true);
+      const timeout = setTimeout(() => setSpecificityFlash(false), 1100);
       return () => {
-        clearTimeout(appendTimeout);
-        clearTimeout(clearFlashTimeout);
+        clearTimeout(timeout);
       };
     }
 
-    setSpecificityAdded(true);
     setSpecificityFlash(false);
   }, [phase, phaseIndex, loopIteration, phaseOrder]);
 
-  const [signoffVariant, setSignoffVariant] = useState("none");
-  useEffect(() => {
-    if (phaseIndex < indexOf("signoff")) {
-      setSignoffVariant("none");
-      return;
-    }
+  const signoffScript = useMemo(
+    () => [
+      { type: "text", value: "Best," },
+      { type: "pause", ms: 320 },
+      { type: "backspace", count: 5, speedMs: 62 },
+      { type: "text", value: "Appreciate you,", speedMs: 42 },
+      { type: "pause", ms: 220 },
+      { type: "text", value: "\nJ", speedMs: 60 },
+    ],
+    [loopIteration],
+  );
+  const { text: signoffTyped } = useTypewriter({
+    script: signoffScript,
+    active: phase === "signoff",
+    baseSpeed: 32,
+    randomVariance: 22,
+    backspaceSpeed: 68,
+  });
 
-    if (phase === "signoff") {
-      setSignoffVariant("best");
-      const switchTimeout = setTimeout(() => setSignoffVariant("appreciate"), 520);
-      return () => {
-        clearTimeout(switchTimeout);
-      };
-    }
+  const greetingFinal = "Hi Sarah —";
+  const greetingDisplay =
+    phaseIndex < indexOf("greeting_tone")
+      ? ""
+      : phase === "greeting_tone"
+      ? greetingTyped
+      : greetingFinal;
 
-    setSignoffVariant("appreciate");
-  }, [phase, phaseIndex, loopIteration, phaseOrder]);
+  const thanksFinal = "Thanks again for being patient on pricing.";
+  const updateBaseFinal = "I'll send the updated numbers tomorrow.";
 
-  const [hoverTimer, setHoverTimer] = useState(6);
-  const hoverIntervalRef = useRef(null);
-  useEffect(() => {
-    if (hoverIntervalRef.current) {
-      clearInterval(hoverIntervalRef.current);
-      hoverIntervalRef.current = null;
-    }
+  const thanksDisplay =
+    phaseIndex < indexOf("draft_reorder")
+      ? ""
+      : phase === "draft_reorder"
+      ? thanksTyped
+      : thanksFinal;
 
-    if (phase !== "hover_send") {
-      setHoverTimer(6);
-      return undefined;
-    }
+  const appendDisplay =
+    phaseIndex < indexOf("add_specificity")
+      ? ""
+      : phase === "add_specificity"
+      ? appendTyped
+      : " morning.";
 
-    setHoverTimer(6);
-    let tick = 6;
+  const updateDisplay = (() => {
+    if (phaseIndex < indexOf("draft_reorder")) return "";
+    if (phase === "draft_reorder") return updateTyped;
+    if (phaseIndex < indexOf("add_specificity")) return updateBaseFinal;
+    return `${updateBaseFinal}${appendDisplay}`;
+  })();
 
-    hoverIntervalRef.current = setInterval(() => {
-      tick += 1;
-      if (tick >= 10) {
-        tick = 10;
-        setHoverTimer(tick);
-        if (hoverIntervalRef.current) {
-          clearInterval(hoverIntervalRef.current);
-          hoverIntervalRef.current = null;
-        }
-        return;
-      }
-      setHoverTimer(tick);
-    }, 1000);
+  const reorderComplete =
+    phaseIndex > indexOf("draft_reorder") ||
+    (phase === "draft_reorder" && reorderStep === "reordered");
+  const updateSelected = phase === "draft_reorder" && reorderStep === "selecting";
+  const updateHighlighted =
+    phase === "draft_reorder" && reorderStep !== "initial"
+      ? true
+      : phaseIndex >= indexOf("add_specificity");
 
-    return () => {
-      if (hoverIntervalRef.current) {
-        clearInterval(hoverIntervalRef.current);
-        hoverIntervalRef.current = null;
-      }
-    };
-  }, [phase, loopIteration]);
+  const signoffFinal = "Appreciate you,\nJ";
+  const signoffDisplay =
+    phaseIndex < indexOf("signoff")
+      ? ""
+      : phase === "signoff"
+      ? signoffTyped
+      : signoffFinal;
+  const signoffLines = signoffDisplay ? signoffDisplay.split("\n") : [];
 
-  const formattedTimer = `00:${String(hoverTimer).padStart(2, "0")}`;
-
-  const showTimer = phase === "hover_send";
   const showDraftSaved = phase === "hover_send";
   const showSmartReply = phase === "smart_reply";
 
@@ -907,34 +958,22 @@ function GmailDraftCard({
     "Thanks for the nudge",
   ];
 
-  const hasBodyContent =
-    reorderStep !== "initial" ||
-    hasReachedPhase("add_specificity") ||
-    hasReachedPhase("signoff") ||
-    hasReachedPhase("hover_send");
-  const hasReordered =
-    reorderStep === "reordered" ||
-    hasReachedPhase("add_specificity") ||
-    hasReachedPhase("signoff") ||
-    hasReachedPhase("hover_send");
-
-  const updateBase = "I'll send the updated numbers tomorrow";
+  const hasBodyContent = phaseIndex >= indexOf("draft_reorder");
+  const hasReordered = reorderComplete;
 
   const bodyLines = [];
   if (hasBodyContent) {
     const thanksLine = {
       id: "thanks",
-      text: "Thanks again for being patient on pricing.",
-      highlight: reorderStep === "typing",
+      text: thanksDisplay,
+      highlight: phase === "draft_reorder" && reorderStep === "typing",
     };
-    const updateLineText = specificityAdded
-      ? `${updateBase} morning.`
-      : `${updateBase}.`;
     const updateLine = {
       id: "update",
-      text: updateLineText,
-      highlight: reorderStep === "selecting" || specificityFlash,
-      specificityFlash,
+      text: updateDisplay,
+      highlight: updateHighlighted,
+      selected: updateSelected,
+      flash: specificityFlash,
     };
 
     if (hasReordered) {
@@ -984,21 +1023,6 @@ function GmailDraftCard({
       </div>
 
       <div className="relative px-3 py-3 min-h-[210px] text-[13px] leading-[1.45] text-gray-800">
-        <AnimatePresence>
-          {showTimer && (
-            <motion.div
-              key="timer"
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="pointer-events-none absolute right-3 top-3 rounded-md bg-white/90 px-2 py-[2px] text-[11px] font-medium text-gray-600 ring-1 ring-gray-200 shadow-sm"
-            >
-              {formattedTimer}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {showQuotedThread && (
           <motion.div
             key={`quoted-${loopIteration}`}
@@ -1048,20 +1072,17 @@ function GmailDraftCard({
         </AnimatePresence>
 
         <div className="space-y-2">
-          <AnimatePresence mode="wait">
-            {greetingVariant !== "hidden" && (
-              <motion.div
-                key={`greeting-${greetingVariant}-${loopIteration}`}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                className="text-gray-900"
-              >
-                {greetingVariant === "comma" ? "Hi Sarah," : "Hi Sarah —"}
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {phaseIndex >= indexOf("greeting_tone") && (
+            <motion.div
+              key={`greeting-line-${loopIteration}`}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="text-gray-900 whitespace-pre min-h-[1.2em]"
+            >
+              {greetingDisplay}
+            </motion.div>
+          )}
 
           {hasBodyContent && (
             <div className="space-y-2">
@@ -1070,65 +1091,59 @@ function GmailDraftCard({
                   key={`${line.id}-${loopIteration}`}
                   layout
                   transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                  className={`rounded-md px-2 py-1 ${
-                    line.highlight
+                  className={`relative rounded-md px-2 py-1 whitespace-pre-wrap transition-colors duration-200 ${
+                    line.selected
+                      ? "bg-blue-500/10 text-blue-900 ring-1 ring-blue-300 shadow-[0_12px_28px_rgba(59,130,246,0.18)]"
+                      : line.highlight
                       ? "bg-blue-50 text-blue-900 ring-1 ring-blue-200 shadow-[0_10px_24px_rgba(59,130,246,0.12)]"
-                      : "bg-transparent"
+                      : "bg-transparent text-gray-900 ring-1 ring-transparent"
                   }`}
                 >
-                  {line.id === "update" && specificityAdded ? (
-                    <span>
-                      {updateBase}
-                      <motion.span
-                        key={`specificity-${specificityAdded}-${loopIteration}`}
-                        initial={{ opacity: 0, x: 2 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                        className={`ml-1 inline-block ${
-                          specificityFlash ? "rounded bg-blue-100 px-1 text-blue-900" : ""
-                        }`}
-                      >
-                        morning.
-                      </motion.span>
+                  {line.id === "update" ? (
+                    <span className="inline-flex flex-wrap items-baseline gap-[2px] whitespace-pre-wrap">
+                      <span>{line.text.slice(0, Math.min(line.text.length, updateBaseFinal.length))}</span>
+                      {line.text.length > updateBaseFinal.length && (
+                        <motion.span
+                          key={`append-${loopIteration}-${line.flash}`}
+                          initial={{ opacity: 0, x: 2 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                          className={`inline-flex ${
+                            (line.flash || phase === "add_specificity")
+                              ? "rounded bg-blue-100 px-1 text-blue-900"
+                              : ""
+                          }`}
+                        >
+                          {line.text.slice(updateBaseFinal.length)}
+                        </motion.span>
+                      )}
                     </span>
                   ) : (
-                    line.text
+                    <span>{line.text}</span>
                   )}
                 </motion.div>
               ))}
             </div>
           )}
 
-          {(signoffVariant === "best" || signoffVariant === "appreciate") && (
+          {signoffLines.length > 0 && (
             <div className="space-y-1 pt-2">
-              <AnimatePresence mode="wait">
+              {signoffLines.map((line, idx) => (
                 <motion.div
-                  key={`signoff-line-${signoffVariant}-${loopIteration}`}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                  className="text-gray-900"
-                >
-                  {signoffVariant === "best" ? "Best," : "Appreciate you,"}
-                </motion.div>
-              </AnimatePresence>
-              {signoffVariant === "appreciate" && (
-                <motion.div
-                  key={`signoff-j-${loopIteration}`}
+                  key={`signoff-${idx}-${loopIteration}`}
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                  className="text-gray-900"
+                  className="text-gray-900 whitespace-pre"
                 >
-                  J
+                  {line}
                 </motion.div>
-              )}
+              ))}
             </div>
           )}
         </div>
 
-        <MicroChipCallout chip={microChip} />
+        <MicroChipCallout chip={microChip} phase={phase} />
       </div>
 
       <div className="px-3 py-2 border-t border-gray-200 bg-gray-50 flex items-center gap-2">
@@ -1174,7 +1189,16 @@ function GmailDraftCard({
   );
 }
 
-function MicroChipCallout({ chip }) {
+function MicroChipCallout({ chip, phase }) {
+  const positions = {
+    greeting_tone: { top: 96, right: 18 },
+    draft_reorder: { top: 140, right: 18 },
+    add_specificity: { top: 156, right: 18 },
+    signoff: { top: 192, right: 18 },
+    hover_send: { top: 208, right: 18 },
+  };
+  const position = positions[phase] || { top: 148, right: 18 };
+
   return (
     <AnimatePresence>
       {chip && (
@@ -1184,7 +1208,8 @@ function MicroChipCallout({ chip }) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="pointer-events-none absolute right-3 bottom-3 rounded-full border border-[#fb923c]/60 bg-[#fff7ed]/95 px-2.5 py-[3px] text-[10px] font-medium text-[#b45309] shadow-[0_8px_18px_rgba(251,146,60,0.18)]"
+          className="pointer-events-none absolute rounded-full border border-[#fb923c]/50 bg-[#fff7ed]/95 px-2 py-[2px] text-[10px] font-medium text-[#b45309] shadow-[0_6px_16px_rgba(251,146,60,0.18)]"
+          style={position}
         >
           {chip.message}
         </motion.div>
