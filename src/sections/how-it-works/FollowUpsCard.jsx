@@ -292,6 +292,7 @@ export default function FollowupCard() {
         value: " I'll send the updated numbers tomorrow.",
         speedMs: 56,
       },
+      { type: "backspace", count: 1, speedMs: 80 },
       { type: "pause", ms: 320 },
       { type: "text", value: " morning.", speedMs: 54 },
       { type: "pause", ms: 420 },
