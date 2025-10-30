@@ -223,9 +223,9 @@ export default function FollowupCard() {
       return id;
     };
 
-    queueStage(() => setManualPhase("inbox_scroll"), 900);
-    queueStage(() => setManualPhase("reply_hover"), 2100);
-    queueStage(() => setManualPhase("reply_click"), 2550);
+    queueStage(() => setManualPhase("reply_target"), 1100);
+    queueStage(() => setManualPhase("reply_hover"), 1850);
+    queueStage(() => setManualPhase("reply_click"), 2350);
     queueStage(() => setManualPhase("compose_open"), 3000);
     queueStage(() => setManualPhase("compose_typing"), 3600);
 
@@ -247,7 +247,7 @@ export default function FollowupCard() {
   const phaseOrder = [
     "prestart",
     "inbox_idle",
-    "inbox_scroll",
+    "reply_target",
     "reply_hover",
     "reply_click",
     "compose_open",
@@ -404,7 +404,6 @@ export default function FollowupCard() {
             >
               <InboxPreviewCard
                 phase={manualPhase}
-                hasScrolled={hasReached("inbox_scroll")}
                 replyHover={manualPhase === "reply_hover"}
                 replyPressed={manualPhase === "reply_click"}
                 dimmed={composeVisible}
@@ -586,7 +585,6 @@ export default function FollowupCard() {
 
 function InboxPreviewCard({
   phase,
-  hasScrolled,
   replyHover,
   replyPressed,
   dimmed,
@@ -599,7 +597,7 @@ function InboxPreviewCard({
 
   const manualStatusMap = {
     inbox_idle: `Inbox piling up — ${contactFirstName} still needs pricing.`,
-    inbox_scroll: `Still digging for ${contactFirstName}’s thread…`,
+    reply_target: `There it is — hover the reply.`,
     reply_hover: `${contactFirstName}’s waiting — find the reply button.`,
     reply_click: "Clock’s ticking — opening reply…",
     compose_open: "Reply window finally open — you’re still on the hook.",
@@ -624,6 +622,7 @@ function InboxPreviewCard({
   }
 
   const highlightSarah =
+    phase === "reply_target" ||
     phase === "reply_hover" ||
     phase === "reply_click" ||
     phase === "compose_open" ||
@@ -631,8 +630,7 @@ function InboxPreviewCard({
     phase === "compose_rewrite" ||
     phase === "compose_done";
 
-  const activeIndex = highlightSarah ? 1 : hasScrolled ? 0 : -1;
-  const replyShouldShow = replyHover || replyPressed;
+  const activeIndex = highlightSarah ? 1 : -1;
 
   const rows = FOLLOW_UP_ROWS;
 
@@ -640,8 +638,8 @@ function InboxPreviewCard({
   const statusTone = showChatStatus && chatStarted && chatPhase ? "ai" : "manual";
   const statusClassName =
     statusTone === "manual"
-      ? "absolute -top-12 left-1/2 z-20 -translate-x-1/2 flex max-w-[280px] flex-wrap items-center gap-2 rounded-full bg-[#fff2ed]/95 px-3.5 py-1.5 text-[11px] font-semibold text-[#b45309] shadow-[0_12px_32px_rgba(225,96,54,0.22)] ring-1 ring-[#fb923c]/50 border border-white/70"
-      : "absolute -top-12 left-1/2 z-20 -translate-x-1/2 flex max-w-[280px] flex-wrap items-center gap-2 rounded-full bg-white/92 px-3.5 py-1.5 text-[11px] font-medium text-gray-600 shadow-[0_10px_30px_rgba(15,23,42,0.12)] ring-1 ring-gray-200 border border-white/70";
+      ? "absolute -top-10 left-4 z-20 flex max-w-[260px] flex-wrap items-center gap-2 rounded-full bg-[#fff2ed]/95 px-3.5 py-1.5 text-[11px] font-semibold text-[#b45309] shadow-[0_12px_28px_rgba(225,96,54,0.18)] ring-1 ring-[#fb923c]/40 border border-white/70"
+      : "absolute -top-10 left-4 z-20 flex max-w-[260px] flex-wrap items-center gap-2 rounded-full bg-white/95 px-3.5 py-1.5 text-[11px] font-medium text-gray-600 shadow-[0_10px_30px_rgba(15,23,42,0.12)] ring-1 ring-gray-200 border border-white/70";
 
   return (
     <div className="relative">
@@ -665,10 +663,7 @@ function InboxPreviewCard({
         }}
       >
         <div className="pt-3">
-          <motion.div
-            animate={{ y: hasScrolled ? -36 : 0 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          >
+          <motion.div animate={{ y: 0 }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}>
             {rows.map((row, index) => {
               const isActive = index === activeIndex;
 
@@ -681,30 +676,35 @@ function InboxPreviewCard({
                   active={isActive}
                   {...row}
                 >
-                  {index === 1 && replyShouldShow && (
+                  {index === 1 && (
                     <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                      initial={false}
+                      animate={{ opacity: replyHover || replyPressed ? 1 : 0.45, scale: replyPressed ? 0.92 : replyHover ? 1.03 : 0.96 }}
+                      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
                       className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
                     >
                       <motion.div
                         animate={{
-                          scale: replyPressed ? 0.92 : replyHover ? 1.03 : 1,
                           boxShadow: replyPressed
                             ? "0 0 0 0 rgba(59,130,246,0)"
                             : replyHover
-                              ? "0 10px 24px rgba(59,130,246,0.18)"
+                              ? "0 12px 26px rgba(59,130,246,0.22)"
                               : "0 6px 16px rgba(15,23,42,0.12)",
                           backgroundColor: replyPressed
-                            ? "rgba(59,130,246,0.2)"
-                            : "rgba(255,255,255,0.95)",
-                          color: replyPressed ? "rgb(37,99,235)" : "rgb(75,85,99)",
+                            ? "rgba(59,130,246,0.18)"
+                            : replyHover
+                              ? "rgba(255,255,255,0.98)"
+                              : "rgba(255,255,255,0.92)",
+                          color: replyPressed
+                            ? "rgb(37,99,235)"
+                            : replyHover
+                              ? "rgb(37,99,235)"
+                              : "rgb(75,85,99)",
                           borderColor: replyHover
                             ? "rgba(59,130,246,0.45)"
                             : "rgba(209,213,219,1)",
                         }}
-                        transition={{ duration: 0.2, ease: [0.42, 0, 0.58, 1] }}
+                        transition={{ duration: 0.24, ease: [0.42, 0, 0.58, 1] }}
                         className="pointer-events-none inline-flex items-center rounded-full border px-4 py-1 text-[11px] font-medium"
                       >
                         Reply
@@ -737,7 +737,7 @@ function PointerCursor({ phase, visible }) {
   const targets = {
     prestart: { opacity: 0, scale: 0.85, x: 190, y: 140 },
     inbox_idle: { opacity: 1, scale: 1, x: 214, y: 92 },
-    inbox_scroll: { opacity: 1, scale: 1, x: 224, y: 148 },
+    reply_target: { opacity: 1, scale: 1, x: 220, y: 150 },
     reply_hover: { opacity: 1, scale: 1, x: 236, y: 186 },
     reply_click: { opacity: 1, scale: 0.93, x: 236, y: 186 },
     compose_open: { opacity: 1, scale: 1, x: 188, y: 246 },
