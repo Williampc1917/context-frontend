@@ -14,56 +14,171 @@
 //
 // Requires Tailwind + framer-motion + your FeatureLayout component.
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import FeatureLayout from "./FeatureLayout.jsx";
 import InboxRow from "./InboxRow.jsx";
 
+const FOLLOW_UP_ROWS = [
+  {
+    unread: true,
+    from: "Jennifer Lee",
+    time: "3:17 PM",
+    subject: "Checking in on updated pricing",
+    body:
+      "Just following up on the revised pricing you said you’d send yesterday. They’re waiting on it to move forward.",
+    chips: [
+      { color: "amber", text: "waiting on you" },
+      { color: "red", text: "deal at risk" },
+    ],
+    hasAttachment: false,
+  },
+  {
+    unread: true,
+    from: "Sarah Quinn",
+    time: "2:41 PM",
+    subject: "QBR tomorrow 10AM — need your final slide",
+    body:
+      "You’re presenting slide 7. I told leadership you’d send the updated pricing by 5pm so I can lock the deck. Can you add one line on margin justification?",
+    chips: [
+      { color: "amber", text: "tomorrow 10am" },
+      { color: "blue", text: "you own slide 7" },
+    ],
+    hasAttachment: true,
+  },
+  {
+    unread: true,
+    from: "Alex Rivera",
+    time: "1:09 PM",
+    subject: "Can you confirm the final numbers before Friday?",
+    body:
+      "I still don’t have the final numbers you said you’d send over. If we don’t lock them in by Friday, this slips to next week. Who’s giving the green light?",
+    chips: [
+      { color: "amber", text: "Friday deadline" },
+      { color: "red", text: "blocked on you" },
+    ],
+    hasAttachment: false,
+  },
+  {
+    unread: true,
+    from: "Maya Patel",
+    time: "12:22 PM",
+    subject: "Quick check-in on next steps",
+    body:
+      "No rush — just wanted to see if you’re still planning to send over the summary from last week’s call. Happy to wait until things calm down.",
+    chips: [{ color: "blue", text: "friendly reminder" }],
+    hasAttachment: false,
+  },
+];
+
+const TARGET_CONTACT = FOLLOW_UP_ROWS[1];
+const SIGN_OFF_SNIPPET = "Appreciate you,\nJ";
+
 /* -------------------------------------------------
    Hook: typewriter
 ------------------------------------------------- */
-function useTypewriter(fullText, active, speedMs = 22) {
-  const [shown, setShown] = useState("");
+function useTypewriter({
+  fullText = "",
+  script = null,
+  active,
+  baseSpeed = 22,
+  randomVariance = 40,
+  backspaceSpeed = 80,
+}) {
+  const [text, setText] = useState("");
+  const [done, setDone] = useState(false);
 
   useEffect(() => {
     if (!active) return;
 
     let timeoutId;
     let cancelled = false;
-    setShown("");
-    let index = 0;
 
-    const tick = () => {
-      if (cancelled) return;
-      if (index >= fullText.length) return;
-
-      index += 1;
-      setShown(fullText.slice(0, index));
-
-      const char = fullText[index - 1];
-      const punctuationPause = /[.,!?]/.test(char)
-        ? 140
-        : char === "\n"
-          ? 260
-          : char === "—"
-            ? 120
-            : char === " "
-              ? 20
-              : 0;
-      const randomPause = Math.random() * 40;
-
-      timeoutId = setTimeout(tick, speedMs + punctuationPause + randomPause);
+    const computePunctuationPause = (char) => {
+      if (char === "\n") return 260;
+      if (char === "—") return 120;
+      if (/[.,!?]/.test(char)) return 140;
+      if (char === " ") return 20;
+      return 0;
     };
 
-    timeoutId = setTimeout(tick, speedMs);
+    setText("");
+    setDone(false);
+
+    const actions = [];
+
+    if (script && script.length > 0) {
+      script.forEach((token) => {
+        if (token.type === "text" && token.value) {
+          for (const char of token.value) {
+            actions.push({ kind: "text", char, pace: token.speedMs });
+          }
+        }
+        if (token.type === "backspace") {
+          const count = token.count ?? 1;
+          for (let i = 0; i < count; i += 1) {
+            actions.push({ kind: "backspace", pace: token.speedMs });
+          }
+        }
+        if (token.type === "pause") {
+          actions.push({ kind: "pause", duration: token.ms ?? 0 });
+        }
+      });
+    } else {
+      for (const char of fullText) {
+        actions.push({ kind: "text", char });
+      }
+    }
+
+    let actionIndex = 0;
+    let buffer = "";
+
+    const runNext = () => {
+      if (cancelled) return;
+
+      if (actionIndex >= actions.length) {
+        setDone(true);
+        setText(script ? buffer : fullText);
+        return;
+      }
+
+      const action = actions[actionIndex];
+      actionIndex += 1;
+
+      if (action.kind === "text") {
+        buffer += action.char;
+        setText(buffer);
+        const punctuationPause = computePunctuationPause(action.char);
+        const randomPause = randomVariance ? Math.random() * randomVariance : 0;
+        const delay = (action.pace ?? baseSpeed) + punctuationPause + randomPause;
+        timeoutId = setTimeout(runNext, delay);
+        return;
+      }
+
+      if (action.kind === "backspace") {
+        buffer = buffer.slice(0, -1);
+        setText(buffer);
+        const delay = action.pace ?? backspaceSpeed;
+        timeoutId = setTimeout(runNext, delay);
+        return;
+      }
+
+      if (action.kind === "pause") {
+        const pauseDuration = action.duration ?? baseSpeed;
+        timeoutId = setTimeout(runNext, pauseDuration);
+        return;
+      }
+    };
+
+    timeoutId = setTimeout(runNext, baseSpeed);
 
     return () => {
       cancelled = true;
       clearTimeout(timeoutId);
     };
-  }, [fullText, active, speedMs]);
+  }, [fullText, script, active, baseSpeed, randomVariance, backspaceSpeed]);
 
-  return shown;
+  return useMemo(() => ({ text, done }), [text, done]);
 }
 
 /* =================================================
@@ -73,11 +188,14 @@ export default function FollowupCard() {
   const rootRef = useRef(null);
   const stageTimelineRef = useRef([]);
   const chatTimelineRef = useRef([]);
+  const manualTimerRef = useRef(null);
+  const manualTimerStartRef = useRef(null);
 
   const [started, setStarted] = useState(false);
   const [manualPhase, setManualPhase] = useState("prestart");
   const [chatStarted, setChatStarted] = useState(false);
   const [chatPhase, setChatPhase] = useState(null); // 'user_voice' | 'user_final' | 'ai_draft' | 'ai_final'
+  const [manualElapsedMs, setManualElapsedMs] = useState(0);
 
   useEffect(() => {
     const el = rootRef.current;
@@ -99,6 +217,12 @@ export default function FollowupCard() {
     if (!started) return;
 
     setManualPhase("inbox_idle");
+    setManualElapsedMs(0);
+    manualTimerStartRef.current = null;
+    if (manualTimerRef.current) {
+      clearInterval(manualTimerRef.current);
+      manualTimerRef.current = null;
+    }
     stageTimelineRef.current.forEach(clearTimeout);
     stageTimelineRef.current = [];
 
@@ -121,11 +245,45 @@ export default function FollowupCard() {
   }, [started]);
 
   useEffect(() => {
+    if (!started) return;
+    if (manualPhase === "prestart") return;
+    if (manualTimerRef.current) return;
+
+    const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+    manualTimerStartRef.current = now;
+    setManualElapsedMs(0);
+
+    manualTimerRef.current = setInterval(() => {
+      const start = manualTimerStartRef.current ?? now;
+      const current = typeof performance !== "undefined" ? performance.now() : Date.now();
+      setManualElapsedMs(Math.round(current - start));
+    }, 200);
+  }, [manualPhase, started]);
+
+  useEffect(() => {
+    if (!chatStarted) return;
+    if (!manualTimerRef.current) return;
+
+    const start = manualTimerStartRef.current;
+    const current = typeof performance !== "undefined" ? performance.now() : Date.now();
+    if (start != null) {
+      setManualElapsedMs(Math.round(current - start));
+    }
+
+    clearInterval(manualTimerRef.current);
+    manualTimerRef.current = null;
+  }, [chatStarted]);
+
+  useEffect(() => {
     return () => {
       stageTimelineRef.current.forEach(clearTimeout);
       stageTimelineRef.current = [];
       chatTimelineRef.current.forEach(clearTimeout);
       chatTimelineRef.current = [];
+      if (manualTimerRef.current) {
+        clearInterval(manualTimerRef.current);
+        manualTimerRef.current = null;
+      }
     };
   }, []);
 
@@ -137,13 +295,14 @@ export default function FollowupCard() {
     "reply_click",
     "compose_open",
     "compose_typing",
+    "compose_rewrite",
     "compose_done",
   ];
   const phaseIndex = phaseOrder.indexOf(manualPhase);
   const hasReached = (phase) => phaseIndex >= phaseOrder.indexOf(phase);
 
   const composeVisible = hasReached("compose_open");
-  const composeTypingActive = hasReached("compose_typing");
+  const composeTypingActive = hasReached("compose_typing") && !hasReached("compose_done");
 
   const userTranscript =
     "Need a reply for Sarah. Thank her for waiting and confirm pricing lands tomorrow.";
@@ -151,11 +310,44 @@ export default function FollowupCard() {
   const draftFull =
     "Hi Sarah —\n\nThanks again for being patient on pricing. I'll send the updated numbers tomorrow morning.\n\nAppreciate you,\nJ";
 
-  const emailTyped = useTypewriter(draftFull, composeTypingActive, 34);
-  const emailDone = emailTyped.length === draftFull.length;
+  const manualScript = useMemo(
+    () => [
+      {
+        type: "text",
+        value: "Hi Sarah —\n\nThanks agian for waiting on the pricing update.",
+        speedMs: 62,
+      },
+      { type: "pause", ms: 620 },
+      { type: "backspace", count: 40, speedMs: 90 },
+      { type: "pause", ms: 320 },
+      {
+        type: "text",
+        value: "again for being patient on pricing. I'll send the updated numbers tomorrow morning.",
+        speedMs: 58,
+      },
+      { type: "pause", ms: 450 },
+      { type: "text", value: "\n\nAppreciate you,\nJ", speedMs: 56 },
+    ],
+    [],
+  );
+
+  const { text: emailTyped, done: emailDone } = useTypewriter({
+    fullText: draftFull,
+    script: manualScript,
+    active: composeTypingActive,
+    baseSpeed: 55,
+    randomVariance: 26,
+    backspaceSpeed: 120,
+  });
 
   useEffect(() => {
-    if (manualPhase === "compose_typing" && emailDone) {
+    if (manualPhase !== "compose_typing") return;
+    if (!emailTyped.includes("Thanks agian for waiting on the pricing update.")) return;
+    setManualPhase("compose_rewrite");
+  }, [manualPhase, emailTyped]);
+
+  useEffect(() => {
+    if ((manualPhase === "compose_typing" || manualPhase === "compose_rewrite") && emailDone) {
       setManualPhase("compose_done");
     }
   }, [manualPhase, emailDone]);
@@ -190,14 +382,22 @@ export default function FollowupCard() {
 
   const userTypeActive =
     chatPhase === "user_final" || chatPhase === "ai_draft" || chatPhase === "ai_final";
-  const userTyped = useTypewriter(userTranscript, userTypeActive, 26);
-  const userDone = userTyped.length === userTranscript.length;
+  const { text: userTyped, done: userDone } = useTypewriter({
+    fullText: userTranscript,
+    active: userTypeActive,
+    baseSpeed: 26,
+    randomVariance: 24,
+  });
 
   const aiResponse =
-    "Here's the reply for Sarah — want me to send it?\n\nHi Sarah —\n\nThanks again for being patient on pricing. I'll send the updated numbers tomorrow morning.\n\nAppreciate you,\nJ";
+    "Matched your \"Appreciate you, —J\" tone for Sarah. Here's the reply — want me to send it?\n\nHi Sarah —\n\nThanks again for being patient on pricing. I'll send the updated numbers tomorrow morning.\n\nAppreciate you,\nJ";
   const aiTypeActive = chatPhase === "ai_draft" || chatPhase === "ai_final";
-  const aiTyped = useTypewriter(aiResponse, aiTypeActive, 20);
-  const aiDone = aiTyped.length === aiResponse.length;
+  const { text: aiTyped, done: aiDone } = useTypewriter({
+    fullText: aiResponse,
+    active: aiTypeActive,
+    baseSpeed: 20,
+    randomVariance: 20,
+  });
 
   const showUserBubble =
     chatPhase === "user_voice" ||
@@ -254,6 +454,7 @@ export default function FollowupCard() {
             chatPhase={chatPhase}
             chatStarted={chatStarted}
             aiDone={aiDone}
+            manualElapsedMs={manualElapsedMs}
           />
         </motion.div>
 
@@ -278,12 +479,39 @@ export default function FollowupCard() {
                 bodyText={emailTyped}
                 bodyDone={emailDone}
                 showQuotedThread={composeVisible}
+                highlightTone={chatPhase === "ai_final"}
+                signOff={SIGN_OFF_SNIPPET}
               />
             </motion.div>
           )}
         </AnimatePresence>
 
         <PointerCursor phase={manualPhase} visible={!composeDoneReached} />
+
+        <AnimatePresence>
+          {chatPhase === "ai_final" && (
+            <motion.div
+              key="tone-note"
+              initial={{ opacity: 0, y: 16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.96 }}
+              transition={{ duration: 0.6, ease: [0.18, 0.9, 0.3, 1] }}
+              className="pointer-events-none absolute -right-40 bottom-4 z-50 w-[220px] max-w-[60vw]"
+            >
+              <div
+                className="rounded-xl border border-orange-200/80 bg-white/95 px-4 py-3 text-[12px] leading-snug text-gray-700 shadow-[0_18px_40px_rgba(224,122,95,0.22)] ring-1 ring-orange-100"
+              >
+                <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#C76545]">
+                  Tone matched
+                </div>
+                <div className="mt-1 text-[12px] text-gray-700">
+                  Claro pulled your last 3 replies to {TARGET_CONTACT.from.split(" ")[0]} to mirror your “Appreciate you, —J”
+                  sign-off.
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {chatStarted && (
@@ -423,25 +651,51 @@ function InboxPreviewCard({
   chatPhase,
   chatStarted,
   aiDone,
+  manualElapsedMs,
 }) {
+  const contactFirstName = TARGET_CONTACT.from.split(" ")[0];
+
+  const formatStopwatch = (ms) => {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const secondsDisplay = seconds.toString().padStart(2, "0");
+    return minutes > 0 ? `${minutes}:${secondsDisplay}` : `:${secondsDisplay}`;
+  };
+
+  const formatSpokenSeconds = (ms) => {
+    const seconds = Math.round(ms / 1000);
+    if (seconds <= 0) return "<1s";
+    return `${seconds}s`;
+  };
+
+  const manualSecondsText = formatSpokenSeconds(manualElapsedMs);
+  const manualStopwatch = formatStopwatch(manualElapsedMs);
+  const showManualTimer = !chatStarted && phase !== "prestart";
+
   const manualStatusMap = {
-    inbox_idle: "Inbox hunting takes time…",
-    inbox_scroll: "Scrolling manually…",
-    reply_hover: "Hunting for the reply button…",
-    reply_click: "Opening reply…",
-    compose_open: "Opening reply…",
-    compose_typing: "Typing it yourself…",
-    compose_done: "Typing it yourself…",
+    inbox_idle: `Inbox piling up — ${contactFirstName} still needs pricing.`,
+    inbox_scroll: `Still digging for ${contactFirstName}’s thread…`,
+    reply_hover: `${contactFirstName}’s waiting — find the reply button.`,
+    reply_click: "Clock’s ticking — opening reply…",
+    compose_open: "Reply window finally open — you’re still on the hook.",
+    compose_typing: () => `Still typing it yourself… clock’s at ${manualSecondsText}.`,
+    compose_rewrite: () => `Fixing typos instead of sending — ${manualSecondsText} gone.`,
+    compose_done: () => `Manual draft took ${manualSecondsText}.`,
   };
 
   const chatStatusMap = {
-    user_voice: "Just tell Claro what you need…",
-    user_final: "Describe the intent once.",
-    ai_draft: "Claro drafts it instantly.",
-    ai_final: "Ready to send in seconds.",
+    user_voice: "Just tell Claro what you need — no clicking.",
+    user_final: "Intent captured once. Claro remembers your tone.",
+    ai_draft: `Claro drafts instantly, matching your ${contactFirstName} sign-off.`,
+    ai_final: "Ready to send — tone matched in seconds.",
   };
 
   let statusLabel = manualStatusMap[phase];
+  if (typeof statusLabel === "function") {
+    statusLabel = statusLabel();
+  }
+
   if (chatStarted && chatPhase) {
     statusLabel = chatStatusMap[chatPhase] || statusLabel;
   }
@@ -451,64 +705,20 @@ function InboxPreviewCard({
     phase === "reply_click" ||
     phase === "compose_open" ||
     phase === "compose_typing" ||
+    phase === "compose_rewrite" ||
     phase === "compose_done";
 
   const activeIndex = highlightSarah ? 1 : hasScrolled ? 0 : -1;
   const replyShouldShow = replyHover || replyPressed;
 
-  const rows = [
-    {
-      unread: true,
-      from: "Jennifer Lee",
-      time: "3:17 PM",
-      subject: "Checking in on updated pricing",
-      body:
-        "Just following up on the revised pricing you said you’d send yesterday. They’re waiting on it to move forward.",
-      chips: [
-        { color: "amber", text: "waiting on you" },
-        { color: "red", text: "deal at risk" },
-      ],
-      hasAttachment: false,
-    },
-    {
-      unread: true,
-      from: "Sarah Quinn",
-      time: "2:41 PM",
-      subject: "QBR tomorrow 10AM — need your final slide",
-      body:
-        "You’re presenting slide 7. I told leadership you’d send the updated pricing by 5pm so I can lock the deck. Can you add one line on margin justification?",
-      chips: [
-        { color: "amber", text: "tomorrow 10am" },
-        { color: "blue", text: "you own slide 7" },
-      ],
-      hasAttachment: true,
-    },
-    {
-      unread: true,
-      from: "Alex Rivera",
-      time: "1:09 PM",
-      subject: "Can you confirm the final numbers before Friday?",
-      body:
-        "I still don’t have the final numbers you said you’d send over. If we don’t lock them in by Friday, this slips to next week. Who’s giving the green light?",
-      chips: [
-        { color: "amber", text: "Friday deadline" },
-        { color: "red", text: "blocked on you" },
-      ],
-      hasAttachment: false,
-    },
-    {
-      unread: true,
-      from: "Maya Patel",
-      time: "12:22 PM",
-      subject: "Quick check-in on next steps",
-      body:
-        "No rush — just wanted to see if you’re still planning to send over the summary from last week’s call. Happy to wait until things calm down.",
-      chips: [{ color: "blue", text: "friendly reminder" }],
-      hasAttachment: false,
-    },
-  ];
+  const rows = FOLLOW_UP_ROWS;
 
   const inboxIsChill = chatPhase === "ai_final" && aiDone;
+  const statusTone = chatStarted && chatPhase ? "ai" : "manual";
+  const statusClassName =
+    statusTone === "manual"
+      ? "absolute -top-12 left-1/2 z-20 -translate-x-1/2 flex max-w-[280px] flex-wrap items-center gap-2 rounded-full bg-[#fff2ed]/95 px-3.5 py-1.5 text-[11px] font-semibold text-[#b45309] shadow-[0_12px_32px_rgba(225,96,54,0.22)] ring-1 ring-[#fb923c]/50 border border-white/70"
+      : "absolute -top-12 left-1/2 z-20 -translate-x-1/2 flex max-w-[280px] flex-wrap items-center gap-2 rounded-full bg-white/92 px-3.5 py-1.5 text-[11px] font-medium text-gray-600 shadow-[0_10px_30px_rgba(15,23,42,0.12)] ring-1 ring-gray-200 border border-white/70";
 
   return (
     <div className="relative">
@@ -517,9 +727,24 @@ function InboxPreviewCard({
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute -top-10 left-1/2 z-20 -translate-x-1/2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-medium text-gray-600 shadow-[0_10px_30px_rgba(15,23,42,0.12)] ring-1 ring-gray-200"
+          className={statusClassName}
         >
-          {statusLabel}
+          <AnimatePresence initial={false}>
+            {showManualTimer && (
+              <motion.span
+                key="manual-timer"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                className="inline-flex items-center gap-1 rounded-full bg-[#f97316]/15 px-2.5 py-[2px] text-[10px] font-semibold uppercase tracking-[0.18em] text-[#b45309]"
+              >
+                <span className="text-[11px] leading-none">⏱</span>
+                <span>{manualStopwatch} spent hunting</span>
+              </motion.span>
+            )}
+          </AnimatePresence>
+          <span className="text-center leading-tight">{statusLabel}</span>
         </motion.div>
       )}
 
@@ -609,6 +834,7 @@ function PointerCursor({ phase, visible }) {
     reply_click: { opacity: 1, scale: 0.93, x: 236, y: 186 },
     compose_open: { opacity: 1, scale: 1, x: 188, y: 246 },
     compose_typing: { opacity: 0, scale: 0.9, x: 188, y: 266 },
+    compose_rewrite: { opacity: 0, scale: 0.9, x: 188, y: 266 },
     compose_done: { opacity: 0, scale: 0.9, x: 188, y: 266 },
   };
 
@@ -643,7 +869,15 @@ function PointerCursor({ phase, visible }) {
   );
 }
 
-function GmailDraftCard({ bodyText, bodyDone, showQuotedThread }) {
+function GmailDraftCard({ bodyText, bodyDone, showQuotedThread, highlightTone, signOff }) {
+  const hasSignOff = Boolean(signOff) && bodyText.includes(signOff);
+  const signOffIndex = hasSignOff ? bodyText.indexOf(signOff) : -1;
+  const beforeSignOff = hasSignOff ? bodyText.slice(0, signOffIndex) : bodyText;
+  const signOffText = hasSignOff ? bodyText.slice(signOffIndex, signOffIndex + signOff.length) : "";
+  const afterSignOff = hasSignOff
+    ? bodyText.slice(signOffIndex + signOff.length)
+    : "";
+
   return (
     <div
       className="
@@ -679,16 +913,38 @@ function GmailDraftCard({ bodyText, bodyDone, showQuotedThread }) {
         <span className="text-gray-900 font-medium">Pricing update</span>
       </div>
 
-  {/* Body */}
-  <div className="px-3 py-3 whitespace-pre-wrap min-h-[180px] text-[13px] leading-[1.45] text-gray-800">
-    {showQuotedThread && (
-      <div className="mb-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[12px] leading-relaxed text-gray-500">
-        <span className="font-medium text-gray-600">Sarah Quinn</span> • "Can you send the updated pricing by 5 so I can lock the deck?"
+      {/* Body */}
+      <div className="px-3 py-3 whitespace-pre-wrap min-h-[180px] text-[13px] leading-[1.45] text-gray-800">
+        {showQuotedThread && (
+          <div className="mb-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[12px] leading-relaxed text-gray-500">
+            <span className="font-medium text-gray-600">Sarah Quinn</span> • "Can you send the updated pricing by 5 so I can lock the deck?"
+          </div>
+        )}
+
+        <span>{beforeSignOff}</span>
+
+        {hasSignOff && (
+          <motion.span
+            layout="position"
+            initial={false}
+            animate={{
+              backgroundColor: highlightTone ? "rgba(224,122,95,0.22)" : "rgba(0,0,0,0)",
+              color: highlightTone ? "#b45309" : "inherit",
+              paddingInline: highlightTone ? "4px" : "2px",
+              boxShadow: highlightTone
+                ? "0 0 0 2px rgba(224,122,95,0.15), 0 8px 18px rgba(224,122,95,0.18)"
+                : "none",
+            }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="-mx-[2px] rounded-md px-[2px]"
+          >
+            {signOffText}
+          </motion.span>
+        )}
+
+        {afterSignOff}
+        {!bodyDone && <CaretBlink />}
       </div>
-    )}
-    {bodyText}
-    {!bodyDone && <CaretBlink />}
-  </div>
 
       {/* Footer */}
       <div className="px-3 py-2 border-t border-gray-200 bg-gray-50 flex items-center gap-2">
