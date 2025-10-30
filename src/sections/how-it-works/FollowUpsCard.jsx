@@ -255,6 +255,7 @@ export default function FollowupCard() {
     "compose_open",
     "compose_typing",
     "compose_rewrite",
+    "compose_timing",
     "compose_done",
   ];
   const phaseIndex = phaseOrder.indexOf(manualPhase);
@@ -271,21 +272,30 @@ export default function FollowupCard() {
 
   const manualScript = useMemo(
     () => [
+      { type: "text", value: "Hi Sarah —\n\n", speedMs: 60 },
       {
         type: "text",
-        value: "Hi Sarah —\n\nThanks agian for waiting on the pricing update.",
-        speedMs: 62,
+        value: "Thanks for your patience on pricing.",
+        speedMs: 60,
       },
-      { type: "pause", ms: 620 },
-      { type: "backspace", count: 40, speedMs: 90 },
-      { type: "pause", ms: 320 },
+      { type: "pause", ms: 600 },
+      { type: "backspace", count: 29, speedMs: 90 },
+      { type: "pause", ms: 260 },
       {
         type: "text",
-        value: "again for being patient on pricing. I'll send the updated numbers tomorrow morning.",
+        value: "again for being patient on pricing.",
         speedMs: 58,
       },
-      { type: "pause", ms: 450 },
-      { type: "text", value: "\n\nAppreciate you,\nJ", speedMs: 56 },
+      { type: "pause", ms: 480 },
+      {
+        type: "text",
+        value: " I'll send the updated numbers tomorrow.",
+        speedMs: 56,
+      },
+      { type: "pause", ms: 320 },
+      { type: "text", value: " morning.", speedMs: 54 },
+      { type: "pause", ms: 420 },
+      { type: "text", value: "\n\nAppreciate you,\nJ", speedMs: 54 },
     ],
     [],
   );
@@ -301,30 +311,26 @@ export default function FollowupCard() {
 
   useEffect(() => {
     if (manualPhase !== "compose_typing") return;
-    if (!emailTyped.includes("Thanks agian for waiting on the pricing update.")) return;
+    if (!emailTyped.includes("Thanks for your patience on pricing.")) return;
     setManualPhase("compose_rewrite");
   }, [manualPhase, emailTyped]);
 
   useEffect(() => {
-    if ((manualPhase === "compose_typing" || manualPhase === "compose_rewrite") && emailDone) {
+    if (manualPhase !== "compose_rewrite") return;
+    if (!emailTyped.includes("I'll send the updated numbers tomorrow.")) return;
+    setManualPhase("compose_timing");
+  }, [manualPhase, emailTyped]);
+
+  useEffect(() => {
+    if (
+      (manualPhase === "compose_typing" ||
+        manualPhase === "compose_rewrite" ||
+        manualPhase === "compose_timing") &&
+      emailDone
+    ) {
       setManualPhase("compose_done");
     }
   }, [manualPhase, emailDone]);
-
-  const composeDoneReached = hasReached("compose_done");
-
-  useEffect(() => {
-    console.log("[FollowUpsCard] manualPhase →", manualPhase);
-  }, [manualPhase]);
-
-  useEffect(() => {
-    console.log(
-      "[FollowUpsCard] composeVisible:",
-      composeVisible,
-      "composeDoneReached:",
-      composeDoneReached,
-    );
-  }, [composeVisible, composeDoneReached]);
 
   const aiStartQueuedRef = useRef(false);
   const aiFinishQueuedRef = useRef(false);
@@ -478,7 +484,7 @@ export default function FollowupCard() {
                   <GmailDraftCard
                     bodyText={emailTyped}
                     bodyDone={emailDone}
-                    showQuotedThread={composeVisible}
+                    showQuotedThread={composeVisible && !hasReached("compose_typing")}
                     signOff={SIGN_OFF_SNIPPET}
                   />
                 </motion.div>
@@ -630,13 +636,14 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
 
   const manualStatusMap = {
     inbox_idle: `Inbox piling up — ${contactFirstName} still needs pricing.`,
-    row_hover: `Hover over ${contactFirstName}’s thread to reply.`,
-    row_context: "Right click opens options — still no reply sent.",
-    reply_menu_hover: "Reply is right there — just click it.",
+    row_hover: `Inbox piling up — ${contactFirstName} still needs pricing.`,
+    row_context: "Clock’s ticking — opening reply…",
+    reply_menu_hover: "Clock’s ticking — opening reply…",
     reply_menu_click: "Clock’s ticking — opening reply…",
-    compose_open: "Reply window finally open — you’re still on the hook.",
-    compose_typing: "Still typing it yourself…",
-    compose_rewrite: "Fixing typos instead of sending…",
+    compose_open: "Clock’s ticking — opening reply…",
+    compose_typing: "Fixing phrasing instead of sending…",
+    compose_rewrite: "Fixing phrasing instead of sending…",
+    compose_timing: "Clarifying timing…",
     compose_done: "Manual draft finally ready.",
   };
 
@@ -663,6 +670,7 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
     phase === "compose_open" ||
     phase === "compose_typing" ||
     phase === "compose_rewrite" ||
+    phase === "compose_timing" ||
     phase === "compose_done";
 
   const activeIndex = highlightSarah ? 1 : -1;
@@ -816,11 +824,20 @@ function GmailDraftCard({ bodyText, bodyDone, showQuotedThread, highlightTone, s
 
       {/* Body */}
       <div className="px-3 py-3 whitespace-pre-wrap min-h-[180px] text-[13px] leading-[1.45] text-gray-800">
-        {showQuotedThread && (
-          <div className="mb-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[12px] leading-relaxed text-gray-500">
-            <span className="font-medium text-gray-600">Sarah Quinn</span> • "Can you send the updated pricing by 5 so I can lock the deck?"
-          </div>
-        )}
+        <AnimatePresence>
+          {showQuotedThread && (
+            <motion.div
+              key="quoted"
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6 }}
+              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+              className="mb-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[12px] leading-relaxed text-gray-500 shadow-[0_12px_24px_rgba(15,23,42,0.08)]"
+            >
+              <span className="font-medium text-gray-600">Sarah Quinn</span> • "Can you send the updated pricing by 5 so I can lock the deck?"
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <span>{beforeSignOff}</span>
 
