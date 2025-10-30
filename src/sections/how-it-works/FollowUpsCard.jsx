@@ -830,15 +830,21 @@ function PointerCursor({ phase, visible }) {
           )}
         </AnimatePresence>
         <svg
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="#f9fafb"
-          stroke="#0f172a"
-          strokeWidth="1.4"
-          strokeLinejoin="round"
+          width="40"
+          height="40"
+          viewBox="0 0 32 32"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <path d="M4 3.5 9.8 17l1.9-5.4 6.2 4.1-13.9-12.2z" />
+          <path
+            d="M5.25 3.25v22.6l5.84-4.58 3.82 9.54 4.78-1.92-3.78-9.46h9.77L5.25 3.25Z"
+            fill="#0f172a"
+          />
+          <path
+            d="M11.09 21.27 6.5 24.87V5.58l17.33 12.3h-9.64l3.58 8.96-2.74 1.1-3.94-9.67Z"
+            fill="#f8fafc"
+            fillOpacity="0.22"
+          />
         </svg>
       </div>
     </motion.div>
