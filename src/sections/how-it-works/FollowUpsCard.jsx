@@ -71,8 +71,32 @@ const FOLLOW_UP_ROWS = [
   },
 ];
 
-const TARGET_CONTACT = FOLLOW_UP_ROWS[1];
 const SIGN_OFF_SNIPPET = "Appreciate you,\nJ";
+
+const MANUAL_SEQUENCE = [
+  { phase: "inbox_scroll", duration: 400 },
+  { phase: "thread_open", duration: 300 },
+  { phase: "smart_reply", duration: 700 },
+  { phase: "greeting_tone", duration: 1000 },
+  { phase: "smart_compose", duration: 1100 },
+  { phase: "clarity_pass", duration: 1000 },
+  { phase: "signoff", duration: 1000 },
+  { phase: "subject_edit", duration: 1000 },
+  { phase: "attachment_hover", duration: 1000 },
+  { phase: "hover_send", duration: 1400 },
+];
+
+const MANUAL_LOOP_DELAY = 500;
+
+const MICRO_COPY = {
+  smart_reply: "Too generic for this.",
+  greeting_tone: "Tweaking tone.",
+  smart_compose: "Sounds more like me.",
+  clarity_pass: "Avoiding ambiguity.",
+  signoff: "Choosing the right sign-off.",
+  subject_edit: "Subject fiddling.",
+  attachment_hover: "Do I need an attachment?",
+};
 
 /* -------------------------------------------------
    Hook: typewriter
@@ -191,8 +215,11 @@ export default function FollowupCard() {
 
   const [started, setStarted] = useState(false);
   const [manualPhase, setManualPhase] = useState("prestart");
+  const [loopIteration, setLoopIteration] = useState(0);
   const [chatStarted, setChatStarted] = useState(false);
   const [chatPhase, setChatPhase] = useState(null); // 'user_voice' | 'user_final' | 'ai_draft' | 'ai_final'
+  const [microChip, setMicroChip] = useState(null);
+  const microChipTimeoutRef = useRef(null);
 
   useEffect(() => {
     const el = rootRef.current;
@@ -213,23 +240,47 @@ export default function FollowupCard() {
   useEffect(() => {
     if (!started) return;
 
-    setManualPhase("inbox_idle");
-    stageTimelineRef.current.forEach(clearTimeout);
-    stageTimelineRef.current = [];
+    let cancelled = false;
 
-    const queueStage = (callback, delay) => {
-      const id = setTimeout(callback, delay);
-      stageTimelineRef.current.push(id);
-      return id;
+    const totalDuration = MANUAL_SEQUENCE.reduce(
+      (sum, entry) => sum + entry.duration,
+      0,
+    );
+
+    const runLoop = () => {
+      stageTimelineRef.current.forEach(clearTimeout);
+      stageTimelineRef.current = [];
+
+      if (cancelled) return;
+
+      if (MANUAL_SEQUENCE.length === 0) return;
+
+      setManualPhase(MANUAL_SEQUENCE[0].phase);
+
+      let elapsed = MANUAL_SEQUENCE[0].duration;
+
+      MANUAL_SEQUENCE.slice(1).forEach((entry) => {
+        const id = setTimeout(() => {
+          if (cancelled) return;
+          setManualPhase(entry.phase);
+        }, elapsed);
+        stageTimelineRef.current.push(id);
+        elapsed += entry.duration;
+      });
+
+      const loopId = setTimeout(() => {
+        if (cancelled) return;
+        setLoopIteration((value) => value + 1);
+        runLoop();
+      }, totalDuration + MANUAL_LOOP_DELAY);
+
+      stageTimelineRef.current.push(loopId);
     };
 
-    queueStage(() => setManualPhase("inbox_scroll"), 900);
-    queueStage(() => setManualPhase("reply_hover"), 2100);
-    queueStage(() => setManualPhase("reply_click"), 2550);
-    queueStage(() => setManualPhase("compose_open"), 3000);
-    queueStage(() => setManualPhase("compose_typing"), 3600);
+    runLoop();
 
     return () => {
+      cancelled = true;
       stageTimelineRef.current.forEach(clearTimeout);
       stageTimelineRef.current = [];
     };
@@ -241,49 +292,105 @@ export default function FollowupCard() {
       stageTimelineRef.current = [];
       chatTimelineRef.current.forEach(clearTimeout);
       chatTimelineRef.current = [];
+      if (microChipTimeoutRef.current) {
+        clearTimeout(microChipTimeoutRef.current);
+        microChipTimeoutRef.current = null;
+      }
     };
   }, []);
 
   const phaseOrder = [
     "prestart",
-    "inbox_idle",
     "inbox_scroll",
-    "reply_hover",
-    "reply_click",
-    "compose_open",
-    "compose_typing",
-    "compose_rewrite",
-    "compose_done",
+    "thread_open",
+    "smart_reply",
+    "greeting_tone",
+    "smart_compose",
+    "clarity_pass",
+    "signoff",
+    "subject_edit",
+    "attachment_hover",
+    "hover_send",
   ];
   const phaseIndex = phaseOrder.indexOf(manualPhase);
   const hasReached = (phase) => phaseIndex >= phaseOrder.indexOf(phase);
 
-  const composeVisible = hasReached("compose_open");
-  const composeTypingActive = hasReached("compose_typing") && !hasReached("compose_done");
+  const composeVisible = hasReached("thread_open");
+  const composeTypingActive =
+    hasReached("greeting_tone") && !hasReached("hover_send");
+
+  useEffect(() => {
+    if (microChipTimeoutRef.current) {
+      clearTimeout(microChipTimeoutRef.current);
+      microChipTimeoutRef.current = null;
+    }
+
+    const message = MICRO_COPY[manualPhase];
+
+    if (!message) {
+      setMicroChip(null);
+      return undefined;
+    }
+
+    const nextChip = { message, key: `${manualPhase}-${loopIteration}` };
+    setMicroChip(nextChip);
+
+    microChipTimeoutRef.current = setTimeout(() => {
+      setMicroChip((current) =>
+        current && current.key === nextChip.key ? null : current,
+      );
+      microChipTimeoutRef.current = null;
+    }, 1200);
+
+    return () => {
+      if (microChipTimeoutRef.current) {
+        clearTimeout(microChipTimeoutRef.current);
+        microChipTimeoutRef.current = null;
+      }
+    };
+  }, [manualPhase, loopIteration]);
 
   const userTranscript =
     "Need a reply for Sarah. Thank her for waiting and confirm pricing lands tomorrow.";
 
-  const draftFull =
-    "Hi Sarah —\n\nThanks again for being patient on pricing. I'll send the updated numbers tomorrow morning.\n\nAppreciate you,\nJ";
+  const draftFull = `Hi Sarah —\n\nThanks again for being patient on pricing. I'll send the updated numbers tomorrow morning.\n\n${SIGN_OFF_SNIPPET}`;
 
   const manualScript = useMemo(
     () => [
+      { type: "text", value: "Hi Sarah,", speedMs: 68 },
+      { type: "pause", ms: 220 },
+      { type: "backspace", count: 1, speedMs: 130 },
+      { type: "text", value: " —", speedMs: 70 },
+      { type: "pause", ms: 140 },
+      { type: "text", value: "\n\n", speedMs: 60 },
+      { type: "pause", ms: 260 },
       {
         type: "text",
-        value: "Hi Sarah —\n\nThanks agian for waiting on the pricing update.",
+        value: "Thanks again for your patience on pricing.",
+        speedMs: 18,
+      },
+      { type: "pause", ms: 240 },
+      { type: "backspace", count: 21, speedMs: 55 },
+      { type: "backspace", count: 4, speedMs: 70 },
+      {
+        type: "text",
+        value: "being patient on pricing.",
+        speedMs: 56,
+      },
+      { type: "pause", ms: 260 },
+      {
+        type: "text",
+        value: "\n\nI'll send the updated numbers tomorrow.",
         speedMs: 62,
       },
-      { type: "pause", ms: 620 },
-      { type: "backspace", count: 40, speedMs: 90 },
       { type: "pause", ms: 320 },
-      {
-        type: "text",
-        value: "again for being patient on pricing. I'll send the updated numbers tomorrow morning.",
-        speedMs: 58,
-      },
-      { type: "pause", ms: 450 },
-      { type: "text", value: "\n\nAppreciate you,\nJ", speedMs: 56 },
+      { type: "backspace", count: 1, speedMs: 120 },
+      { type: "text", value: " morning.", speedMs: 70 },
+      { type: "pause", ms: 340 },
+      { type: "text", value: "\n\nBest,", speedMs: 64 },
+      { type: "pause", ms: 360 },
+      { type: "backspace", count: 5, speedMs: 110 },
+      { type: "text", value: "Appreciate you,\nJ", speedMs: 60 },
     ],
     [],
   );
@@ -292,24 +399,10 @@ export default function FollowupCard() {
     fullText: draftFull,
     script: manualScript,
     active: composeTypingActive,
-    baseSpeed: 55,
-    randomVariance: 26,
+    baseSpeed: 58,
+    randomVariance: 22,
     backspaceSpeed: 120,
   });
-
-  useEffect(() => {
-    if (manualPhase !== "compose_typing") return;
-    if (!emailTyped.includes("Thanks agian for waiting on the pricing update.")) return;
-    setManualPhase("compose_rewrite");
-  }, [manualPhase, emailTyped]);
-
-  useEffect(() => {
-    if ((manualPhase === "compose_typing" || manualPhase === "compose_rewrite") && emailDone) {
-      setManualPhase("compose_done");
-    }
-  }, [manualPhase, emailDone]);
-
-  const composeDoneReached = hasReached("compose_done");
 
   useEffect(() => {
     if (!started) return;
@@ -362,7 +455,7 @@ export default function FollowupCard() {
   const showAiBubble = chatPhase === "ai_draft" || chatPhase === "ai_final";
   const aiStillTalkingForUI = chatPhase === "ai_draft" && !aiDone;
 
-  const composeIsBlurred = chatStarted && composeDoneReached;
+  const composeIsBlurred = false;
 
   return (
     <FeatureLayout
@@ -404,14 +497,7 @@ export default function FollowupCard() {
             >
               <InboxPreviewCard
                 phase={manualPhase}
-                hasScrolled={hasReached("inbox_scroll")}
-                replyHover={manualPhase === "reply_hover"}
-                replyPressed={manualPhase === "reply_click"}
                 dimmed={composeVisible}
-                chatPhase={chatPhase}
-                chatStarted={chatStarted}
-                aiDone={aiDone}
-                showChatStatus={false}
               />
             </motion.div>
 
@@ -433,16 +519,18 @@ export default function FollowupCard() {
                   className="pointer-events-none absolute inset-0 z-30"
                 >
                   <GmailDraftCard
+                    phase={manualPhase}
                     bodyText={emailTyped}
                     bodyDone={emailDone}
                     showQuotedThread={composeVisible}
-                    signOff={SIGN_OFF_SNIPPET}
+                    microChip={microChip}
+                    loopIteration={loopIteration}
                   />
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <PointerCursor phase={manualPhase} visible={!composeDoneReached} />
+            <PointerCursor phase={manualPhase} visible />
           </div>
 
         </div>
@@ -584,78 +672,16 @@ export default function FollowupCard() {
    SUBCOMPONENTS
    ================================================= */
 
-function InboxPreviewCard({
-  phase,
-  hasScrolled,
-  replyHover,
-  replyPressed,
-  dimmed,
-  chatPhase,
-  chatStarted,
-  aiDone,
-  showChatStatus = true,
-}) {
-  const contactFirstName = TARGET_CONTACT.from.split(" ")[0];
-
-  const manualStatusMap = {
-    inbox_idle: `Inbox piling up — ${contactFirstName} still needs pricing.`,
-    inbox_scroll: `Still digging for ${contactFirstName}’s thread…`,
-    reply_hover: `${contactFirstName}’s waiting — find the reply button.`,
-    reply_click: "Clock’s ticking — opening reply…",
-    compose_open: "Reply window finally open — you’re still on the hook.",
-    compose_typing: "Still typing it yourself…",
-    compose_rewrite: "Fixing typos instead of sending…",
-    compose_done: "Manual draft finally ready.",
-  };
-
-  let statusLabel = manualStatusMap[phase];
-  if (typeof statusLabel === "function") {
-    statusLabel = statusLabel();
-  }
-
-  if (showChatStatus && chatStarted && chatPhase) {
-    const chatStatusMap = {
-      user_voice: "Just tell Claro what you need — no clicking.",
-      user_final: "Intent captured once. Claro remembers your tone.",
-      ai_draft: `Claro drafts instantly, matching your ${contactFirstName} sign-off.`,
-      ai_final: "Ready to send — tone matched in seconds.",
-    };
-    statusLabel = chatStatusMap[chatPhase] || statusLabel;
-  }
-
-  const highlightSarah =
-    phase === "reply_hover" ||
-    phase === "reply_click" ||
-    phase === "compose_open" ||
-    phase === "compose_typing" ||
-    phase === "compose_rewrite" ||
-    phase === "compose_done";
-
-  const activeIndex = highlightSarah ? 1 : hasScrolled ? 0 : -1;
-  const replyShouldShow = replyHover || replyPressed;
-
+function InboxPreviewCard({ phase, dimmed }) {
   const rows = FOLLOW_UP_ROWS;
 
-  const inboxIsChill = chatPhase === "ai_final" && aiDone;
-  const statusTone = showChatStatus && chatStarted && chatPhase ? "ai" : "manual";
-  const statusClassName =
-    statusTone === "manual"
-      ? "absolute -top-12 left-1/2 z-20 -translate-x-1/2 flex max-w-[280px] flex-wrap items-center gap-2 rounded-full bg-[#fff2ed]/95 px-3.5 py-1.5 text-[11px] font-semibold text-[#b45309] shadow-[0_12px_32px_rgba(225,96,54,0.22)] ring-1 ring-[#fb923c]/50 border border-white/70"
-      : "absolute -top-12 left-1/2 z-20 -translate-x-1/2 flex max-w-[280px] flex-wrap items-center gap-2 rounded-full bg-white/92 px-3.5 py-1.5 text-[11px] font-medium text-gray-600 shadow-[0_10px_30px_rgba(15,23,42,0.12)] ring-1 ring-gray-200 border border-white/70";
+  const hasScrolled = phase !== "inbox_scroll";
+  const highlightSarah = phase !== "inbox_scroll";
+  const activeIndex = highlightSarah ? 1 : -1;
+  const replyActive = phase === "thread_open";
 
   return (
     <div className="relative">
-      {statusLabel && (
-        <motion.div
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className={statusClassName}
-        >
-          <span className="text-center leading-tight">{statusLabel}</span>
-        </motion.div>
-      )}
-
       <div
         className="relative w-full max-w-[380px] overflow-hidden rounded-xl border border-gray-200 bg-white/95 ring-1 ring-gray-100 shadow-[0_24px_60px_rgba(0,0,0,0.08)] transition-all duration-500"
         style={{
@@ -676,12 +702,12 @@ function InboxPreviewCard({
                 <InboxRow
                   key={row.from}
                   index={index}
-                  calm={inboxIsChill}
-                  phase={inboxIsChill ? "calm" : "manual"}
+                  calm={false}
+                  phase="manual"
                   active={isActive}
                   {...row}
                 >
-                  {index === 1 && replyShouldShow && (
+                  {index === 1 && replyActive && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -690,17 +716,15 @@ function InboxPreviewCard({
                     >
                       <motion.div
                         animate={{
-                          scale: replyPressed ? 0.92 : replyHover ? 1.03 : 1,
-                          boxShadow: replyPressed
-                            ? "0 0 0 0 rgba(59,130,246,0)"
-                            : replyHover
-                              ? "0 10px 24px rgba(59,130,246,0.18)"
-                              : "0 6px 16px rgba(15,23,42,0.12)",
-                          backgroundColor: replyPressed
-                            ? "rgba(59,130,246,0.2)"
+                          scale: replyActive ? 0.94 : 1,
+                          boxShadow: replyActive
+                            ? "0 8px 20px rgba(59,130,246,0.22)"
+                            : "0 6px 16px rgba(15,23,42,0.12)",
+                          backgroundColor: replyActive
+                            ? "rgba(59,130,246,0.12)"
                             : "rgba(255,255,255,0.95)",
-                          color: replyPressed ? "rgb(37,99,235)" : "rgb(75,85,99)",
-                          borderColor: replyHover
+                          color: replyActive ? "rgb(37,99,235)" : "rgb(75,85,99)",
+                          borderColor: replyActive
                             ? "rgba(59,130,246,0.45)"
                             : "rgba(209,213,219,1)",
                         }}
@@ -720,11 +744,10 @@ function InboxPreviewCard({
         <motion.div
           className="pointer-events-none absolute -top-4 -left-4 h-[120px] w-[120px] rounded-xl blur-2xl"
           style={{
-            background: inboxIsChill
-              ? "radial-gradient(circle_at_20%_20%,rgba(156,163,175,0.12),rgba(255,255,255,0)_70%)"
-              : "radial-gradient(circle_at_20%_20%,rgba(224,122,95,0.18),rgba(255,255,255,0)_70%)",
+            background:
+              "radial-gradient(circle_at_20%_20%,rgba(224,122,95,0.18),rgba(255,255,255,0)_70%)",
           }}
-          animate={{ opacity: inboxIsChill ? 0.15 : 0.6 }}
+          animate={{ opacity: hasScrolled ? 0.6 : 0.35 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         />
       </div>
@@ -735,15 +758,17 @@ function InboxPreviewCard({
 
 function PointerCursor({ phase, visible }) {
   const targets = {
-    prestart: { opacity: 0, scale: 0.85, x: 190, y: 140 },
-    inbox_idle: { opacity: 1, scale: 1, x: 214, y: 92 },
-    inbox_scroll: { opacity: 1, scale: 1, x: 224, y: 148 },
-    reply_hover: { opacity: 1, scale: 1, x: 236, y: 186 },
-    reply_click: { opacity: 1, scale: 0.93, x: 236, y: 186 },
-    compose_open: { opacity: 1, scale: 1, x: 188, y: 246 },
-    compose_typing: { opacity: 0, scale: 0.9, x: 188, y: 266 },
-    compose_rewrite: { opacity: 0, scale: 0.9, x: 188, y: 266 },
-    compose_done: { opacity: 0, scale: 0.9, x: 188, y: 266 },
+    prestart: { opacity: 0, scale: 0.85, x: 184, y: 132 },
+    inbox_scroll: { opacity: 1, scale: 1, x: 214, y: 118 },
+    thread_open: { opacity: 1, scale: 0.96, x: 238, y: 188 },
+    smart_reply: { opacity: 1, scale: 1, x: 210, y: 256 },
+    greeting_tone: { opacity: 1, scale: 1, x: 176, y: 296 },
+    smart_compose: { opacity: 1, scale: 1, x: 198, y: 304 },
+    clarity_pass: { opacity: 1, scale: 1, x: 152, y: 362 },
+    signoff: { opacity: 1, scale: 1, x: 202, y: 328 },
+    subject_edit: { opacity: 1, scale: 1, x: 174, y: 242 },
+    attachment_hover: { opacity: 1, scale: 1, x: 128, y: 358 },
+    hover_send: { opacity: 1, scale: 0.94, x: 152, y: 362 },
   };
 
   if (!visible) {
@@ -777,14 +802,113 @@ function PointerCursor({ phase, visible }) {
   );
 }
 
-function GmailDraftCard({ bodyText, bodyDone, showQuotedThread, highlightTone, signOff }) {
-  const hasSignOff = Boolean(signOff) && bodyText.includes(signOff);
-  const signOffIndex = hasSignOff ? bodyText.indexOf(signOff) : -1;
-  const beforeSignOff = hasSignOff ? bodyText.slice(0, signOffIndex) : bodyText;
-  const signOffText = hasSignOff ? bodyText.slice(signOffIndex, signOffIndex + signOff.length) : "";
-  const afterSignOff = hasSignOff
-    ? bodyText.slice(signOffIndex + signOff.length)
-    : "";
+function GmailDraftCard({ phase, bodyText, bodyDone, showQuotedThread, microChip, loopIteration }) {
+  const typingPhases = new Set([
+    "greeting_tone",
+    "smart_compose",
+    "clarity_pass",
+    "signoff",
+    "subject_edit",
+    "attachment_hover",
+    "hover_send",
+  ]);
+
+  const displayedBody = typingPhases.has(phase) ? bodyText : "";
+  const showCaret = typingPhases.has(phase) && !bodyDone;
+
+  const baseSubject = "Pricing update";
+  const altSubject = "Pricing — updated numbers";
+  const [subjectText, setSubjectText] = useState(baseSubject);
+  const subjectTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    if (subjectTimeoutRef.current) {
+      clearTimeout(subjectTimeoutRef.current);
+      subjectTimeoutRef.current = null;
+    }
+
+    if (phase === "subject_edit") {
+      setSubjectText(altSubject);
+      subjectTimeoutRef.current = setTimeout(() => {
+        setSubjectText(baseSubject);
+        subjectTimeoutRef.current = null;
+      }, 700);
+    } else {
+      setSubjectText(baseSubject);
+    }
+
+    return () => {
+      if (subjectTimeoutRef.current) {
+        clearTimeout(subjectTimeoutRef.current);
+        subjectTimeoutRef.current = null;
+      }
+    };
+  }, [phase, loopIteration]);
+
+  const [hoverTimer, setHoverTimer] = useState(6);
+  const hoverIntervalRef = useRef(null);
+
+  useEffect(() => {
+    if (hoverIntervalRef.current) {
+      clearInterval(hoverIntervalRef.current);
+      hoverIntervalRef.current = null;
+    }
+
+    if (phase !== "hover_send") {
+      setHoverTimer(6);
+      return undefined;
+    }
+
+    setHoverTimer(6);
+    let tick = 6;
+
+    hoverIntervalRef.current = setInterval(() => {
+      tick += 1;
+      if (tick >= 10) {
+        tick = 10;
+        setHoverTimer(tick);
+        if (hoverIntervalRef.current) {
+          clearInterval(hoverIntervalRef.current);
+          hoverIntervalRef.current = null;
+        }
+        return;
+      }
+      setHoverTimer(tick);
+    }, 1000);
+
+    return () => {
+      if (hoverIntervalRef.current) {
+        clearInterval(hoverIntervalRef.current);
+        hoverIntervalRef.current = null;
+      }
+    };
+  }, [phase, loopIteration]);
+
+  const formattedTimer = `00:${String(hoverTimer).padStart(2, "0")}`;
+
+  const showTimer = phase === "hover_send";
+  const showDraftSaved = phase === "hover_send";
+  const showAttachmentTooltip = phase === "attachment_hover";
+  const showSmartReply = phase === "smart_reply";
+  const showSmartComposeGhost =
+    phase === "smart_compose" && !displayedBody.includes("Thanks again for being patient on pricing.");
+
+  const sendHoverScale =
+    phase === "hover_send" ? 1.04 : phase === "clarity_pass" ? 1.02 : 1;
+  const sendHoverShadow =
+    phase === "hover_send"
+      ? "0 14px 32px rgba(26,115,232,0.32)"
+      : phase === "clarity_pass"
+        ? "0 10px 24px rgba(26,115,232,0.24)"
+        : "0 2px 4px rgba(0,0,0,0.2)";
+  const sendBackground =
+    phase === "hover_send" ? "#1a73e8" : phase === "clarity_pass" ? "#1967d2" : "#0b57d0";
+
+  const smartReplyOptions = [
+    "Sure, I’ll send it by 5",
+    "Working on it",
+    "Thanks for the nudge",
+  ];
 
   return (
     <div
@@ -797,7 +921,6 @@ function GmailDraftCard({ bodyText, bodyDone, showQuotedThread, highlightTone, s
         text-[13px] leading-[1.45]
       "
     >
-      {/* Header */}
       <div className="flex items-start justify-between px-3 py-2 bg-[#202124] text-white border-b border-black/40 text-[12px]">
         <span className="font-medium">New message</span>
         <div className="flex items-center gap-3 text-white/70">
@@ -807,7 +930,6 @@ function GmailDraftCard({ bodyText, bodyDone, showQuotedThread, highlightTone, s
         </div>
       </div>
 
-      {/* To */}
       <div className="px-3 py-2 border-b border-gray-200 text-[12px] leading-snug text-gray-700 flex items-start flex-wrap gap-2">
         <span className="text-gray-500 min-w-[34px]">To</span>
         <span className="inline-flex items-center rounded-full bg-gray-100 text-gray-800 px-2 py-[2px] text-[11px] font-medium leading-none ring-1 ring-gray-300 border border-white shadow-[0_2px_4px_rgba(0,0,0,0.06)]">
@@ -815,68 +937,170 @@ function GmailDraftCard({ bodyText, bodyDone, showQuotedThread, highlightTone, s
         </span>
       </div>
 
-      {/* Subject */}
       <div className="px-3 py-2 border-b border-gray-200 text-[12px] leading-snug text-gray-700 flex items-start flex-wrap gap-2">
         <span className="text-gray-500 min-w-[54px]">Subject</span>
-        <span className="text-gray-900 font-medium">Pricing update</span>
+        <motion.span
+          key={subjectText}
+          initial={{ opacity: 0, x: -4 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          className="text-gray-900 font-medium"
+        >
+          {subjectText}
+        </motion.span>
       </div>
 
-      {/* Body */}
-      <div className="px-3 py-3 whitespace-pre-wrap min-h-[180px] text-[13px] leading-[1.45] text-gray-800">
+      <div className="relative px-3 py-3 whitespace-pre-wrap min-h-[200px] text-[13px] leading-[1.45] text-gray-800">
+        <AnimatePresence>
+          {showTimer && (
+            <motion.div
+              key="timer"
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="pointer-events-none absolute right-3 top-3 rounded-md bg-white/85 px-2 py-[2px] text-[11px] font-medium text-gray-600 ring-1 ring-gray-200 shadow-sm"
+            >
+              {formattedTimer}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {showQuotedThread && (
           <div className="mb-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[12px] leading-relaxed text-gray-500">
             <span className="font-medium text-gray-600">Sarah Quinn</span> • "Can you send the updated pricing by 5 so I can lock the deck?"
           </div>
         )}
 
-        <span>{beforeSignOff}</span>
+        <AnimatePresence>
+          {showSmartReply && (
+            <motion.div
+              key="smart-replies"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="mb-3 flex flex-wrap gap-2"
+            >
+              {smartReplyOptions.map((option) => (
+                <motion.span
+                  key={option}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                  className="rounded-full border border-gray-200 bg-gray-100 px-2.5 py-1 text-[11px] font-medium text-gray-700 shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
+                >
+                  {option}
+                </motion.span>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {hasSignOff && (
-          <motion.span
-            layout="position"
-            initial={false}
-            animate={{
-              backgroundColor: highlightTone ? "rgba(224,122,95,0.22)" : "rgba(0,0,0,0)",
-              color: highlightTone ? "#b45309" : "inherit",
-              paddingInline: highlightTone ? "4px" : "2px",
-              boxShadow: highlightTone
-                ? "0 0 0 2px rgba(224,122,95,0.15), 0 8px 18px rgba(224,122,95,0.18)"
-                : "none",
-            }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="-mx-[2px] rounded-md px-[2px]"
-          >
-            {signOffText}
-          </motion.span>
-        )}
+        <div className="relative min-h-[120px] whitespace-pre-wrap text-[13px] leading-[1.45] text-gray-800">
+          <span>{displayedBody}</span>
+          <AnimatePresence>
+            {showSmartComposeGhost && (
+              <motion.span
+                key="ghost"
+                initial={{ opacity: 0, x: 4 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 4 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                className="text-gray-400/90"
+              >
+                Thanks again for your patience on pricing.
+              </motion.span>
+            )}
+          </AnimatePresence>
+          {showCaret && <CaretBlink />}
+        </div>
 
-        {afterSignOff}
-        {!bodyDone && <CaretBlink />}
+        <MicroChipCallout chip={microChip} />
       </div>
 
-      {/* Footer */}
       <div className="px-3 py-2 border-t border-gray-200 bg-gray-50 flex items-center gap-2">
-        <button
-          className="
-            inline-flex items-center justify-center rounded-md px-2.5 py-1.5
-            text-[12px] font-medium leading-none text-white
-            bg-[#0b57d0] shadow-[0_2px_4px_rgba(0,0,0,0.2)]
-          "
+        <motion.button
+          type="button"
+          animate={{
+            scale: sendHoverScale,
+            backgroundColor: sendBackground,
+            boxShadow: sendHoverShadow,
+          }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          className="inline-flex items-center justify-center rounded-md px-3 py-1.5 text-[12px] font-medium leading-none text-white"
         >
           Send
-        </button>
+        </motion.button>
+
         <button
-          className="
-            inline-flex items-center justify-center rounded-md px-2.5 py-1.5
-            text-[12px] font-medium leading-none text-gray-700
-            bg-white ring-1 ring-gray-300 border border-white/60
-            shadow-[0_1px_2px_rgba(0,0,0,0.08)]
-          "
+          type="button"
+          className="inline-flex items-center justify-center rounded-md px-2.5 py-1.5 text-[12px] font-medium leading-none text-gray-700 bg-white ring-1 ring-gray-300 border border-white/60 shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
         >
           Edit
         </button>
+
+        <div className="relative ml-1">
+          <button
+            type="button"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-[14px] leading-none text-gray-500 transition-colors"
+          >
+            📎
+          </button>
+          <AnimatePresence>
+            {showAttachmentTooltip && (
+              <motion.div
+                key="attach-tip"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 6 }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                className="pointer-events-none absolute left-1/2 top-[-28px] -translate-x-1/2 rounded-md bg-gray-900 px-2 py-[2px] text-[10px] font-medium text-white shadow-[0_6px_14px_rgba(15,23,42,0.3)]"
+              >
+                Attach files
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <div className="ml-auto flex items-center gap-2 text-[11px] text-gray-500">
+          <AnimatePresence>
+            {showDraftSaved && (
+              <motion.div
+                key="draft-saved"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 6 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                className="flex items-center gap-1"
+              >
+                <span className="h-[6px] w-[6px] rounded-full bg-green-500 shadow-[0_0_0_2px_rgba(34,197,94,0.35)]" />
+                <span>Draft saved • 12:22 PM</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
+  );
+}
+
+function MicroChipCallout({ chip }) {
+  return (
+    <AnimatePresence>
+      {chip && (
+        <motion.div
+          key={chip.key}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          className="pointer-events-none absolute right-3 bottom-3 rounded-full border border-[#fb923c]/60 bg-[#fff7ed]/95 px-2.5 py-[3px] text-[10px] font-medium text-[#b45309] shadow-[0_8px_18px_rgba(251,146,60,0.18)]"
+        >
+          {chip.message}
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
