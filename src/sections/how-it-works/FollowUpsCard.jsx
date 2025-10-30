@@ -14,7 +14,7 @@
 //
 // Requires Tailwind + framer-motion + your FeatureLayout component.
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import FeatureLayout from "./FeatureLayout.jsx";
 import InboxRow from "./InboxRow.jsx";
@@ -192,8 +192,8 @@ export default function FollowupCard() {
   const [started, setStarted] = useState(false);
   const [manualPhase, setManualPhase] = useState("prestart");
   const [chatStarted, setChatStarted] = useState(false);
-  const [chatPhase, setChatPhase] = useState(null); // 'user_voice' | 'user_final' | 'ai_draft' | 'ai_final'
-  const pointerLayerRef = useRef(null);
+  const [chatPhase, setChatPhase] = useState(null); // 'user_voice' | 'user_final' | 'ai_voice' | 'ai_final' | 'user_followup' | 'ai_wrap'
+  const [sendHovering, setSendHovering] = useState(false);
 
   useEffect(() => {
     const el = rootRef.current;
@@ -215,6 +215,7 @@ export default function FollowupCard() {
     if (!started) return;
 
     setManualPhase("inbox_idle");
+    setSendHovering(false);
     stageTimelineRef.current.forEach(clearTimeout);
     stageTimelineRef.current = [];
 
@@ -229,7 +230,7 @@ export default function FollowupCard() {
     queueStage(() => setManualPhase("reply_menu_hover"), 2700);
     queueStage(() => setManualPhase("reply_menu_click"), 3300);
     queueStage(() => setManualPhase("compose_open"), 4000);
-    queueStage(() => setManualPhase("compose_typing"), 4700);
+    queueStage(() => setManualPhase("compose_greeting"), 4700);
 
     return () => {
       stageTimelineRef.current.forEach(clearTimeout);
@@ -254,39 +255,66 @@ export default function FollowupCard() {
     "reply_menu_hover",
     "reply_menu_click",
     "compose_open",
-    "compose_typing",
-    "compose_rewrite",
+    "compose_greeting",
+    "compose_sentence",
+    "compose_timing",
+    "compose_signoff",
+    "compose_pause",
     "compose_done",
   ];
   const phaseIndex = phaseOrder.indexOf(manualPhase);
   const hasReached = (phase) => phaseIndex >= phaseOrder.indexOf(phase);
 
   const composeVisible = hasReached("compose_open");
-  const composeTypingActive = hasReached("compose_typing") && !hasReached("compose_done");
+  const composeTypingActive = hasReached("compose_greeting") && !hasReached("compose_done");
+  const draftSavedVisible = hasReached("compose_pause");
 
   const userTranscript =
-    "Need a reply for Sarah. Thank her for waiting and confirm pricing lands tomorrow.";
+    "Draft a reply for Sarah. Thank her for waiting and confirm pricing lands tomorrow.";
 
   const draftFull =
     "Hi Sarah —\n\nThanks again for being patient on pricing. I'll send the updated numbers tomorrow morning.\n\nAppreciate you,\nJ";
 
   const manualScript = useMemo(
     () => [
+      { type: "text", value: "Hi Sarah", speedMs: 60 },
+      { type: "text", value: ",", speedMs: 60 },
+      { type: "pause", ms: 380 },
+      { type: "backspace", count: 1, speedMs: 90 },
+      { type: "text", value: " —", speedMs: 60 },
+      { type: "text", value: "\n\n", speedMs: 60 },
       {
         type: "text",
-        value: "Hi Sarah —\n\nThanks agian for waiting on the pricing update.",
-        speedMs: 62,
+        value: "Thanks for your patience on pricing.",
+        speedMs: 56,
       },
-      { type: "pause", ms: 620 },
-      { type: "backspace", count: 40, speedMs: 90 },
-      { type: "pause", ms: 320 },
+      { type: "pause", ms: 600 },
+      { type: "backspace", count: 11, speedMs: 85 },
+      { type: "pause", ms: 180 },
+      { type: "backspace", count: 10, speedMs: 85 },
+      { type: "backspace", count: 5, speedMs: 85 },
+      { type: "backspace", count: 4, speedMs: 85 },
+      { type: "pause", ms: 260 },
       {
         type: "text",
-        value: "again for being patient on pricing. I'll send the updated numbers tomorrow morning.",
-        speedMs: 58,
+        value: " again for being patient on pricing.",
+        speedMs: 54,
       },
-      { type: "pause", ms: 450 },
-      { type: "text", value: "\n\nAppreciate you,\nJ", speedMs: 56 },
+      { type: "pause", ms: 500 },
+      {
+        type: "text",
+        value: " I'll send the updated numbers tomorrow.",
+        speedMs: 52,
+      },
+      { type: "backspace", count: 1, speedMs: 80 },
+      { type: "pause", ms: 300 },
+      { type: "text", value: " morning.", speedMs: 52 },
+      { type: "pause", ms: 420 },
+      { type: "text", value: "\n\nBest,", speedMs: 52 },
+      { type: "pause", ms: 380 },
+      { type: "backspace", count: 5, speedMs: 90 },
+      { type: "pause", ms: 260 },
+      { type: "text", value: "Appreciate you,\nJ", speedMs: 52 },
     ],
     [],
   );
@@ -301,37 +329,62 @@ export default function FollowupCard() {
   });
 
   useEffect(() => {
-    if (manualPhase !== "compose_typing") return;
-    if (!emailTyped.includes("Thanks agian for waiting on the pricing update.")) return;
-    setManualPhase("compose_rewrite");
+    if (manualPhase !== "compose_greeting") return;
+    if (!emailTyped.includes("Hi Sarah —")) return;
+    setManualPhase("compose_sentence");
   }, [manualPhase, emailTyped]);
 
   useEffect(() => {
-    if ((manualPhase === "compose_typing" || manualPhase === "compose_rewrite") && emailDone) {
-      setManualPhase("compose_done");
-    }
-  }, [manualPhase, emailDone]);
-
-  const composeDoneReached = hasReached("compose_done");
+    if (manualPhase !== "compose_sentence") return;
+    if (!emailTyped.includes("Thanks again for being patient on pricing.")) return;
+    setManualPhase("compose_timing");
+  }, [manualPhase, emailTyped]);
 
   useEffect(() => {
-    console.log("[FollowUpsCard] manualPhase →", manualPhase);
+    if (manualPhase !== "compose_timing") return;
+    if (!emailTyped.includes("I'll send the updated numbers tomorrow morning.")) return;
+    setManualPhase("compose_signoff");
+  }, [manualPhase, emailTyped]);
+
+  useEffect(() => {
+    if (manualPhase !== "compose_signoff") return;
+    if (!emailTyped.includes("Appreciate you,\nJ")) return;
+    setManualPhase("compose_pause");
+  }, [manualPhase, emailTyped]);
+
+  useEffect(() => {
+    if (manualPhase !== "compose_pause") return;
+
+    setSendHovering(true);
+
+    const hoverOffId = setTimeout(() => setSendHovering(false), 800);
+    const settleId = setTimeout(() => setManualPhase("compose_done"), 1700);
+
+    return () => {
+      clearTimeout(hoverOffId);
+      clearTimeout(settleId);
+    };
   }, [manualPhase]);
 
   useEffect(() => {
-    console.log(
-      "[FollowUpsCard] composeVisible:",
-      composeVisible,
-      "composeDoneReached:",
-      composeDoneReached,
-    );
-  }, [composeVisible, composeDoneReached]);
+    if (manualPhase !== "compose_done") return;
+    setSendHovering(false);
+  }, [manualPhase]);
+
+  const aiStartQueuedRef = useRef(false);
+  const aiFinishQueuedRef = useRef(false);
+  const userConfirmQueuedRef = useRef(false);
+  const aiWrapQueuedRef = useRef(false);
 
   useEffect(() => {
     if (!started) return;
 
     chatTimelineRef.current.forEach(clearTimeout);
     chatTimelineRef.current = [];
+    aiStartQueuedRef.current = false;
+    aiFinishQueuedRef.current = false;
+    userConfirmQueuedRef.current = false;
+    aiWrapQueuedRef.current = false;
 
     const queueTimeout = (callback, delay) => {
       const id = setTimeout(callback, delay);
@@ -342,17 +395,19 @@ export default function FollowupCard() {
     setChatStarted(true);
     setChatPhase("user_voice");
     queueTimeout(() => setChatPhase("user_final"), 900);
-    queueTimeout(() => setChatPhase("ai_draft"), 1500);
-    queueTimeout(() => setChatPhase("ai_final"), 3200);
 
     return () => {
       chatTimelineRef.current.forEach(clearTimeout);
       chatTimelineRef.current = [];
+      aiStartQueuedRef.current = false;
+      aiFinishQueuedRef.current = false;
+      userConfirmQueuedRef.current = false;
+      aiWrapQueuedRef.current = false;
     };
   }, [started]);
 
   const userTypeActive =
-    chatPhase === "user_final" || chatPhase === "ai_draft" || chatPhase === "ai_final";
+    chatPhase === "user_final" || chatPhase === "ai_voice" || chatPhase === "ai_final";
   const { text: userTyped, done: userDone } = useTypewriter({
     fullText: userTranscript,
     active: userTypeActive,
@@ -361,8 +416,8 @@ export default function FollowupCard() {
   });
 
   const aiResponse =
-    "Claro drafted your reply in seconds — ready to send?\n\nHi Sarah —\n\nThanks again for being patient on pricing. I'll send the updated numbers tomorrow morning.\n\nAppreciate you,\nJ";
-  const aiTypeActive = chatPhase === "ai_draft" || chatPhase === "ai_final";
+    "Got it — drafting your reply to Sarah in your usual tone.\n\nHi Sarah —\n\nThanks again for being patient on pricing. I’ll send the updated numbers tomorrow morning.\n\nAppreciate you,\nJ\n\nWant me to send it?";
+  const aiTypeActive = chatPhase === "ai_voice" || chatPhase === "ai_final";
   const { text: aiTyped, done: aiDone } = useTypewriter({
     fullText: aiResponse,
     active: aiTypeActive,
@@ -370,15 +425,100 @@ export default function FollowupCard() {
     randomVariance: 20,
   });
 
+  const userConfirm = "Send.";
+  const userConfirmActive = chatPhase === "user_followup" || chatPhase === "ai_wrap";
+  const { text: userConfirmTyped, done: userConfirmDone } = useTypewriter({
+    fullText: userConfirm,
+    active: userConfirmActive,
+    baseSpeed: 32,
+    randomVariance: 12,
+  });
+
+  const aiWrapResponse = "Sent. I’ll remind you tomorrow morning to send the pricing to Sarah.";
+  const aiWrapTypeActive = chatPhase === "ai_wrap";
+  const { text: aiWrapTyped, done: aiWrapDone } = useTypewriter({
+    fullText: aiWrapResponse,
+    active: aiWrapTypeActive,
+    baseSpeed: 24,
+    randomVariance: 16,
+  });
+
+  useEffect(() => {
+    if (!chatStarted) return;
+    if (chatPhase !== "user_final") return;
+    if (!userDone) return;
+    if (aiStartQueuedRef.current) return;
+
+    aiStartQueuedRef.current = true;
+    const id = setTimeout(() => {
+      setChatPhase("ai_voice");
+    }, 220);
+
+    chatTimelineRef.current.push(id);
+
+    return () => clearTimeout(id);
+  }, [chatStarted, chatPhase, userDone]);
+
+  useEffect(() => {
+    if (chatPhase !== "ai_voice") return;
+    if (!aiDone) return;
+    if (aiFinishQueuedRef.current) return;
+
+    aiFinishQueuedRef.current = true;
+    const id = setTimeout(() => {
+      setChatPhase("ai_final");
+    }, 180);
+
+    chatTimelineRef.current.push(id);
+
+    return () => clearTimeout(id);
+  }, [chatPhase, aiDone]);
+
+  useEffect(() => {
+    if (chatPhase !== "ai_final") return;
+    if (userConfirmQueuedRef.current) return;
+
+    userConfirmQueuedRef.current = true;
+    const id = setTimeout(() => {
+      setChatPhase("user_followup");
+    }, 420);
+
+    chatTimelineRef.current.push(id);
+
+    return () => clearTimeout(id);
+  }, [chatPhase]);
+
+  useEffect(() => {
+    if (chatPhase !== "user_followup") return;
+    if (!userConfirmDone) return;
+    if (aiWrapQueuedRef.current) return;
+
+    aiWrapQueuedRef.current = true;
+    const id = setTimeout(() => {
+      setChatPhase("ai_wrap");
+    }, 260);
+
+    chatTimelineRef.current.push(id);
+
+    return () => clearTimeout(id);
+  }, [chatPhase, userConfirmDone]);
+
   const showUserBubble =
     chatPhase === "user_voice" ||
     chatPhase === "user_final" ||
-    chatPhase === "ai_draft" ||
-    chatPhase === "ai_final";
-  const showAiBubble = chatPhase === "ai_draft" || chatPhase === "ai_final";
-  const aiStillTalkingForUI = chatPhase === "ai_draft" && !aiDone;
-
-  const composeIsBlurred = chatStarted && composeDoneReached;
+    chatPhase === "ai_voice" ||
+    chatPhase === "ai_final" ||
+    chatPhase === "user_followup" ||
+    chatPhase === "ai_wrap";
+  const showAiBubble =
+    chatPhase === "ai_voice" ||
+    chatPhase === "ai_final" ||
+    chatPhase === "user_followup" ||
+    chatPhase === "ai_wrap";
+  const showUserConfirmBubble = chatPhase === "user_followup" || chatPhase === "ai_wrap";
+  const showAiWrapBubble = chatPhase === "ai_wrap";
+  const aiStillTalkingForUI = showAiBubble && !aiDone;
+  const aiWrapTalkingForUI = showAiWrapBubble && !aiWrapDone;
 
   return (
     <FeatureLayout
@@ -407,7 +547,7 @@ export default function FollowupCard() {
     >
       <div className="relative flex w-full flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex flex-1 flex-col items-start gap-6">
-          <div ref={pointerLayerRef} className="relative w-full max-w-[460px]">
+          <div className="relative w-full max-w-[460px]">
             <motion.div
               initial={{ opacity: 0, y: 30, rotate: 0 }}
               animate={{
@@ -437,47 +577,45 @@ export default function FollowupCard() {
                     opacity: 1,
                     y: 0,
                     rotate: 0,
-                    filter: composeIsBlurred
-                      ? "blur(2.6px) saturate(0.92) brightness(0.98)"
-                      : "blur(0px) saturate(1) brightness(1)",
                   }}
                   exit={{ opacity: 0, y: 36, transition: { duration: 0.5, ease: "easeInOut" } }}
                   transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
                   className="pointer-events-none absolute inset-0 z-30"
                 >
-                  <GmailDraftCard
-                    bodyText={emailTyped}
-                    bodyDone={emailDone}
-                    showQuotedThread={composeVisible}
-                    signOff={SIGN_OFF_SNIPPET}
-                  />
+              <GmailDraftCard
+                bodyText={emailTyped}
+                bodyDone={emailDone}
+                showQuotedThread={false}
+                signOff={SIGN_OFF_SNIPPET}
+                sendHovering={sendHovering}
+                draftSavedVisible={draftSavedVisible}
+              />
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <PointerCursor phase={manualPhase} containerRef={pointerLayerRef} />
           </div>
 
         </div>
 
-        <div className="flex flex-1 justify-start lg:pl-6">
-          <div className="relative w-full max-w-[360px] rounded-[28px] border border-gray-200/70 bg-white/85 p-5 shadow-[0_32px_70px_rgba(15,23,42,0.08)] backdrop-blur-[2px]">
-            <motion.div
-              className="pointer-events-none absolute -top-10 -right-6 h-36 w-36 rounded-full bg-[rgba(224,122,95,0.14)] blur-3xl"
-              animate={{ opacity: chatStarted ? 0.6 : 0.2 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            />
+        <div className="relative flex flex-1 justify-start lg:pl-6">
+          <motion.div
+            className="pointer-events-none absolute -top-10 -right-6 h-36 w-36 rounded-full bg-[rgba(224,122,95,0.14)] blur-3xl"
+            animate={{ opacity: chatStarted ? 0.6 : 0.25 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          />
 
-            <div className="relative z-10 flex min-h-[220px] flex-col gap-3">
+          <div className="relative w-full max-w-[360px]">
+            <div className="relative flex min-h-[220px] flex-col gap-3 pointer-events-none">
               <AnimatePresence>
-                {showUserBubble && (
+                {chatStarted && showUserBubble && (
                   <motion.div
                     key="user-bubble"
                     initial={{ opacity: 0, y: 20, scale: 0.96 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 1 }}
                     transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                    className="flex w-full justify-end gap-2"
+                    className="flex w-full justify-end gap-2 pointer-events-auto"
                   >
                     <div
                       className="
@@ -526,14 +664,14 @@ export default function FollowupCard() {
               </AnimatePresence>
 
               <AnimatePresence>
-                {showAiBubble && (
+                {chatStarted && showAiBubble && (
                   <motion.div
                     key="ai-bubble-row"
                     initial={{ opacity: 0, y: 28, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 1 }}
                     transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-                    className="flex w-full items-start gap-2"
+                    className="flex w-full justify-start gap-2 items-start pointer-events-auto"
                   >
                     <div className="relative flex-shrink-0">
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFE8DC] text-[10px] font-medium text-[#C76545] ring-1 ring-orange-200">
@@ -555,22 +693,21 @@ export default function FollowupCard() {
 
                     <div
                       className="
-                        max-w-[280px]
+                        max-w-[260px]
                         rounded-2xl px-4 py-3
-                        bg-gray-100 text-gray-900
-                        ring-1 ring-gray-200 border border-white/40
-                        shadow-[0_24px_48px_rgba(0,0,0,0.12)]
-                        text-[14px] leading-[1.4] font-medium
-                        whitespace-pre-wrap break-words
+                        bg-gray-100 text-gray-900 ring-1 ring-gray-200
+                        border border-white/40 shadow-[0_24px_48px_rgba(0,0,0,0.12)]
+                        text-[14px] leading-[1.4] font-medium whitespace-pre-wrap break-words
                       "
                       style={{
                         borderTopLeftRadius: "0.5rem",
-                        boxShadow: "0 28px 64px rgba(0,0,0,0.12), 0 6px 28px rgba(0,0,0,0.06)",
+                        boxShadow:
+                          "0 28px 64px rgba(0,0,0,0.12), 0 6px 28px rgba(0,0,0,0.06)",
                       }}
                     >
                       {aiStillTalkingForUI && (
                         <div className="mb-2 flex items-center gap-2 text-[12px] font-medium text-gray-700">
-                          <span>Drafting…</span>
+                          <span>Speaking…</span>
                           <div className="text-gray-500">
                             <VoiceBars active />
                           </div>
@@ -580,6 +717,87 @@ export default function FollowupCard() {
                       <div className="text-gray-900">
                         {aiTyped}
                         {!aiDone && <CaretBlink />}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence>
+                {chatStarted && showUserConfirmBubble && (
+                  <motion.div
+                    key="user-confirm-bubble"
+                    initial={{ opacity: 0, y: 16, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 1 }}
+                    transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex w-full justify-end gap-2 pointer-events-auto"
+                  >
+                    <div
+                      className="max-w-[230px] rounded-2xl px-3 py-2 text-[13px] leading-snug text-white bg-gradient-to-br from-blue-500 to-blue-600 shadow-[0_16px_40px_rgba(0,0,0,0.18)] ring-1 ring-blue-600/40 border border-white/10 break-words"
+                      style={{ borderTopRightRadius: "0.5rem" }}
+                    >
+                      <div className="text-[13px] font-medium text-white whitespace-pre-wrap">
+                        {userConfirmTyped}
+                        {!userConfirmDone && <CaretBlink light />}
+                      </div>
+                    </div>
+
+                    <div className="relative flex-shrink-0">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200 text-[10px] font-medium text-gray-700 ring-1 ring-gray-300">
+                        You
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence>
+                {chatStarted && showAiWrapBubble && (
+                  <motion.div
+                    key="ai-wrap-bubble"
+                    initial={{ opacity: 0, y: 22, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 1 }}
+                    transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex w-full justify-start gap-2 items-start pointer-events-auto"
+                  >
+                    <div className="relative flex-shrink-0">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFE8DC] text-[10px] font-medium text-[#C76545] ring-1 ring-orange-200">
+                        C
+                      </div>
+                      {aiWrapTalkingForUI && (
+                        <motion.div
+                          className="pointer-events-none absolute inset-0 rounded-full"
+                          style={{
+                            boxShadow:
+                              "0 0 8px rgba(224,122,95,0.5),0 0 16px rgba(224,122,95,0.3)",
+                          }}
+                          animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.08, 1] }}
+                          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                      )}
+                    </div>
+
+                    <div
+                      className="max-w-[260px] rounded-2xl px-4 py-3 bg-gray-100 text-gray-900 ring-1 ring-gray-200 border border-white/40 shadow-[0_24px_48px_rgba(0,0,0,0.12)] text-[14px] leading-[1.4] font-medium whitespace-pre-wrap break-words"
+                      style={{
+                        borderTopLeftRadius: "0.5rem",
+                        boxShadow: "0 28px 64px rgba(0,0,0,0.12), 0 6px 28px rgba(0,0,0,0.06)",
+                      }}
+                    >
+                      {aiWrapTalkingForUI && (
+                        <div className="mb-2 flex items-center gap-2 text-[12px] font-medium text-gray-700">
+                          <span>Speaking…</span>
+                          <div className="text-gray-500">
+                            <VoiceBars active />
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="text-gray-900">
+                        {aiWrapTyped}
+                        {!aiWrapDone && <CaretBlink />}
                       </div>
                     </div>
                   </motion.div>
@@ -602,14 +820,17 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
 
   const manualStatusMap = {
     inbox_idle: `Inbox piling up — ${contactFirstName} still needs pricing.`,
-    row_hover: `Hover over ${contactFirstName}’s thread to reply.`,
-    row_context: "Right click opens options — still no reply sent.",
-    reply_menu_hover: "Reply is right there — just click it.",
+    row_hover: `Inbox piling up — ${contactFirstName} still needs pricing.`,
+    row_context: "Clock’s ticking — opening reply…",
+    reply_menu_hover: "Clock’s ticking — opening reply…",
     reply_menu_click: "Clock’s ticking — opening reply…",
-    compose_open: "Reply window finally open — you’re still on the hook.",
-    compose_typing: "Still typing it yourself…",
-    compose_rewrite: "Fixing typos instead of sending…",
-    compose_done: "Manual draft finally ready.",
+    compose_open: "Clock’s ticking — opening reply…",
+    compose_greeting: "Tweaking tone",
+    compose_sentence: "Fixing phrasing instead of sending…",
+    compose_timing: "Clarifying timing…",
+    compose_signoff: "Choosing sign-off…",
+    compose_pause: "Still not sent.",
+    compose_done: "Still not sent.",
   };
 
   let statusLabel = manualStatusMap[phase];
@@ -621,7 +842,7 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
     const chatStatusMap = {
       user_voice: "Just tell Claro what you need — no clicking.",
       user_final: "Intent captured once. Claro remembers your tone.",
-      ai_draft: `Claro drafts instantly, matching your ${contactFirstName} sign-off.`,
+      ai_voice: `Claro drafts instantly, matching your ${contactFirstName} sign-off.`,
       ai_final: "Ready to send — tone matched in seconds.",
     };
     statusLabel = chatStatusMap[chatPhase] || statusLabel;
@@ -633,8 +854,11 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
     phase === "reply_menu_hover" ||
     phase === "reply_menu_click" ||
     phase === "compose_open" ||
-    phase === "compose_typing" ||
-    phase === "compose_rewrite" ||
+    phase === "compose_greeting" ||
+    phase === "compose_sentence" ||
+    phase === "compose_timing" ||
+    phase === "compose_signoff" ||
+    phase === "compose_pause" ||
     phase === "compose_done";
 
   const activeIndex = highlightSarah ? 1 : -1;
@@ -687,7 +911,6 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
                     calm={inboxIsChill}
                     phase={inboxIsChill ? "calm" : "manual"}
                     active={isActive}
-                    dataPointerTarget={index === 1 ? "inbox-row" : undefined}
                     {...row}
                   >
                   </InboxRow>
@@ -717,7 +940,6 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
               exit={{ opacity: 0, scale: 0.9, y: -4 }}
               transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
               className="pointer-events-none absolute left-[152px] top-[118px] z-30"
-              data-pointer-target="reply-menu"
             >
               <div className="min-w-[140px] rounded-xl border border-gray-200/80 bg-white/98 p-1 text-[11px] text-gray-600 shadow-[0_20px_40px_rgba(15,23,42,0.16)] ring-1 ring-gray-100 backdrop-blur">
                 <div
@@ -744,170 +966,15 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
 }
 
 
-const POINTER_ANCHOR_CONFIG = {
-  "inbox-row": { px: 0.58, py: 0.54 },
-  "reply-menu": { px: 0.58, py: 0.52 },
-  "compose-area": { px: 0.34, py: 0.24 },
-};
-
-const POINTER_PHASE_TARGETS = {
-  prestart: { opacity: 0, scale: 0.9, anchor: "inbox-row", fallback: { x: 176, y: 126 } },
-  inbox_idle: { opacity: 1, scale: 1, anchor: "inbox-row", fallback: { x: 188, y: 92 } },
-  row_hover: { opacity: 1, scale: 1, anchor: "inbox-row", fallback: { x: 194, y: 134 } },
-  row_context: { opacity: 1, scale: 0.98, anchor: "inbox-row", fallback: { x: 194, y: 134 } },
-  reply_menu_hover: { opacity: 1, scale: 1, anchor: "reply-menu", fallback: { x: 228, y: 172 } },
-  reply_menu_click: { opacity: 1, scale: 0.96, anchor: "reply-menu", fallback: { x: 228, y: 172 } },
-  compose_open: { opacity: 1, scale: 1, anchor: "compose-area", fallback: { x: 176, y: 242 } },
-  compose_typing: { opacity: 1, scale: 1, anchor: "compose-area", fallback: { x: 182, y: 256 } },
-  compose_rewrite: { opacity: 1, scale: 1, anchor: "compose-area", fallback: { x: 182, y: 256 } },
-  compose_done: { opacity: 1, scale: 1, anchor: "reply-menu", fallback: { x: 228, y: 172 } },
-};
-
-function PointerCursor({ phase, containerRef }) {
-  const [anchorPositions, setAnchorPositions] = useState({});
-
-  const measureTargets = useCallback(() => {
-    const container = containerRef?.current;
-    if (!container) return;
-
-    const containerRect = container.getBoundingClientRect();
-    const nextPositions = {};
-
-    Object.entries(POINTER_ANCHOR_CONFIG).forEach(([anchor, config]) => {
-      const el = container.querySelector(`[data-pointer-target="${anchor}"]`);
-      if (!el) return;
-
-      const rect = el.getBoundingClientRect();
-      const x =
-        rect.left - containerRect.left + rect.width * (config.px ?? 0.5) + (config.dx ?? 0);
-      const y = rect.top - containerRect.top + rect.height * (config.py ?? 0.5) + (config.dy ?? 0);
-      nextPositions[anchor] = { x, y };
-    });
-
-    if (Object.keys(nextPositions).length > 0) {
-      setAnchorPositions((prev) => ({ ...prev, ...nextPositions }));
-    }
-  }, [containerRef]);
-
-  useLayoutEffect(() => {
-    measureTargets();
-  }, [measureTargets]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return undefined;
-    }
-
-    const handleResize = () => {
-      measureTargets();
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [measureTargets]);
-
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => {
-      measureTargets();
-    });
-
-    return () => cancelAnimationFrame(frame);
-  }, [phase, measureTargets]);
-
-  const baseTarget = POINTER_PHASE_TARGETS[phase] || POINTER_PHASE_TARGETS.prestart;
-  const measuredAnchor = baseTarget.anchor
-    ? anchorPositions[baseTarget.anchor]
-    : undefined;
-
-  const activeTarget = {
-    opacity: baseTarget.opacity,
-    scale: baseTarget.scale,
-    x: measuredAnchor?.x ?? baseTarget.fallback.x,
-    y: measuredAnchor?.y ?? baseTarget.fallback.y,
-  };
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.85, x: activeTarget.x, y: activeTarget.y }}
-      animate={activeTarget}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      className="pointer-events-none absolute z-40"
-      style={{ transformOrigin: "top left" }}
-    >
-      <div className="pointer-events-none relative drop-shadow-[0_12px_28px_rgba(15,23,42,0.26)]">
-        <div className="pointer-events-none absolute -left-3 -top-3 h-16 w-16 rounded-full bg-white/90 blur-xl" />
-        <AnimatePresence>
-          {phase === "row_context" && (
-            <motion.div
-              key="right-click-ring"
-              initial={{ opacity: 0.5, scale: 0.6 }}
-              animate={{ opacity: 0, scale: 1.7 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className="pointer-events-none absolute -left-1 -top-1 h-12 w-12 rounded-full border-[3px] border-blue-400/70"
-            />
-          )}
-        </AnimatePresence>
-        <AnimatePresence>
-          {phase === "reply_menu_click" && (
-            <motion.div
-              key="reply-click-ring"
-              initial={{ opacity: 0.6, scale: 0.7 }}
-              animate={{ opacity: 0, scale: 1.6 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.36, ease: "easeOut" }}
-              className="pointer-events-none absolute -left-1 -top-1 h-12 w-12 rounded-full border-[3px] border-blue-500/60"
-            />
-          )}
-        </AnimatePresence>
-        <svg
-          width="56"
-          height="56"
-          viewBox="0 0 64 64"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <g filter="url(#cursor-shadow)">
-            <path d="M14 8v41.5l9.8-7.4 6.9 16.4 8.6-3.3-6.6-16h18.2L14 8Z" fill="white" />
-            <path d="M17 15.16v27.92l7.66-5.78 7.58 18.14 5.52-2.12-7.35-17.74h19.28L17 15.16Z" fill="#0f172a" />
-            <path
-              d="M24.34 37.56 19 41.64V18.92l24.94 17.44H28.42l7.26 17.18-3.78 1.42-7.56-19.4Z"
-              fill="#e2e8f0"
-            />
-          </g>
-          <defs>
-            <filter
-              id="cursor-shadow"
-              x="4"
-              y="0"
-              width="56"
-              height="64"
-              filterUnits="userSpaceOnUse"
-              colorInterpolationFilters="sRGB"
-            >
-              <feFlood floodOpacity="0" result="BackgroundImageFix" />
-              <feColorMatrix
-                in="SourceAlpha"
-                type="matrix"
-                values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-                result="hardAlpha"
-              />
-              <feOffset dy="2" />
-              <feGaussianBlur stdDeviation="2" />
-              <feComposite in2="hardAlpha" operator="out" />
-              <feColorMatrix type="matrix" values="0 0 0 0 0.06 0 0 0 0 0.12 0 0 0 0 0.2 0 0 0 0.28 0" />
-              <feBlend in2="BackgroundImageFix" result="effect1_dropShadow" />
-              <feBlend in="SourceGraphic" in2="effect1_dropShadow" result="shape" />
-            </filter>
-          </defs>
-        </svg>
-      </div>
-    </motion.div>
-  );
-}
-
-function GmailDraftCard({ bodyText, bodyDone, showQuotedThread, highlightTone, signOff }) {
+function GmailDraftCard({
+  bodyText,
+  bodyDone,
+  showQuotedThread,
+  highlightTone,
+  signOff,
+  sendHovering = false,
+  draftSavedVisible = false,
+}) {
   const hasSignOff = Boolean(signOff) && bodyText.includes(signOff);
   const signOffIndex = hasSignOff ? bodyText.indexOf(signOff) : -1;
   const beforeSignOff = hasSignOff ? bodyText.slice(0, signOffIndex) : bodyText;
@@ -952,15 +1019,21 @@ function GmailDraftCard({ bodyText, bodyDone, showQuotedThread, highlightTone, s
       </div>
 
       {/* Body */}
-      <div
-        className="px-3 py-3 whitespace-pre-wrap min-h-[180px] text-[13px] leading-[1.45] text-gray-800"
-        data-pointer-target="compose-area"
-      >
-        {showQuotedThread && (
-          <div className="mb-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[12px] leading-relaxed text-gray-500">
-            <span className="font-medium text-gray-600">Sarah Quinn</span> • "Can you send the updated pricing by 5 so I can lock the deck?"
-          </div>
-        )}
+      <div className="px-3 py-3 whitespace-pre-wrap min-h-[180px] text-[13px] leading-[1.45] text-gray-800">
+        <AnimatePresence>
+          {showQuotedThread && (
+            <motion.div
+              key="quoted"
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6 }}
+              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+              className="mb-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[12px] leading-relaxed text-gray-500 shadow-[0_12px_24px_rgba(15,23,42,0.08)]"
+            >
+              <span className="font-medium text-gray-600">Sarah Quinn</span> • "Can you send the updated pricing by 5 so I can lock the deck?"
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <span>{beforeSignOff}</span>
 
@@ -989,15 +1062,30 @@ function GmailDraftCard({ bodyText, bodyDone, showQuotedThread, highlightTone, s
 
       {/* Footer */}
       <div className="px-3 py-2 border-t border-gray-200 bg-gray-50 flex items-center gap-2">
-        <button
+        <motion.button
+          type="button"
           className="
             inline-flex items-center justify-center rounded-md px-2.5 py-1.5
             text-[12px] font-medium leading-none text-white
-            bg-[#0b57d0] shadow-[0_2px_4px_rgba(0,0,0,0.2)]
           "
+          initial={false}
+          animate={
+            sendHovering
+              ? {
+                  backgroundColor: "#174ea6",
+                  boxShadow: "0 6px 14px rgba(23,78,166,0.35)",
+                  scale: 1.03,
+                }
+              : {
+                  backgroundColor: "#0b57d0",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                  scale: 1,
+                }
+          }
+          transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
         >
           Send
-        </button>
+        </motion.button>
         <button
           className="
             inline-flex items-center justify-center rounded-md px-2.5 py-1.5
@@ -1008,6 +1096,23 @@ function GmailDraftCard({ bodyText, bodyDone, showQuotedThread, highlightTone, s
         >
           Edit
         </button>
+
+        <div className="ml-auto flex items-center text-[11px] font-medium text-gray-500">
+          <AnimatePresence>
+            {draftSavedVisible && (
+              <motion.span
+                key="draft-saved"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 4 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                className="tracking-tight"
+              >
+                Draft saved • 12:22 PM
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
