@@ -192,7 +192,7 @@ export default function FollowupCard() {
   const [started, setStarted] = useState(false);
   const [manualPhase, setManualPhase] = useState("prestart");
   const [chatStarted, setChatStarted] = useState(false);
-  const [chatPhase, setChatPhase] = useState(null); // 'user_voice' | 'user_final' | 'ai_draft' | 'ai_final'
+  const [chatPhase, setChatPhase] = useState(null); // 'user_voice' | 'user_final' | 'ai_voice' | 'ai_final'
 
   useEffect(() => {
     const el = rootRef.current;
@@ -326,11 +326,16 @@ export default function FollowupCard() {
     );
   }, [composeVisible, composeDoneReached]);
 
+  const aiStartQueuedRef = useRef(false);
+  const aiFinishQueuedRef = useRef(false);
+
   useEffect(() => {
     if (!started) return;
 
     chatTimelineRef.current.forEach(clearTimeout);
     chatTimelineRef.current = [];
+    aiStartQueuedRef.current = false;
+    aiFinishQueuedRef.current = false;
 
     const queueTimeout = (callback, delay) => {
       const id = setTimeout(callback, delay);
@@ -341,17 +346,17 @@ export default function FollowupCard() {
     setChatStarted(true);
     setChatPhase("user_voice");
     queueTimeout(() => setChatPhase("user_final"), 900);
-    queueTimeout(() => setChatPhase("ai_draft"), 1500);
-    queueTimeout(() => setChatPhase("ai_final"), 3200);
 
     return () => {
       chatTimelineRef.current.forEach(clearTimeout);
       chatTimelineRef.current = [];
+      aiStartQueuedRef.current = false;
+      aiFinishQueuedRef.current = false;
     };
   }, [started]);
 
   const userTypeActive =
-    chatPhase === "user_final" || chatPhase === "ai_draft" || chatPhase === "ai_final";
+    chatPhase === "user_final" || chatPhase === "ai_voice" || chatPhase === "ai_final";
   const { text: userTyped, done: userDone } = useTypewriter({
     fullText: userTranscript,
     active: userTypeActive,
@@ -361,7 +366,7 @@ export default function FollowupCard() {
 
   const aiResponse =
     "Claro drafted your reply in seconds — ready to send?\n\nHi Sarah —\n\nThanks again for being patient on pricing. I'll send the updated numbers tomorrow morning.\n\nAppreciate you,\nJ";
-  const aiTypeActive = chatPhase === "ai_draft" || chatPhase === "ai_final";
+  const aiTypeActive = chatPhase === "ai_voice" || chatPhase === "ai_final";
   const { text: aiTyped, done: aiDone } = useTypewriter({
     fullText: aiResponse,
     active: aiTypeActive,
@@ -369,13 +374,44 @@ export default function FollowupCard() {
     randomVariance: 20,
   });
 
+  useEffect(() => {
+    if (!chatStarted) return;
+    if (chatPhase !== "user_final") return;
+    if (!userDone) return;
+    if (aiStartQueuedRef.current) return;
+
+    aiStartQueuedRef.current = true;
+    const id = setTimeout(() => {
+      setChatPhase("ai_voice");
+    }, 220);
+
+    chatTimelineRef.current.push(id);
+
+    return () => clearTimeout(id);
+  }, [chatStarted, chatPhase, userDone]);
+
+  useEffect(() => {
+    if (chatPhase !== "ai_voice") return;
+    if (!aiDone) return;
+    if (aiFinishQueuedRef.current) return;
+
+    aiFinishQueuedRef.current = true;
+    const id = setTimeout(() => {
+      setChatPhase("ai_final");
+    }, 180);
+
+    chatTimelineRef.current.push(id);
+
+    return () => clearTimeout(id);
+  }, [chatPhase, aiDone]);
+
   const showUserBubble =
     chatPhase === "user_voice" ||
     chatPhase === "user_final" ||
-    chatPhase === "ai_draft" ||
+    chatPhase === "ai_voice" ||
     chatPhase === "ai_final";
-  const showAiBubble = chatPhase === "ai_draft" || chatPhase === "ai_final";
-  const aiStillTalkingForUI = chatPhase === "ai_draft" && !aiDone;
+  const showAiBubble = chatPhase === "ai_voice" || chatPhase === "ai_final";
+  const aiStillTalkingForUI = showAiBubble && !aiDone;
 
   return (
     <FeatureLayout
@@ -613,7 +649,7 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
     const chatStatusMap = {
       user_voice: "Just tell Claro what you need — no clicking.",
       user_final: "Intent captured once. Claro remembers your tone.",
-      ai_draft: `Claro drafts instantly, matching your ${contactFirstName} sign-off.`,
+      ai_voice: `Claro drafts instantly, matching your ${contactFirstName} sign-off.`,
       ai_final: "Ready to send — tone matched in seconds.",
     };
     statusLabel = chatStatusMap[chatPhase] || statusLabel;
