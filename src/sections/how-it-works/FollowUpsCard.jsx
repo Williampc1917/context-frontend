@@ -314,6 +314,19 @@ export default function FollowupCard() {
   const composeDoneReached = hasReached("compose_done");
 
   useEffect(() => {
+    console.debug("[FollowUpsCard] manualPhase →", manualPhase);
+  }, [manualPhase]);
+
+  useEffect(() => {
+    console.debug(
+      "[FollowUpsCard] composeVisible:",
+      composeVisible,
+      "composeDoneReached:",
+      composeDoneReached,
+    );
+  }, [composeVisible, composeDoneReached]);
+
+  useEffect(() => {
     if (!started) return;
 
     chatTimelineRef.current.forEach(clearTimeout);
@@ -652,32 +665,45 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
         </motion.div>
       )}
 
-      <div
-        className="relative w-full max-w-[380px] overflow-hidden rounded-xl border border-gray-200 bg-white/95 ring-1 ring-gray-100 shadow-[0_24px_60px_rgba(0,0,0,0.08)] transition-all duration-500"
-        style={{
-          boxShadow: "0 28px 64px rgba(0,0,0,0.08), 0 6px 24px rgba(0,0,0,0.05)",
-          filter: dimmed ? "saturate(0.85) brightness(0.96)" : "saturate(1) brightness(1)",
-          opacity: dimmed ? 0.85 : 1,
-        }}
-      >
-        <div className="pt-3">
-          <motion.div animate={{ y: 0 }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}>
-            {rows.map((row, index) => {
-              const isActive = index === activeIndex;
+      <div className="relative w-full max-w-[380px]">
+        <div
+          className="overflow-hidden rounded-xl border border-gray-200 bg-white/95 ring-1 ring-gray-100 shadow-[0_24px_60px_rgba(0,0,0,0.08)] transition-all duration-500"
+          style={{
+            boxShadow: "0 28px 64px rgba(0,0,0,0.08), 0 6px 24px rgba(0,0,0,0.05)",
+            filter: dimmed ? "saturate(0.85) brightness(0.96)" : "saturate(1) brightness(1)",
+            opacity: dimmed ? 0.85 : 1,
+          }}
+        >
+          <div className="pt-3">
+            <motion.div animate={{ y: 0 }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}>
+              {rows.map((row, index) => {
+                const isActive = index === activeIndex;
 
-              return (
-                <InboxRow
-                  key={row.from}
-                  index={index}
-                  calm={inboxIsChill}
-                  phase={inboxIsChill ? "calm" : "manual"}
-                  active={isActive}
-                  {...row}
-                >
-                </InboxRow>
-              );
-            })}
-          </motion.div>
+                return (
+                  <InboxRow
+                    key={row.from}
+                    index={index}
+                    calm={inboxIsChill}
+                    phase={inboxIsChill ? "calm" : "manual"}
+                    active={isActive}
+                    {...row}
+                  >
+                  </InboxRow>
+                );
+              })}
+            </motion.div>
+          </div>
+
+          <motion.div
+            className="pointer-events-none absolute -top-4 -left-4 h-[120px] w-[120px] rounded-xl blur-2xl"
+            style={{
+              background: inboxIsChill
+                ? "radial-gradient(circle_at_20%_20%,rgba(156,163,175,0.12),rgba(255,255,255,0)_70%)"
+                : "radial-gradient(circle_at_20%_20%,rgba(224,122,95,0.18),rgba(255,255,255,0)_70%)",
+            }}
+            animate={{ opacity: inboxIsChill ? 0.15 : 0.6 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          />
         </div>
 
         <AnimatePresence>
@@ -709,17 +735,6 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
             </motion.div>
           )}
         </AnimatePresence>
-
-        <motion.div
-          className="pointer-events-none absolute -top-4 -left-4 h-[120px] w-[120px] rounded-xl blur-2xl"
-          style={{
-            background: inboxIsChill
-              ? "radial-gradient(circle_at_20%_20%,rgba(156,163,175,0.12),rgba(255,255,255,0)_70%)"
-              : "radial-gradient(circle_at_20%_20%,rgba(224,122,95,0.18),rgba(255,255,255,0)_70%)",
-          }}
-          animate={{ opacity: inboxIsChill ? 0.15 : 0.6 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        />
       </div>
     </div>
   );
@@ -735,8 +750,8 @@ function PointerCursor({ phase }) {
     reply_menu_hover: { opacity: 1, scale: 1, x: 228, y: 172 },
     reply_menu_click: { opacity: 1, scale: 0.96, x: 228, y: 172 },
     compose_open: { opacity: 1, scale: 1, x: 176, y: 242 },
-    compose_typing: { opacity: 0, scale: 0.92, x: 176, y: 262 },
-    compose_rewrite: { opacity: 0, scale: 0.92, x: 176, y: 262 },
+    compose_typing: { opacity: 1, scale: 1, x: 182, y: 256 },
+    compose_rewrite: { opacity: 1, scale: 1, x: 182, y: 256 },
     compose_done: { opacity: 1, scale: 1, x: 228, y: 172 },
   };
 
