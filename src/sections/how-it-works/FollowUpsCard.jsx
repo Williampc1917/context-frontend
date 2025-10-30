@@ -193,6 +193,7 @@ export default function FollowupCard() {
   const [manualPhase, setManualPhase] = useState("prestart");
   const [chatStarted, setChatStarted] = useState(false);
   const [chatPhase, setChatPhase] = useState(null); // 'user_voice' | 'user_final' | 'ai_voice' | 'ai_final'
+  const [sendHovering, setSendHovering] = useState(false);
 
   useEffect(() => {
     const el = rootRef.current;
@@ -214,6 +215,7 @@ export default function FollowupCard() {
     if (!started) return;
 
     setManualPhase("inbox_idle");
+    setSendHovering(false);
     stageTimelineRef.current.forEach(clearTimeout);
     stageTimelineRef.current = [];
 
@@ -228,7 +230,7 @@ export default function FollowupCard() {
     queueStage(() => setManualPhase("reply_menu_hover"), 2700);
     queueStage(() => setManualPhase("reply_menu_click"), 3300);
     queueStage(() => setManualPhase("compose_open"), 4000);
-    queueStage(() => setManualPhase("compose_typing"), 4700);
+    queueStage(() => setManualPhase("compose_greeting"), 4700);
 
     return () => {
       stageTimelineRef.current.forEach(clearTimeout);
@@ -253,16 +255,19 @@ export default function FollowupCard() {
     "reply_menu_hover",
     "reply_menu_click",
     "compose_open",
-    "compose_typing",
-    "compose_rewrite",
+    "compose_greeting",
+    "compose_sentence",
     "compose_timing",
+    "compose_signoff",
+    "compose_pause",
     "compose_done",
   ];
   const phaseIndex = phaseOrder.indexOf(manualPhase);
   const hasReached = (phase) => phaseIndex >= phaseOrder.indexOf(phase);
 
   const composeVisible = hasReached("compose_open");
-  const composeTypingActive = hasReached("compose_typing") && !hasReached("compose_done");
+  const composeTypingActive = hasReached("compose_greeting") && !hasReached("compose_done");
+  const draftSavedVisible = hasReached("compose_pause");
 
   const userTranscript =
     "Need a reply for Sarah. Thank her for waiting and confirm pricing lands tomorrow.";
@@ -272,31 +277,44 @@ export default function FollowupCard() {
 
   const manualScript = useMemo(
     () => [
-      { type: "text", value: "Hi Sarah —\n\n", speedMs: 60 },
+      { type: "text", value: "Hi Sarah", speedMs: 60 },
+      { type: "text", value: ",", speedMs: 60 },
+      { type: "pause", ms: 380 },
+      { type: "backspace", count: 1, speedMs: 90 },
+      { type: "text", value: " —", speedMs: 60 },
+      { type: "text", value: "\n\n", speedMs: 60 },
       {
         type: "text",
         value: "Thanks for your patience on pricing.",
-        speedMs: 60,
+        speedMs: 56,
       },
       { type: "pause", ms: 600 },
-      { type: "backspace", count: 29, speedMs: 90 },
+      { type: "backspace", count: 11, speedMs: 85 },
+      { type: "pause", ms: 180 },
+      { type: "backspace", count: 10, speedMs: 85 },
+      { type: "backspace", count: 5, speedMs: 85 },
+      { type: "backspace", count: 4, speedMs: 85 },
       { type: "pause", ms: 260 },
       {
         type: "text",
-        value: "again for being patient on pricing.",
-        speedMs: 58,
+        value: " again for being patient on pricing.",
+        speedMs: 54,
       },
-      { type: "pause", ms: 480 },
+      { type: "pause", ms: 500 },
       {
         type: "text",
         value: " I'll send the updated numbers tomorrow.",
-        speedMs: 56,
+        speedMs: 52,
       },
       { type: "backspace", count: 1, speedMs: 80 },
-      { type: "pause", ms: 320 },
-      { type: "text", value: " morning.", speedMs: 54 },
+      { type: "pause", ms: 300 },
+      { type: "text", value: " morning.", speedMs: 52 },
       { type: "pause", ms: 420 },
-      { type: "text", value: "\n\nAppreciate you,\nJ", speedMs: 54 },
+      { type: "text", value: "\n\nBest,", speedMs: 52 },
+      { type: "pause", ms: 380 },
+      { type: "backspace", count: 5, speedMs: 90 },
+      { type: "pause", ms: 260 },
+      { type: "text", value: "Appreciate you,\nJ", speedMs: 52 },
     ],
     [],
   );
@@ -311,27 +329,47 @@ export default function FollowupCard() {
   });
 
   useEffect(() => {
-    if (manualPhase !== "compose_typing") return;
-    if (!emailTyped.includes("Thanks for your patience on pricing.")) return;
-    setManualPhase("compose_rewrite");
+    if (manualPhase !== "compose_greeting") return;
+    if (!emailTyped.includes("Hi Sarah —")) return;
+    setManualPhase("compose_sentence");
   }, [manualPhase, emailTyped]);
 
   useEffect(() => {
-    if (manualPhase !== "compose_rewrite") return;
-    if (!emailTyped.includes("I'll send the updated numbers tomorrow.")) return;
+    if (manualPhase !== "compose_sentence") return;
+    if (!emailTyped.includes("Thanks again for being patient on pricing.")) return;
     setManualPhase("compose_timing");
   }, [manualPhase, emailTyped]);
 
   useEffect(() => {
-    if (
-      (manualPhase === "compose_typing" ||
-        manualPhase === "compose_rewrite" ||
-        manualPhase === "compose_timing") &&
-      emailDone
-    ) {
-      setManualPhase("compose_done");
-    }
-  }, [manualPhase, emailDone]);
+    if (manualPhase !== "compose_timing") return;
+    if (!emailTyped.includes("I'll send the updated numbers tomorrow morning.")) return;
+    setManualPhase("compose_signoff");
+  }, [manualPhase, emailTyped]);
+
+  useEffect(() => {
+    if (manualPhase !== "compose_signoff") return;
+    if (!emailTyped.includes("Appreciate you,\nJ")) return;
+    setManualPhase("compose_pause");
+  }, [manualPhase, emailTyped]);
+
+  useEffect(() => {
+    if (manualPhase !== "compose_pause") return;
+
+    setSendHovering(true);
+
+    const hoverOffId = setTimeout(() => setSendHovering(false), 800);
+    const settleId = setTimeout(() => setManualPhase("compose_done"), 1700);
+
+    return () => {
+      clearTimeout(hoverOffId);
+      clearTimeout(settleId);
+    };
+  }, [manualPhase]);
+
+  useEffect(() => {
+    if (manualPhase !== "compose_done") return;
+    setSendHovering(false);
+  }, [manualPhase]);
 
   const aiStartQueuedRef = useRef(false);
   const aiFinishQueuedRef = useRef(false);
@@ -482,12 +520,14 @@ export default function FollowupCard() {
                   transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
                   className="pointer-events-none absolute inset-0 z-30"
                 >
-                  <GmailDraftCard
-                    bodyText={emailTyped}
-                    bodyDone={emailDone}
-                    showQuotedThread={composeVisible && !hasReached("compose_typing")}
-                    signOff={SIGN_OFF_SNIPPET}
-                  />
+              <GmailDraftCard
+                bodyText={emailTyped}
+                bodyDone={emailDone}
+                showQuotedThread={manualPhase === "compose_open"}
+                signOff={SIGN_OFF_SNIPPET}
+                sendHovering={sendHovering}
+                draftSavedVisible={draftSavedVisible}
+              />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -642,10 +682,12 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
     reply_menu_hover: "Clock’s ticking — opening reply…",
     reply_menu_click: "Clock’s ticking — opening reply…",
     compose_open: "Clock’s ticking — opening reply…",
-    compose_typing: "Fixing phrasing instead of sending…",
-    compose_rewrite: "Fixing phrasing instead of sending…",
+    compose_greeting: "Tweaking tone",
+    compose_sentence: "Fixing phrasing instead of sending…",
     compose_timing: "Clarifying timing…",
-    compose_done: "Manual draft finally ready.",
+    compose_signoff: "Choosing sign-off…",
+    compose_pause: "Still not sent.",
+    compose_done: "Still not sent.",
   };
 
   let statusLabel = manualStatusMap[phase];
@@ -669,9 +711,11 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
     phase === "reply_menu_hover" ||
     phase === "reply_menu_click" ||
     phase === "compose_open" ||
-    phase === "compose_typing" ||
-    phase === "compose_rewrite" ||
+    phase === "compose_greeting" ||
+    phase === "compose_sentence" ||
     phase === "compose_timing" ||
+    phase === "compose_signoff" ||
+    phase === "compose_pause" ||
     phase === "compose_done";
 
   const activeIndex = highlightSarah ? 1 : -1;
@@ -779,7 +823,15 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
 }
 
 
-function GmailDraftCard({ bodyText, bodyDone, showQuotedThread, highlightTone, signOff }) {
+function GmailDraftCard({
+  bodyText,
+  bodyDone,
+  showQuotedThread,
+  highlightTone,
+  signOff,
+  sendHovering = false,
+  draftSavedVisible = false,
+}) {
   const hasSignOff = Boolean(signOff) && bodyText.includes(signOff);
   const signOffIndex = hasSignOff ? bodyText.indexOf(signOff) : -1;
   const beforeSignOff = hasSignOff ? bodyText.slice(0, signOffIndex) : bodyText;
@@ -867,15 +919,30 @@ function GmailDraftCard({ bodyText, bodyDone, showQuotedThread, highlightTone, s
 
       {/* Footer */}
       <div className="px-3 py-2 border-t border-gray-200 bg-gray-50 flex items-center gap-2">
-        <button
+        <motion.button
+          type="button"
           className="
             inline-flex items-center justify-center rounded-md px-2.5 py-1.5
             text-[12px] font-medium leading-none text-white
-            bg-[#0b57d0] shadow-[0_2px_4px_rgba(0,0,0,0.2)]
           "
+          initial={false}
+          animate={
+            sendHovering
+              ? {
+                  backgroundColor: "#174ea6",
+                  boxShadow: "0 6px 14px rgba(23,78,166,0.35)",
+                  scale: 1.03,
+                }
+              : {
+                  backgroundColor: "#0b57d0",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                  scale: 1,
+                }
+          }
+          transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
         >
           Send
-        </button>
+        </motion.button>
         <button
           className="
             inline-flex items-center justify-center rounded-md px-2.5 py-1.5
@@ -886,6 +953,23 @@ function GmailDraftCard({ bodyText, bodyDone, showQuotedThread, highlightTone, s
         >
           Edit
         </button>
+
+        <div className="ml-auto flex items-center text-[11px] font-medium text-gray-500">
+          <AnimatePresence>
+            {draftSavedVisible && (
+              <motion.span
+                key="draft-saved"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 4 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                className="tracking-tight"
+              >
+                Draft saved • 12:22 PM
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
