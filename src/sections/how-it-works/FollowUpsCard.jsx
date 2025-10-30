@@ -393,11 +393,11 @@ export default function FollowupCard() {
         <div className="flex flex-1 flex-col items-start gap-6">
           <div className="relative w-full max-w-[460px]">
             <motion.div
-              initial={{ opacity: 0, y: 30, rotate: -1.2 }}
+              initial={{ opacity: 0, y: 30, rotate: 0 }}
               animate={{
                 opacity: started ? 1 : 0,
                 y: started ? 0 : 30,
-                rotate: -1.2,
+                rotate: 0,
               }}
               transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
               className="relative z-0"
@@ -419,11 +419,11 @@ export default function FollowupCard() {
               {composeVisible && (
                 <motion.div
                   key="compose"
-                  initial={{ opacity: 0, y: 36, rotate: -0.8 }}
+                  initial={{ opacity: 0, y: 36, rotate: 0 }}
                   animate={{
                     opacity: 1,
                     y: 0,
-                    rotate: -0.8,
+                    rotate: 0,
                     filter: composeIsBlurred
                       ? "blur(2.6px) saturate(0.92) brightness(0.98)"
                       : "blur(0px) saturate(1) brightness(1)",
