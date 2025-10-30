@@ -377,8 +377,6 @@ export default function FollowupCard() {
   const showAiBubble = chatPhase === "ai_draft" || chatPhase === "ai_final";
   const aiStillTalkingForUI = chatPhase === "ai_draft" && !aiDone;
 
-  const composeIsBlurred = chatStarted && composeDoneReached;
-
   return (
     <FeatureLayout
       ref={rootRef}
@@ -436,9 +434,6 @@ export default function FollowupCard() {
                     opacity: 1,
                     y: 0,
                     rotate: 0,
-                    filter: composeIsBlurred
-                      ? "blur(2.6px) saturate(0.92) brightness(0.98)"
-                      : "blur(0px) saturate(1) brightness(1)",
                   }}
                   exit={{ opacity: 0, y: 36, transition: { duration: 0.5, ease: "easeInOut" } }}
                   transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
@@ -458,24 +453,24 @@ export default function FollowupCard() {
 
         </div>
 
-        <div className="flex flex-1 justify-start lg:pl-6">
-          <div className="relative w-full max-w-[360px] rounded-[28px] border border-gray-200/70 bg-white/85 p-5 shadow-[0_32px_70px_rgba(15,23,42,0.08)] backdrop-blur-[2px]">
-            <motion.div
-              className="pointer-events-none absolute -top-10 -right-6 h-36 w-36 rounded-full bg-[rgba(224,122,95,0.14)] blur-3xl"
-              animate={{ opacity: chatStarted ? 0.6 : 0.2 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            />
+        <div className="relative flex flex-1 justify-start lg:pl-6">
+          <motion.div
+            className="pointer-events-none absolute -top-10 -right-6 h-36 w-36 rounded-full bg-[rgba(224,122,95,0.14)] blur-3xl"
+            animate={{ opacity: chatStarted ? 0.6 : 0.25 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          />
 
-            <div className="relative z-10 flex min-h-[220px] flex-col gap-3">
+          <div className="relative w-full max-w-[360px]">
+            <div className="relative flex min-h-[220px] flex-col gap-3 pointer-events-none">
               <AnimatePresence>
-                {showUserBubble && (
+                {chatStarted && showUserBubble && (
                   <motion.div
                     key="user-bubble"
                     initial={{ opacity: 0, y: 20, scale: 0.96 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 1 }}
                     transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                    className="flex w-full justify-end gap-2"
+                    className="flex w-full justify-end gap-2 pointer-events-auto"
                   >
                     <div
                       className="
@@ -524,14 +519,14 @@ export default function FollowupCard() {
               </AnimatePresence>
 
               <AnimatePresence>
-                {showAiBubble && (
+                {chatStarted && showAiBubble && (
                   <motion.div
                     key="ai-bubble-row"
                     initial={{ opacity: 0, y: 28, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 1 }}
                     transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-                    className="flex w-full items-start gap-2"
+                    className="flex w-full justify-start gap-2 items-start pointer-events-auto"
                   >
                     <div className="relative flex-shrink-0">
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFE8DC] text-[10px] font-medium text-[#C76545] ring-1 ring-orange-200">
@@ -553,22 +548,21 @@ export default function FollowupCard() {
 
                     <div
                       className="
-                        max-w-[280px]
+                        max-w-[260px]
                         rounded-2xl px-4 py-3
-                        bg-gray-100 text-gray-900
-                        ring-1 ring-gray-200 border border-white/40
-                        shadow-[0_24px_48px_rgba(0,0,0,0.12)]
-                        text-[14px] leading-[1.4] font-medium
-                        whitespace-pre-wrap break-words
+                        bg-gray-100 text-gray-900 ring-1 ring-gray-200
+                        border border-white/40 shadow-[0_24px_48px_rgba(0,0,0,0.12)]
+                        text-[14px] leading-[1.4] font-medium whitespace-pre-wrap break-words
                       "
                       style={{
                         borderTopLeftRadius: "0.5rem",
-                        boxShadow: "0 28px 64px rgba(0,0,0,0.12), 0 6px 28px rgba(0,0,0,0.06)",
+                        boxShadow:
+                          "0 28px 64px rgba(0,0,0,0.12), 0 6px 28px rgba(0,0,0,0.06)",
                       }}
                     >
                       {aiStillTalkingForUI && (
                         <div className="mb-2 flex items-center gap-2 text-[12px] font-medium text-gray-700">
-                          <span>Drafting…</span>
+                          <span>Speaking…</span>
                           <div className="text-gray-500">
                             <VoiceBars active />
                           </div>
