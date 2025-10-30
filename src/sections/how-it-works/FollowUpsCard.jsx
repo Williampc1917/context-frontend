@@ -188,14 +188,11 @@ export default function FollowupCard() {
   const rootRef = useRef(null);
   const stageTimelineRef = useRef([]);
   const chatTimelineRef = useRef([]);
-  const manualTimerRef = useRef(null);
-  const manualTimerStartRef = useRef(null);
 
   const [started, setStarted] = useState(false);
   const [manualPhase, setManualPhase] = useState("prestart");
   const [chatStarted, setChatStarted] = useState(false);
   const [chatPhase, setChatPhase] = useState(null); // 'user_voice' | 'user_final' | 'ai_draft' | 'ai_final'
-  const [manualElapsedMs, setManualElapsedMs] = useState(0);
 
   useEffect(() => {
     const el = rootRef.current;
@@ -217,12 +214,6 @@ export default function FollowupCard() {
     if (!started) return;
 
     setManualPhase("inbox_idle");
-    setManualElapsedMs(0);
-    manualTimerStartRef.current = null;
-    if (manualTimerRef.current) {
-      clearInterval(manualTimerRef.current);
-      manualTimerRef.current = null;
-    }
     stageTimelineRef.current.forEach(clearTimeout);
     stageTimelineRef.current = [];
 
@@ -245,45 +236,11 @@ export default function FollowupCard() {
   }, [started]);
 
   useEffect(() => {
-    if (!started) return;
-    if (manualPhase === "prestart") return;
-    if (manualTimerRef.current) return;
-
-    const now = typeof performance !== "undefined" ? performance.now() : Date.now();
-    manualTimerStartRef.current = now;
-    setManualElapsedMs(0);
-
-    manualTimerRef.current = setInterval(() => {
-      const start = manualTimerStartRef.current ?? now;
-      const current = typeof performance !== "undefined" ? performance.now() : Date.now();
-      setManualElapsedMs(Math.round(current - start));
-    }, 200);
-  }, [manualPhase, started]);
-
-  useEffect(() => {
-    if (!chatStarted) return;
-    if (!manualTimerRef.current) return;
-
-    const start = manualTimerStartRef.current;
-    const current = typeof performance !== "undefined" ? performance.now() : Date.now();
-    if (start != null) {
-      setManualElapsedMs(Math.round(current - start));
-    }
-
-    clearInterval(manualTimerRef.current);
-    manualTimerRef.current = null;
-  }, [chatStarted]);
-
-  useEffect(() => {
     return () => {
       stageTimelineRef.current.forEach(clearTimeout);
       stageTimelineRef.current = [];
       chatTimelineRef.current.forEach(clearTimeout);
       chatTimelineRef.current = [];
-      if (manualTimerRef.current) {
-        clearInterval(manualTimerRef.current);
-        manualTimerRef.current = null;
-      }
     };
   }, []);
 
@@ -355,7 +312,7 @@ export default function FollowupCard() {
   const composeDoneReached = hasReached("compose_done");
 
   useEffect(() => {
-    if (!composeDoneReached) return;
+    if (!started) return;
 
     chatTimelineRef.current.forEach(clearTimeout);
     chatTimelineRef.current = [];
@@ -366,19 +323,17 @@ export default function FollowupCard() {
       return id;
     };
 
-    queueTimeout(() => {
-      setChatStarted(true);
-      setChatPhase("user_voice");
-      queueTimeout(() => setChatPhase("user_final"), 900);
-      queueTimeout(() => setChatPhase("ai_draft"), 1500);
-      queueTimeout(() => setChatPhase("ai_final"), 3600);
-    }, 800);
+    setChatStarted(true);
+    setChatPhase("user_voice");
+    queueTimeout(() => setChatPhase("user_final"), 900);
+    queueTimeout(() => setChatPhase("ai_draft"), 1500);
+    queueTimeout(() => setChatPhase("ai_final"), 3200);
 
     return () => {
       chatTimelineRef.current.forEach(clearTimeout);
       chatTimelineRef.current = [];
     };
-  }, [composeDoneReached]);
+  }, [started]);
 
   const userTypeActive =
     chatPhase === "user_final" || chatPhase === "ai_draft" || chatPhase === "ai_final";
@@ -390,7 +345,7 @@ export default function FollowupCard() {
   });
 
   const aiResponse =
-    "Matched your \"Appreciate you, —J\" tone for Sarah. Here's the reply — want me to send it?\n\nHi Sarah —\n\nThanks again for being patient on pricing. I'll send the updated numbers tomorrow morning.\n\nAppreciate you,\nJ";
+    "Claro drafted your reply in seconds — ready to send?\n\nHi Sarah —\n\nThanks again for being patient on pricing. I'll send the updated numbers tomorrow morning.\n\nAppreciate you,\nJ";
   const aiTypeActive = chatPhase === "ai_draft" || chatPhase === "ai_final";
   const { text: aiTyped, done: aiDone } = useTypewriter({
     fullText: aiResponse,
@@ -407,16 +362,7 @@ export default function FollowupCard() {
   const showAiBubble = chatPhase === "ai_draft" || chatPhase === "ai_final";
   const aiStillTalkingForUI = chatPhase === "ai_draft" && !aiDone;
 
-  const composeIsBlurred = chatStarted;
-
-  const chatStatusMap = {
-    user_voice: "Just tell Claro what you need — no clicking.",
-    user_final: "Intent captured once. Claro remembers your tone.",
-    ai_draft: `Claro drafts instantly, matching your ${TARGET_CONTACT.from.split(" ")[0]} sign-off.`,
-    ai_final: "Ready to send — tone matched in seconds.",
-  };
-
-  const chatStatusLabel = chatPhase ? chatStatusMap[chatPhase] : null;
+  const composeIsBlurred = chatStarted && composeDoneReached;
 
   return (
     <FeatureLayout
@@ -461,11 +407,10 @@ export default function FollowupCard() {
                 hasScrolled={hasReached("inbox_scroll")}
                 replyHover={manualPhase === "reply_hover"}
                 replyPressed={manualPhase === "reply_click"}
-                dimmed={composeVisible || chatStarted}
+                dimmed={composeVisible}
                 chatPhase={chatPhase}
                 chatStarted={chatStarted}
                 aiDone={aiDone}
-                manualElapsedMs={manualElapsedMs}
                 showChatStatus={false}
               />
             </motion.div>
@@ -491,7 +436,6 @@ export default function FollowupCard() {
                     bodyText={emailTyped}
                     bodyDone={emailDone}
                     showQuotedThread={composeVisible}
-                    highlightTone={chatPhase === "ai_final"}
                     signOff={SIGN_OFF_SNIPPET}
                   />
                 </motion.div>
@@ -501,28 +445,6 @@ export default function FollowupCard() {
             <PointerCursor phase={manualPhase} visible={!composeDoneReached} />
           </div>
 
-          <AnimatePresence>
-            {chatPhase === "ai_final" && (
-              <motion.div
-                key="tone-note"
-                initial={{ opacity: 0, y: 12, scale: 0.96 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 12, scale: 0.96 }}
-                transition={{ duration: 0.6, ease: [0.18, 0.9, 0.3, 1] }}
-                className="pointer-events-none w-[220px] max-w-[80vw]"
-              >
-                <div className="rounded-xl border border-orange-200/80 bg-white/95 px-4 py-3 text-[12px] leading-snug text-gray-700 shadow-[0_18px_40px_rgba(224,122,95,0.22)] ring-1 ring-orange-100">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#C76545]">
-                    Tone matched
-                  </div>
-                  <div className="mt-1 text-[12px] text-gray-700">
-                    Claro pulled your last 3 replies to {TARGET_CONTACT.from.split(" ")[0]} to mirror your “Appreciate you, —J”
-                    sign-off.
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
         <div className="flex flex-1 justify-start lg:pl-6">
@@ -533,151 +455,123 @@ export default function FollowupCard() {
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             />
 
-            <div className="relative z-10 flex min-h-[220px] flex-col gap-4">
-              <AnimatePresence initial={false}>
-                {chatStatusLabel ? (
+            <div className="relative z-10 flex min-h-[220px] flex-col gap-3">
+              <AnimatePresence>
+                {showUserBubble && (
                   <motion.div
-                    key={chatPhase}
-                    initial={{ opacity: 0, y: -6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    className="inline-flex max-w-[260px] items-center gap-2 rounded-full bg-white/95 px-3.5 py-1.5 text-[11px] font-medium text-gray-600 shadow-[0_10px_30px_rgba(15,23,42,0.12)] ring-1 ring-gray-200"
+                    key="user-bubble"
+                    initial={{ opacity: 0, y: 20, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 1 }}
+                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex w-full justify-end gap-2"
                   >
-                    <span className="text-center leading-tight">{chatStatusLabel}</span>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="idle"
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    className="inline-flex max-w-[260px] items-center gap-2 rounded-full bg-blue-50/70 px-3.5 py-1.5 text-[11px] font-medium text-blue-700 shadow-[0_10px_30px_rgba(37,99,235,0.18)] ring-1 ring-blue-200"
-                  >
-                    Claro’s ready the moment you ask.
+                    <div
+                      className="
+                        max-w-[230px]
+                        rounded-2xl px-3 py-2 text-[13px] leading-snug
+                        text-white bg-gradient-to-br from-blue-500 to-blue-600
+                        shadow-[0_16px_40px_rgba(0,0,0,0.18)]
+                        ring-1 ring-blue-600/40 border border-white/10 break-words
+                      "
+                      style={{ borderTopRightRadius: "0.5rem" }}
+                    >
+                      {chatPhase === "user_voice" && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[12px] font-medium text-white/90">Listening…</span>
+                          <VoiceBars active />
+                        </div>
+                      )}
+
+                      {chatPhase !== "user_voice" && (
+                        <div className="text-[13px] font-medium text-white whitespace-pre-wrap">
+                          {userTyped}
+                          {!userDone && <CaretBlink light />}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="relative flex-shrink-0">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200 text-[10px] font-medium text-gray-700 ring-1 ring-gray-300">
+                        You
+                      </div>
+
+                      {chatPhase === "user_voice" && (
+                        <motion.div
+                          className="pointer-events-none absolute inset-0 rounded-full"
+                          style={{
+                            boxShadow:
+                              "0 0 8px rgba(59,130,246,0.6),0 0 16px rgba(59,130,246,0.4)",
+                          }}
+                          animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.08, 1] }}
+                          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                      )}
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <div className="flex flex-col gap-3">
-                <AnimatePresence>
-                  {showUserBubble && (
-                    <motion.div
-                      key="user-bubble"
-                      initial={{ opacity: 0, y: 20, scale: 0.96 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 1 }}
-                      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                      className="flex w-full justify-end gap-2"
+              <AnimatePresence>
+                {showAiBubble && (
+                  <motion.div
+                    key="ai-bubble-row"
+                    initial={{ opacity: 0, y: 28, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 1 }}
+                    transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex w-full items-start gap-2"
+                  >
+                    <div className="relative flex-shrink-0">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFE8DC] text-[10px] font-medium text-[#C76545] ring-1 ring-orange-200">
+                        C
+                      </div>
+
+                      {aiStillTalkingForUI && (
+                        <motion.div
+                          className="pointer-events-none absolute inset-0 rounded-full"
+                          style={{
+                            boxShadow:
+                              "0 0 8px rgba(224,122,95,0.5),0 0 16px rgba(224,122,95,0.3)",
+                          }}
+                          animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.08, 1] }}
+                          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                      )}
+                    </div>
+
+                    <div
+                      className="
+                        max-w-[280px]
+                        rounded-2xl px-4 py-3
+                        bg-gray-100 text-gray-900
+                        ring-1 ring-gray-200 border border-white/40
+                        shadow-[0_24px_48px_rgba(0,0,0,0.12)]
+                        text-[14px] leading-[1.4] font-medium
+                        whitespace-pre-wrap break-words
+                      "
+                      style={{
+                        borderTopLeftRadius: "0.5rem",
+                        boxShadow: "0 28px 64px rgba(0,0,0,0.12), 0 6px 28px rgba(0,0,0,0.06)",
+                      }}
                     >
-                      <div
-                        className="
-                          max-w-[230px]
-                          rounded-2xl px-3 py-2 text-[13px] leading-snug
-                          text-white bg-gradient-to-br from-blue-500 to-blue-600
-                          shadow-[0_16px_40px_rgba(0,0,0,0.18)]
-                          ring-1 ring-blue-600/40 border border-white/10 break-words
-                        "
-                        style={{ borderTopRightRadius: "0.5rem" }}
-                      >
-                        {chatPhase === "user_voice" && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-[12px] font-medium text-white/90">Listening…</span>
+                      {aiStillTalkingForUI && (
+                        <div className="mb-2 flex items-center gap-2 text-[12px] font-medium text-gray-700">
+                          <span>Drafting…</span>
+                          <div className="text-gray-500">
                             <VoiceBars active />
                           </div>
-                        )}
-
-                        {chatPhase !== "user_voice" && (
-                          <div className="text-[13px] font-medium text-white whitespace-pre-wrap">
-                            {userTyped}
-                            {!userDone && <CaretBlink light />}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="relative flex-shrink-0">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200 text-[10px] font-medium text-gray-700 ring-1 ring-gray-300">
-                          You
                         </div>
+                      )}
 
-                        {chatPhase === "user_voice" && (
-                          <motion.div
-                            className="pointer-events-none absolute inset-0 rounded-full"
-                            style={{
-                              boxShadow:
-                                "0 0 8px rgba(59,130,246,0.6),0 0 16px rgba(59,130,246,0.4)",
-                            }}
-                            animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.08, 1] }}
-                            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-                          />
-                        )}
+                      <div className="text-gray-900">
+                        {aiTyped}
+                        {!aiDone && <CaretBlink />}
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <AnimatePresence>
-                  {showAiBubble && (
-                    <motion.div
-                      key="ai-bubble-row"
-                      initial={{ opacity: 0, y: 28, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 1 }}
-                      transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-                      className="flex w-full items-start gap-2"
-                    >
-                      <div className="relative flex-shrink-0">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFE8DC] text-[10px] font-medium text-[#C76545] ring-1 ring-orange-200">
-                          C
-                        </div>
-
-                        {aiStillTalkingForUI && (
-                          <motion.div
-                            className="pointer-events-none absolute inset-0 rounded-full"
-                            style={{
-                              boxShadow:
-                                "0 0 8px rgba(224,122,95,0.5),0 0 16px rgba(224,122,95,0.3)",
-                            }}
-                            animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.08, 1] }}
-                            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-                          />
-                        )}
-                      </div>
-
-                      <div
-                        className="
-                          max-w-[280px]
-                          rounded-2xl px-4 py-3
-                          bg-gray-100 text-gray-900
-                          ring-1 ring-gray-200 border border-white/40
-                          shadow-[0_24px_48px_rgba(0,0,0,0.12)]
-                          text-[14px] leading-[1.4] font-medium
-                          whitespace-pre-wrap break-words
-                        "
-                        style={{
-                          borderTopLeftRadius: "0.5rem",
-                          boxShadow: "0 28px 64px rgba(0,0,0,0.12), 0 6px 28px rgba(0,0,0,0.06)",
-                        }}
-                      >
-                        {aiStillTalkingForUI && (
-                          <div className="mb-2 flex items-center gap-2 text-[12px] font-medium text-gray-700">
-                            <span>Drafting…</span>
-                            <div className="text-gray-500">
-                              <VoiceBars active />
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="text-gray-900">
-                          {aiTyped}
-                          {!aiDone && <CaretBlink />}
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
@@ -699,28 +593,9 @@ function InboxPreviewCard({
   chatPhase,
   chatStarted,
   aiDone,
-  manualElapsedMs,
   showChatStatus = true,
 }) {
   const contactFirstName = TARGET_CONTACT.from.split(" ")[0];
-
-  const formatStopwatch = (ms) => {
-    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    const secondsDisplay = seconds.toString().padStart(2, "0");
-    return minutes > 0 ? `${minutes}:${secondsDisplay}` : `:${secondsDisplay}`;
-  };
-
-  const formatSpokenSeconds = (ms) => {
-    const seconds = Math.round(ms / 1000);
-    if (seconds <= 0) return "<1s";
-    return `${seconds}s`;
-  };
-
-  const manualSecondsText = formatSpokenSeconds(manualElapsedMs);
-  const manualStopwatch = formatStopwatch(manualElapsedMs);
-  const showManualTimer = phase !== "prestart";
 
   const manualStatusMap = {
     inbox_idle: `Inbox piling up — ${contactFirstName} still needs pricing.`,
@@ -728,9 +603,9 @@ function InboxPreviewCard({
     reply_hover: `${contactFirstName}’s waiting — find the reply button.`,
     reply_click: "Clock’s ticking — opening reply…",
     compose_open: "Reply window finally open — you’re still on the hook.",
-    compose_typing: () => `Still typing it yourself… clock’s at ${manualSecondsText}.`,
-    compose_rewrite: () => `Fixing typos instead of sending — ${manualSecondsText} gone.`,
-    compose_done: () => `Manual draft took ${manualSecondsText}.`,
+    compose_typing: "Still typing it yourself…",
+    compose_rewrite: "Fixing typos instead of sending…",
+    compose_done: "Manual draft finally ready.",
   };
 
   let statusLabel = manualStatusMap[phase];
@@ -777,21 +652,6 @@ function InboxPreviewCard({
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           className={statusClassName}
         >
-          <AnimatePresence initial={false}>
-            {showManualTimer && (
-              <motion.span
-                key="manual-timer"
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                className="inline-flex items-center gap-1 rounded-full bg-[#f97316]/15 px-2.5 py-[2px] text-[10px] font-semibold uppercase tracking-[0.18em] text-[#b45309]"
-              >
-                <span className="text-[11px] leading-none">⏱</span>
-                <span>{manualStopwatch} spent hunting</span>
-              </motion.span>
-            )}
-          </AnimatePresence>
           <span className="text-center leading-tight">{statusLabel}</span>
         </motion.div>
       )}
