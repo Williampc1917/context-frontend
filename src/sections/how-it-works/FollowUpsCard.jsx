@@ -583,18 +583,19 @@ export default function FollowupCard() {
                   transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
                   className="pointer-events-none absolute inset-0 z-30"
                 >
-              <GmailDraftCard
-                bodyText={emailTyped}
-                bodyDone={emailDone}
-                showQuotedThread={false}
-                signOff={SIGN_OFF_SNIPPET}
-                sendHovering={sendHovering}
-                draftSavedVisible={draftSavedVisible}
-              />
+                  <GmailDraftCard
+                    bodyText={emailTyped}
+                    bodyDone={emailDone}
+                    showQuotedThread={false}
+                    signOff={SIGN_OFF_SNIPPET}
+                    sendHovering={sendHovering}
+                    draftSavedVisible={draftSavedVisible}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>
 
+            <DesktopCursor phase={manualPhase} />
           </div>
 
         </div>
@@ -1116,6 +1117,108 @@ function GmailDraftCard({
         </div>
       </div>
     </div>
+  );
+}
+
+function DesktopCursor({ phase }) {
+  const cursorPositionMap = {
+    row_hover: { x: 288, y: 118, rotate: -14 },
+    row_context: { x: 314, y: 120, rotate: -14 },
+    reply_menu_hover: { x: 236, y: 180, rotate: -12 },
+    reply_menu_click: { x: 236, y: 180, rotate: -12 },
+    compose_open: { x: 142, y: 216, rotate: -12 },
+    compose_greeting: { x: 158, y: 228, rotate: -11 },
+    compose_sentence: { x: 178, y: 244, rotate: -11 },
+    compose_timing: { x: 194, y: 262, rotate: -11 },
+    compose_signoff: { x: 168, y: 296, rotate: -10 },
+    compose_pause: { x: 84, y: 334, rotate: -8 },
+    compose_done: { x: 84, y: 334, rotate: -8 },
+  };
+
+  const visiblePhases = new Set([
+    "row_hover",
+    "row_context",
+    "reply_menu_hover",
+    "reply_menu_click",
+    "compose_open",
+    "compose_greeting",
+    "compose_sentence",
+    "compose_timing",
+    "compose_signoff",
+    "compose_pause",
+    "compose_done",
+  ]);
+
+  const isVisible = visiblePhases.has(phase);
+  const target = cursorPositionMap[phase] || cursorPositionMap.compose_done;
+  const isClickPhase = phase === "reply_menu_click";
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          key="desktop-cursor"
+          className="pointer-events-none absolute left-0 top-0 z-40"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{
+            opacity: 1,
+            x: target.x,
+            y: target.y,
+            rotate: target.rotate,
+            scale: isClickPhase ? 0.92 : 1,
+          }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          transition={{
+            type: "spring",
+            stiffness: 420,
+            damping: 32,
+            mass: 0.5,
+          }}
+        >
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-0 translate-x-[6px] translate-y-[8px] blur-md bg-slate-900/20" />
+            <CursorIcon />
+
+            <AnimatePresence>
+              {isClickPhase && (
+                <motion.span
+                  key="cursor-click"
+                  className="pointer-events-none absolute left-2 top-6 h-5 w-5 rounded-full border border-blue-400/50 bg-blue-200/20"
+                  initial={{ opacity: 0, scale: 0.2 }}
+                  animate={{ opacity: [0.4, 0], scale: [0.3, 1.1] }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                />
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function CursorIcon() {
+  return (
+    <svg
+      width="32"
+      height="44"
+      viewBox="0 0 32 44"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="drop-shadow-[0_6px_12px_rgba(15,23,42,0.28)]"
+    >
+      <path
+        d="M6 4.5L6 30.8L12.3 24.4L18.8 39.5L23.8 37.3L17.3 22.1L26 22.1L6 4.5Z"
+        fill="white"
+      />
+      <path
+        d="M6 4.5L6 30.8L12.3 24.4L18.8 39.5L23.8 37.3L17.3 22.1L26 22.1L6 4.5Z"
+        stroke="rgba(30,41,59,0.55)"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
