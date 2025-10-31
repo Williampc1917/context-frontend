@@ -269,6 +269,32 @@ export default function FollowupCard() {
   const composeTypingActive = hasReached("compose_greeting") && !hasReached("compose_done");
   const draftSavedVisible = hasReached("compose_pause");
 
+  const cursorState = useMemo(() => {
+    const base = { visible: false, x: 0, y: 0, rotate: -6 };
+
+    switch (manualPhase) {
+      case "row_hover":
+      case "row_context":
+        return { visible: true, x: 292, y: 120, rotate: -8 };
+      case "reply_menu_hover":
+        return { visible: true, x: 338, y: 126, rotate: -8 };
+      case "reply_menu_click":
+        return { visible: true, x: 338, y: 122, rotate: -12 };
+      case "compose_open":
+      case "compose_greeting":
+      case "compose_sentence":
+        return { visible: true, x: 110, y: 208, rotate: -6 };
+      case "compose_timing":
+      case "compose_signoff":
+        return { visible: true, x: 118, y: 238, rotate: -4 };
+      case "compose_pause":
+      case "compose_done":
+        return { visible: true, x: 168, y: 316, rotate: -2 };
+      default:
+        return base;
+    }
+  }, [manualPhase]);
+
   const userTranscript =
     "Draft a reply for Sarah. Thank her for waiting and confirm pricing lands tomorrow.";
 
@@ -591,6 +617,27 @@ export default function FollowupCard() {
                 sendHovering={sendHovering}
                 draftSavedVisible={draftSavedVisible}
               />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {cursorState.visible && (
+                <motion.div
+                  key="desktop-cursor"
+                  className="pointer-events-none absolute left-0 top-0 z-40"
+                  initial={{ opacity: 0, scale: 0.94, x: cursorState.x, y: cursorState.y }}
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
+                    x: cursorState.x,
+                    y: cursorState.y,
+                    rotate: cursorState.rotate,
+                  }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <DesktopCursorGraphic />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -1147,5 +1194,29 @@ function CaretBlink({ light = false }) {
       animate={{ opacity: [0, 1, 0] }}
       transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
     />
+  );
+}
+
+function DesktopCursorGraphic() {
+  return (
+    <div className="drop-shadow-[0_4px_12px_rgba(15,23,42,0.22)]">
+      <svg
+        width="32"
+        height="36"
+        viewBox="0 0 32 36"
+        fill="white"
+        xmlns="http://www.w3.org/2000/svg"
+        className="text-gray-400"
+        style={{ display: "block" }}
+      >
+        <path
+          d="M4 1L4 27.5L11.2 23.2L15.4 33L18.3 31.7L14 22.4L25.5 22.4L4 1Z"
+          stroke="rgba(71,85,105,0.45)"
+          strokeWidth="1.4"
+          fill="white"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
   );
 }
