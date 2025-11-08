@@ -351,19 +351,19 @@ export default function InboxToClarity() {
 
               {/* assistant bubble */}
               <div
-                      className="
+                className="
                         max-w-[260px]
                         rounded-2xl px-4 py-3
                         bg-gray-100 text-gray-900 ring-1 ring-gray-200
                         border border-white/40 shadow-[0_24px_48px_rgba(0,0,0,0.12)]
                         text-[14px] leading-[1.4] font-medium whitespace-pre-wrap break-words
                       "
-                      style={{
-                        borderTopLeftRadius: "0.5rem",
-                        boxShadow:
-                          "0 28px 64px rgba(0,0,0,0.12), 0 6px 28px rgba(0,0,0,0.06)",
-                      }}
-                    >
+                style={{
+                  borderTopLeftRadius: "0.5rem",
+                  boxShadow:
+                    "0 28px 64px rgba(0,0,0,0.12), 0 6px 28px rgba(0,0,0,0.06)",
+                }}
+              >
                 {/* Speaking… header lives INSIDE the bubble while AI is still "talking" */}
                 {aiStillTalkingForUI && (
                   <div className="flex items-center gap-2 mb-2 text-[12px] font-medium text-gray-700">
