@@ -1,6 +1,14 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useReducedMotion, motion, AnimatePresence } from "framer-motion";
-import { Mic, ArrowRight, Menu, X, Mail, Twitter, Linkedin } from "lucide-react";
+import {
+  Mic,
+  ArrowRight,
+  Menu,
+  X,
+  Mail,
+  Twitter,
+  Linkedin,
+} from "lucide-react";
 import "./index.css";
 import { rafThrottle } from "./utils/throttle";
 import { useForm, ValidationError } from "@formspree/react";
@@ -10,9 +18,9 @@ import React from "react";
 // Import sections directly - no lazy loading
 import ProblemSection from "./sections/ProblemSection.jsx";
 import { RevealHeadline } from "./sections/RevealHeadline.jsx";
-import ClaroBrainOverlay from "./sections/ClaroBrainOverlay.jsx";
 import FloatingLogo from "./sections/FloatingLogo.jsx";
 import { howItWorksFeatures } from "./sections/how-it-works/index.js";
+
 
 export default function ContextLanding() {
   const [scrolled, setScrolled] = useState(false);
@@ -161,7 +169,10 @@ export default function ContextLanding() {
 
           <div className="pointer-events-none absolute inset-0 hidden items-center justify-center md:flex">
             <div className="pointer-events-auto flex items-center gap-10 text-[15px] font-medium text-[#3D405B]/80">
-              <NavLink label="The problem" onClick={() => scrollTo("problem")} />
+              <NavLink
+                label="The problem"
+                onClick={() => scrollTo("problem")}
+              />
               <NavLink label="Solution" onClick={() => scrollTo("solution")} />
               <NavLink label="Features" onClick={() => scrollTo("features")} />
               <NavLink label="How it works" onClick={() => scrollTo("how")} />
@@ -231,97 +242,80 @@ export default function ContextLanding() {
       ) : null}
 
       <section
-        id="top"
-        ref={heroRef}
-        className="hero-canvas relative flex flex-col items-center justify-center min-h-[90vh] px-6 pt-28 md:pt-36 pb-18 lg:px-8 text-center"
-      >
-        <div className="hero-shell w-full max-w-5xl px-6 py-16 md:py-20 lg:px-16 mx-auto">
-          {/* Hero text block */}
-          <div className="hero-content flex flex-col items-center justify-center w-full max-w-3xl lg:max-w-4xl mx-auto text-center">
-            <RevealHeadline
-              text={"Clarity for the way you\nconnect"}
-              className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.05]"
-              cleanColor="#3D405B"
-              activeColor="#E07A5F"
-              durationMs={2400}
-              tileEnd={3.2}
-              threshold={0.4}
-              breathDelayMs={1200} // ← gap between reveal end and breathing start
-            />
+  id="top"
+  ref={heroRef}
+  className="hero-canvas relative flex flex-col items-center justify-center min-h-[90vh] px-6 pt-28 md:pt-36 pb-18 lg:px-8 text-center"
+>
+  <div className="hero-shell w-full max-w-5xl px-6 py-16 md:py-20 lg:px-16 mx-auto">
+    {/* Hero text block */}
+    <div className="hero-content flex flex-col items-center justify-center w-full max-w-3xl lg:max-w-4xl mx-auto text-center">
+      <RevealHeadline
+        text={"Clarity for the way you\nconnect"}
+        className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.05]"
+        cleanColor="#3D405B"
+        activeColor="#E07A5F"
+        durationMs={2400}
+        tileEnd={3.2}
+        threshold={0.4}
+        breathDelayMs={1200}
+      />
 
-            <p className="mt-6 text-lg sm:text-xl text-[#3D405B]/80 max-w-2xl mx-auto">
-              CLARO AI is a voice assistant for your email and calendar. It
-              understands how you connect — who matters, how you communicate,
-              and when to reach out.
-            </p>
+      <p className="mt-6 text-lg sm:text-xl text-[#3D405B]/80 max-w-2xl mx-auto">
+        CLARO AI is a voice assistant for your email and calendar. It
+        understands how you connect — who matters, how you communicate,
+        and when to reach out.
+      </p>
 
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <button
-                onClick={() => scrollTo("waitlist")}
-                className="btn-primary bg-[#E07A5F] hover:bg-[#d36f56]"
-              >
-                Join the waitlist
-              </button>
-              <button
-                onClick={() => scrollTo("how")}
-                className="btn-glass text-[#3D405B] border-[#3D405B]/20 hover:bg-white/80"
-              >
-                See how it works <ArrowRight size={16} />
-              </button>
-            </div>
-          </div>
+      <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+        <button
+          onClick={() => scrollTo("waitlist")}
+          className="btn-primary bg-[#E07A5F] hover:bg-[#d36f56]"
+        >
+          Join the waitlist
+        </button>
+        <button
+          onClick={() => scrollTo("how")}
+          className="btn-glass text-[#3D405B] border-[#3D405B]/20 hover:bg-white/80"
+        >
+          See how it works <ArrowRight size={16} />
+        </button>
+      </div>
+    </div>
 
-          <ClaroBrainOverlay
-            className="mt-10"
-            aiLines={[
-              "Here’s your daily briefing — ready?",
-              "Jennifer’s note looks urgent — she’s waiting on pricing.",
-              "Reply ready — matches how you usually write to Sarah.",
-            "You promised Alex that update — want me to finish it?",
-            "Tomorrow’s QBR with Jennifer — I’ve summarized your last thread.",
-            "You’re free until 2 PM — want to catch up on pending replies?",
-            "Here’s your schedule for tomorrow — one client call and one team sync.",
-            "No meeting logged since your last promise to Alex — should I set one?",
-          ]}
-          aiLineTags={[
-            ["Context", "Relationships"], // daily briefing
-            ["Relationships", "Context"], // urgent note
-            ["Tone", "Relationships"], // reply ready
-            ["Tone", "Memory"], // friendly tone
-            ["Memory", "Relationships"], // update reminder
-            ["Context", "Memory"], // QBR summary
-            ["Context", "Memory"], // free until 2pm
-            ["Context", "Relationships"], // schedule awareness
-            ["Memory", "Relationships"], // overdue meeting
-          ]}
-          capsules={[
-            { label: "Understands your world", tag: "Context" },
-            { label: "Remembers what matters", tag: "Memory" },
-            { label: "Writes like you", tag: "Tone" },
-            { label: "Knows who matters", tag: "Relationships" },
-          ]}
-          radiusX={440}
-          />
-        </div>
+    {/* iPhone mock image from /public */}
+    <div className="mt-10 flex justify-center">
+      <img
+        src={`${import.meta.env.BASE_URL}standard-mockup.png`}
+        // You can also just do src="/standard-mockup.png"
+        alt="Claro AI on an iPhone screen"
+        className="max-w-full h-auto w-[180px] sm:w-[220px] md:w-[260px] lg:w-[300px] rounded-[28px] border border-black/5 bg-white shadow-2xl"
+        loading="lazy"
+        width={420}
+        height={860}
+      />
+    </div>
+  </div>
 
-        <FloatingLogo
-          src={`${import.meta.env.BASE_URL}gmail.svg`}
-          alt="Gmail"
-          className="absolute left-[8%] top-[22%] w-[90px] sm:w-[110px] lg:w-[140px] z-30"
-          delay={0}
-          hideBelow="md"
-          targetRef={heroRef}
-        />
+  {/* Floating brand logos */}
+  <FloatingLogo
+    src={`${import.meta.env.BASE_URL}gmail.svg`}
+    alt="Gmail"
+    className="absolute left-[8%] top-[22%] w-[90px] sm:w-[110px] lg:w-[140px] z-30"
+    delay={0}
+    hideBelow="md"
+    targetRef={heroRef}
+  />
+  <FloatingLogo
+    src={`${import.meta.env.BASE_URL}google-calendar.svg`}
+    alt="Google Calendar"
+    className="absolute right-[8%] top-[22%] w-[85px] sm:w-[100px] lg:w-[130px] z-30"
+    delay={0.4}
+    hideBelow="md"
+    targetRef={heroRef}
+  />
+</section>
 
-        <FloatingLogo
-          src={`${import.meta.env.BASE_URL}google-calendar.svg`}
-          alt="Google Calendar"
-          className="absolute right-[8%] top-[22%] w-[85px] sm:w-[100px] lg:w-[130px] z-30"
-          delay={0.4}
-          hideBelow="md"
-          targetRef={heroRef}
-        />
-      </section>
+      
 
       {/* Problem section */}
       <section
@@ -387,7 +381,8 @@ export default function ContextLanding() {
               </span>
             </button>
             <p className="mt-4 text-base text-white/70">
-              Claro AI is the relationship intelligence copilot that keeps your communications warm and the right follow-ups on track.
+              Claro AI is the relationship intelligence copilot that keeps your
+              communications warm and the right follow-ups on track.
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-white/70">
               <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1">
@@ -395,7 +390,7 @@ export default function ContextLanding() {
                 hello@claro.ai
               </span>
               <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1">
-                Based in San Francisco
+                Based in my room
               </span>
             </div>
             <div className="mt-6 flex items-center gap-3">
@@ -442,14 +437,16 @@ export default function ContextLanding() {
               ]}
             />
           </div>
-
         </div>
 
         <div className="relative border-t border-white/10">
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 py-6 text-sm text-white/60 md:flex-row md:items-center md:justify-between">
             <p>© {new Date().getFullYear()} Claro AI. All rights reserved.</p>
             <p className="flex items-center gap-2">
-              <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-[#E07A5F]" aria-hidden />
+              <span
+                className="inline-flex h-2 w-2 animate-pulse rounded-full bg-[#E07A5F]"
+                aria-hidden
+              />
               Based in New York.
             </p>
           </div>
@@ -622,7 +619,9 @@ function HowItWorksHeading() {
       initial={{ opacity: prefersReducedMotion ? 1 : 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ once: true, amount: 0.7 }}
-      transition={prefersReducedMotion ? undefined : { duration: 0.6, ease: "easeOut" }}
+      transition={
+        prefersReducedMotion ? undefined : { duration: 0.6, ease: "easeOut" }
+      }
       className="flex items-center justify-center px-4 py-4"
     >
       <motion.h2
@@ -644,7 +643,7 @@ function FooterNavGroup({ title, links, onNavigate }) {
       <ul className="mt-4 space-y-3 text-sm text-white/70">
         {links.map((item) => {
           const { label, href, target } = item;
-          const resolvedHref = target ? `#${target}` : href ?? "#";
+          const resolvedHref = target ? `#${target}` : (href ?? "#");
 
           const handleClick = target
             ? (event) => {

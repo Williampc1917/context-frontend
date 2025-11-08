@@ -131,7 +131,8 @@ export default function InboxToClarity() {
           relationships, urgent follow-ups, and open promises.
         </p>,
         <p key="briefing" className="text-sm leading-relaxed text-gray-500">
-          No scrolling, no searching — just a simple voice briefing that keeps you ahead.
+          No scrolling, no searching — just a simple voice briefing that keeps
+          you ahead.
         </p>,
       ]}
       background={
@@ -145,273 +146,243 @@ export default function InboxToClarity() {
       }
     >
       {/* INBOX CARD */}
-        <motion.div
-          initial={{ opacity: 0, y: 30, rotate: -1.5 }}
-          animate={{
-            opacity: started ? 1 : 0,
-            y: started ? 0 : 30,
-            rotate: -1.5,
-          }}
-          transition={{ duration: 1.0, ease: "easeOut" }}
-          className="relative w-full max-w-[380px] rounded-xl border border-gray-200 bg-white/95 ring-1 ring-gray-100 overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.08)]"
-          style={{
-            boxShadow:
-              "0 28px 64px rgba(0,0,0,0.08), 0 6px 24px rgba(0,0,0,0.05)",
-          }}
-        >
-          <div className="pt-3">
-            {/* EMAIL 1 */}
-            <InboxRow
-              calm={inboxIsChill}
-              phase={phase}
-              unread
-              from="Jennifer Lee"
-              time="3:17 PM"
-              subject="Checking in on updated pricing"
-              body="Just following up on the revised pricing you said you’d send yesterday. They’re waiting on it to move forward."
-              chips={[
-                { color: "amber", text: "waiting on you" },
-                { color: "red", text: "deal at risk" },
-              ]}
-              index={0}
-            />
-
-            {/* EMAIL 2 */}
-            <InboxRow
-              calm={inboxIsChill}
-              phase={phase}
-              unread
-              hasAttachment
-              from="Sarah Quinn"
-              time="2:41 PM"
-              subject="QBR tomorrow 10AM — need your final slide"
-              body="You’re presenting slide 7. I told leadership you’d send the updated pricing by 5pm so I can lock the deck. Can you add one line on margin justification?"
-              chips={[
-                { color: "amber", text: "tomorrow 10am" },
-                { color: "blue", text: "you own slide 7" },
-              ]}
-              index={1}
-            />
-
-            {/* EMAIL 3 */}
-            <InboxRow
-              calm={inboxIsChill}
-              phase={phase}
-              unread
-              from="Alex Rivera"
-              time="1:09 PM"
-              subject="Can you confirm the final numbers before Friday?"
-              body="I still don’t have the final numbers you said you’d send over. If we don’t lock them in by Friday, this slips to next week. Who’s giving the green light?"
-              chips={[
-                { color: "amber", text: "Friday deadline" },
-                { color: "red", text: "blocked on you" },
-              ]}
-              index={2}
-            />
-
-            {/* EMAIL 4 */}
-            <InboxRow
-              calm={inboxIsChill}
-              phase={phase}
-              unread
-              from="Maya Patel"
-              time="12:22 PM"
-              subject="Quick check-in on next steps"
-              body="No rush — just wanted to see if you’re still planning to send over the summary from last week’s call. Happy to wait until things calm down."
-              chips={[{ color: "blue", text: "friendly reminder" }]}
-              index={3}
-            />
-          </div>
-
-          {/* warm stress glow cools after AI finishes */}
-          <motion.div
-            className="pointer-events-none absolute -top-4 -left-4 w-[120px] h-[120px] rounded-xl blur-2xl"
-            style={{
-              background: inboxIsChill
-                ? "radial-gradient(circle_at_20%_20%,rgba(156,163,175,0.12),rgba(255,255,255,0)_70%)"
-                : "radial-gradient(circle_at_20%_20%,rgba(224,122,95,0.18),rgba(255,255,255,0)_70%)",
-            }}
-            animate={{
-              opacity: inboxIsChill ? 0.15 : 0.6,
-            }}
-            transition={{
-              duration: 0.8,
-              ease: "easeOut",
-            }}
+      <motion.div
+        initial={{ opacity: 0, y: 30, rotate: -1.5 }}
+        animate={{
+          opacity: started ? 1 : 0,
+          y: started ? 0 : 30,
+          rotate: -1.5,
+        }}
+        transition={{ duration: 1.0, ease: "easeOut" }}
+        className="relative w-full max-w-[380px] rounded-xl border border-gray-200 bg-white/95 ring-1 ring-gray-100 overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.08)]"
+        style={{
+          boxShadow:
+            "0 28px 64px rgba(0,0,0,0.08), 0 6px 24px rgba(0,0,0,0.05)",
+        }}
+      >
+        <div className="pt-3">
+          {/* EMAIL 1 */}
+          <InboxRow
+            calm={inboxIsChill}
+            phase={phase}
+            unread
+            from="Jennifer Lee"
+            time="3:17 PM"
+            subject="Checking in on updated pricing"
+            body="Just following up on the revised pricing you said you’d send yesterday. They’re waiting on it to move forward."
+            chips={[
+              { color: "amber", text: "waiting on you" },
+              { color: "red", text: "deal at risk" },
+            ]}
+            index={0}
           />
-        </motion.div>
 
-        {/* CHAT OVERLAY STACK */}
-        <div className="absolute top-6 right-4 w-[320px] max-w-[80%] z-40 flex flex-col gap-3 pointer-events-none">
-          {/* USER bubble (outgoing, right-aligned) */}
-          <AnimatePresence>
-            {started && showUserBubble && (
-              <motion.div
-                key="user-bubble"
-                initial={{ opacity: 0, y: 20, scale: 0.96 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 1 }}
-                transition={{
-                  duration: 0.8,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                className="
+          {/* EMAIL 2 */}
+          <InboxRow
+            calm={inboxIsChill}
+            phase={phase}
+            unread
+            hasAttachment
+            from="Sarah Quinn"
+            time="2:41 PM"
+            subject="QBR tomorrow 10AM — need your final slide"
+            body="You’re presenting slide 7. I told leadership you’d send the updated pricing by 5pm so I can lock the deck. Can you add one line on margin justification?"
+            chips={[
+              { color: "amber", text: "tomorrow 10am" },
+              { color: "blue", text: "you own slide 7" },
+            ]}
+            index={1}
+          />
+
+          {/* EMAIL 3 */}
+          <InboxRow
+            calm={inboxIsChill}
+            phase={phase}
+            unread
+            from="Alex Rivera"
+            time="1:09 PM"
+            subject="Can you confirm the final numbers before Friday?"
+            body="I still don’t have the final numbers you said you’d send over. If we don’t lock them in by Friday, this slips to next week. Who’s giving the green light?"
+            chips={[
+              { color: "amber", text: "Friday deadline" },
+              { color: "red", text: "blocked on you" },
+            ]}
+            index={2}
+          />
+
+          {/* EMAIL 4 */}
+          <InboxRow
+            calm={inboxIsChill}
+            phase={phase}
+            unread
+            from="Maya Patel"
+            time="12:22 PM"
+            subject="Quick check-in on next steps"
+            body="No rush — just wanted to see if you’re still planning to send over the summary from last week’s call. Happy to wait until things calm down."
+            chips={[{ color: "blue", text: "friendly reminder" }]}
+            index={3}
+          />
+        </div>
+
+        {/* warm stress glow cools after AI finishes */}
+        <motion.div
+          className="pointer-events-none absolute -top-4 -left-4 w-[120px] h-[120px] rounded-xl blur-2xl"
+          style={{
+            background: inboxIsChill
+              ? "radial-gradient(circle_at_20%_20%,rgba(156,163,175,0.12),rgba(255,255,255,0)_70%)"
+              : "radial-gradient(circle_at_20%_20%,rgba(224,122,95,0.18),rgba(255,255,255,0)_70%)",
+          }}
+          animate={{
+            opacity: inboxIsChill ? 0.15 : 0.6,
+          }}
+          transition={{
+            duration: 0.8,
+            ease: "easeOut",
+          }}
+        />
+      </motion.div>
+
+      {/* CHAT OVERLAY STACK */}
+      <div className="absolute top-6 right-4 w-[320px] max-w-[80%] z-40 flex flex-col gap-3 pointer-events-none">
+        {/* USER bubble (outgoing, right-aligned) */}
+        <AnimatePresence>
+          {started && showUserBubble && (
+            <motion.div
+              key="user-bubble"
+              initial={{ opacity: 0, y: 20, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 1 }}
+              transition={{
+                duration: 0.8,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className="
                   flex w-full justify-end gap-2
                   pointer-events-auto
                 "
-              >
-                {/* message bubble */}
-                <div
-                  className="
-                    max-w-[220px]
-                    rounded-2xl
-                    px-3 py-2
-                    text-[13px]
-                    leading-snug
-                    text-white
-                    bg-gradient-to-br from-blue-500 to-blue-600
-                    shadow-[0_16px_40px_rgba(0,0,0,0.18)]
-                    ring-1 ring-blue-600/40
-                    border border-white/10
-                    break-words
-                  "
-                  style={{
-                    borderTopRightRadius: "0.5rem", // subtle 'tail' corner
-                  }}
-                >
-                  {/* while you're still speaking */}
-                  {userStillTalkingForUI && (
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[12px] font-medium text-white/90">
-                        Listening…
-                      </span>
-                      <VoiceBars active={userIsSpeaking} />
-                    </div>
-                  )}
-
-                  {/* once we have transcript: typewriter */}
-                  {userHasTranscript && (
-                    <div className="text-[13px] font-medium text-white whitespace-pre-wrap">
-                      {userTypedText}
-                      {!userDoneTyping && <CaretBlink light />}
-                    </div>
-                  )}
-                </div>
-
-                {/* avatar on the far right */}
-                <div className="relative flex-shrink-0">
-                  <div className="w-7 h-7 rounded-full bg-gray-200 text-gray-700 text-[10px] font-medium flex items-center justify-center ring-1 ring-gray-300 pointer-events-auto">
-                    You
-                  </div>
-
-                  {userIsSpeaking && (
-                    <motion.div
-                      className="absolute inset-0 rounded-full pointer-events-none -z-10"
-                      style={{
-                        boxShadow:
-                          "0 0 8px rgba(59,130,246,0.6),0 0 16px rgba(59,130,246,0.4)",
-                      }}
-                      animate={{
-                        opacity: [0.4, 0.8, 0.4],
-                        scale: [1, 1.08, 1],
-                      }}
-                      transition={{
-                        duration: 1.6,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                      }}
-                    />
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* AI bubble (incoming, left-aligned) */}
-          <AnimatePresence>
-            {started && showAiBubble && (
-              <motion.div
-                key="ai-bubble-row"
-                initial={{ opacity: 0, y: 28, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 1 }}
-                transition={{
-                  duration: 0.9,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
+            >
+              {/* message bubble */}
+              <div
                 className="
+    relative max-w-[220px] rounded-2xl px-3 py-2
+    text-[13px] leading-snug text-white
+    bg-[#3d405b]
+    ring-1 ring-[#3d405b]/40
+    border border-white/10
+    shadow-[0_16px_40px_rgba(61,64,91,0.28)]
+    break-words overflow-hidden
+  "
+                style={{
+                  borderTopRightRadius: "0.5rem", // subtle 'tail' corner
+                }}
+              >
+                {/* while you're still speaking */}
+                {userStillTalkingForUI && (
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[12px] font-medium text-white/90">
+                      Listening…
+                    </span>
+                    <VoiceBars active={userIsSpeaking} />
+                  </div>
+                )}
+
+                {/* once we have transcript: typewriter */}
+                {userHasTranscript && (
+                  <div className="text-[13px] font-medium text-white whitespace-pre-wrap">
+                    {userTypedText}
+                    {!userDoneTyping && <CaretBlink light />}
+                  </div>
+                )}
+              </div>
+
+              {/* avatar on the far right */}
+              {/* avatar on the far right */}
+              <div className="relative flex-shrink-0">
+                <div className="w-7 h-7 rounded-full bg-gray-200 text-gray-700 text-[10px] font-medium flex items-center justify-center ring-1 ring-gray-300 pointer-events-auto">
+                  You
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* AI bubble (incoming, left-aligned) */}
+        <AnimatePresence>
+          {started && showAiBubble && (
+            <motion.div
+              key="ai-bubble-row"
+              initial={{ opacity: 0, y: 28, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 1 }}
+              transition={{
+                duration: 0.9,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className="
                   flex w-full justify-start gap-2 items-start
                   pointer-events-auto
                 "
-              >
-                {/* avatar on left, can still pulse while AI is "talking" */}
-                <div className="relative flex-shrink-0">
-                  <div className="w-7 h-7 rounded-full bg-[#FFE8DC] text-[#C76545] text-[10px] font-medium flex items-center justify-center ring-1 ring-orange-200">
-                    C
-                  </div>
+            >
+              {/* avatar on left, can still pulse while AI is "talking" */}
+              <div className="relative flex-shrink-0">
+                <div className="w-7 h-7 rounded-full bg-[#FFE8DC] text-[#C76545] text-[10px] font-medium flex items-center justify-center ring-1 ring-orange-200">
+                  C
+                </div>
 
-                  {aiStillTalkingForUI && (
-                    <motion.div
-                      className="absolute inset-0 rounded-full pointer-events-none"
+                {aiStillTalkingForUI && (
+                  <motion.div
+                    className="absolute inset-0 rounded-full pointer-events-none"
+                    style={{
+                      boxShadow:
+                        "0 0 8px rgba(224,122,95,0.5),0 0 16px rgba(224,122,95,0.3)",
+                    }}
+                    animate={{
+                      opacity: [0.4, 0.8, 0.4],
+                      scale: [1, 1.08, 1],
+                    }}
+                    transition={{
+                      duration: 1.6,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  />
+                )}
+              </div>
+
+              {/* assistant bubble */}
+              <div
+                      className="
+                        max-w-[260px]
+                        rounded-2xl px-4 py-3
+                        bg-gray-100 text-gray-900 ring-1 ring-gray-200
+                        border border-white/40 shadow-[0_24px_48px_rgba(0,0,0,0.12)]
+                        text-[14px] leading-[1.4] font-medium whitespace-pre-wrap break-words
+                      "
                       style={{
+                        borderTopLeftRadius: "0.5rem",
                         boxShadow:
-                          "0 0 8px rgba(224,122,95,0.5),0 0 16px rgba(224,122,95,0.3)",
+                          "0 28px 64px rgba(0,0,0,0.12), 0 6px 28px rgba(0,0,0,0.06)",
                       }}
-                      animate={{
-                        opacity: [0.4, 0.8, 0.4],
-                        scale: [1, 1.08, 1],
-                      }}
-                      transition={{
-                        duration: 1.6,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                      }}
-                    />
-                  )}
-                </div>
-
-                {/* assistant bubble */}
-                <div
-                  className="
-                    max-w-[260px]
-                    rounded-2xl
-                    px-4 py-3
-                    bg-gray-100
-                    text-gray-900
-                    ring-1 ring-gray-200
-                    border border-white/40
-                    shadow-[0_24px_48px_rgba(0,0,0,0.12)]
-                    text-[14px]
-                    leading-[1.4]
-                    font-medium
-                    whitespace-pre-wrap
-                    break-words
-                  "
-                  style={{
-                    borderTopLeftRadius: "0.5rem", // subtle incoming 'tail'
-                    boxShadow:
-                      "0 28px 64px rgba(0,0,0,0.12), 0 6px 28px rgba(0,0,0,0.06)",
-                  }}
-                >
-                  {/* Speaking… header lives INSIDE the bubble while AI is still "talking" */}
-                  {aiStillTalkingForUI && (
-                    <div className="flex items-center gap-2 mb-2 text-[12px] font-medium text-gray-700">
-                      <span>Speaking…</span>
-                      <div className="text-gray-500">
-                        <VoiceBars active />
-                      </div>
+                    >
+                {/* Speaking… header lives INSIDE the bubble while AI is still "talking" */}
+                {aiStillTalkingForUI && (
+                  <div className="flex items-center gap-2 mb-2 text-[12px] font-medium text-gray-700">
+                    <span>Speaking…</span>
+                    <div className="text-gray-500">
+                      <VoiceBars active />
                     </div>
-                  )}
-
-                  <div className="text-gray-900">
-                    {aiTypedText}
-                    {!aiDoneTyping && <CaretBlink />}
                   </div>
+                )}
+
+                <div className="text-gray-900">
+                  {aiTypedText}
+                  {!aiDoneTyping && <CaretBlink />}
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </FeatureLayout>
   );
 }

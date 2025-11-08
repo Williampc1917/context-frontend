@@ -96,7 +96,9 @@ export default function InboxRow({
           <button
             className={
               "mt-[1px] text-[13px] leading-none flex-shrink-0 " +
-              (unread ? "text-yellow-400" : "text-gray-400 hover:text-yellow-400")
+              (unread
+                ? "text-yellow-400"
+                : "text-gray-400 hover:text-yellow-400")
             }
             aria-label="Star"
           >
@@ -107,7 +109,9 @@ export default function InboxRow({
             <p
               className={
                 "truncate text-[13px] leading-snug " +
-                (unread ? "text-gray-900 font-medium" : "text-gray-700 font-normal")
+                (unread
+                  ? "text-gray-900 font-medium"
+                  : "text-gray-700 font-normal")
               }
             >
               {isChaos && (
@@ -162,7 +166,11 @@ export default function InboxRow({
         {isChaos && (
           <span
             className="absolute text-[12px] text-gray-400/30 font-normal pointer-events-none select-none line-clamp-2"
-            style={{ transform: "translate(-1px, -1px) rotate(0.2deg)", maxWidth: "94%", display: "block" }}
+            style={{
+              transform: "translate(-1px, -1px) rotate(0.2deg)",
+              maxWidth: "94%",
+              display: "block",
+            }}
           >
             {body}
           </span>

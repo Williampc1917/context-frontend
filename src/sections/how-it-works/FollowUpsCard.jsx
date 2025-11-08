@@ -1,4 +1,4 @@
-// followupcard.jsx
+// FollowUpCard.jsx
 //
 // Feature 02 — “Replies that sound like you”
 //
@@ -25,8 +25,7 @@ const FOLLOW_UP_ROWS = [
     from: "Jennifer Lee",
     time: "3:17 PM",
     subject: "Checking in on updated pricing",
-    body:
-      "Just following up on the revised pricing you said you’d send yesterday. They’re waiting on it to move forward.",
+    body: "Just following up on the revised pricing you said you’d send yesterday. They’re waiting on it to move forward.",
     chips: [
       { color: "amber", text: "waiting on you" },
       { color: "red", text: "deal at risk" },
@@ -38,8 +37,7 @@ const FOLLOW_UP_ROWS = [
     from: "Sarah Quinn",
     time: "2:41 PM",
     subject: "QBR tomorrow 10AM — need your final slide",
-    body:
-      "You’re presenting slide 7. I told leadership you’d send the updated pricing by 5pm so I can lock the deck. Can you add one line on margin justification?",
+    body: "You’re presenting slide 7. I told leadership you’d send the updated pricing by 5pm so I can lock the deck. Can you add one line on margin justification?",
     chips: [
       { color: "amber", text: "tomorrow 10am" },
       { color: "blue", text: "you own slide 7" },
@@ -51,8 +49,7 @@ const FOLLOW_UP_ROWS = [
     from: "Alex Rivera",
     time: "1:09 PM",
     subject: "Can you confirm the final numbers before Friday?",
-    body:
-      "I still don’t have the final numbers you said you’d send over. If we don’t lock them in by Friday, this slips to next week. Who’s giving the green light?",
+    body: "I still don’t have the final numbers you said you’d send over. If we don’t lock them in by Friday, this slips to next week. Who’s giving the green light?",
     chips: [
       { color: "amber", text: "Friday deadline" },
       { color: "red", text: "blocked on you" },
@@ -64,8 +61,7 @@ const FOLLOW_UP_ROWS = [
     from: "Maya Patel",
     time: "12:22 PM",
     subject: "Quick check-in on next steps",
-    body:
-      "No rush — just wanted to see if you’re still planning to send over the summary from last week’s call. Happy to wait until things calm down.",
+    body: "No rush — just wanted to see if you’re still planning to send over the summary from last week’s call. Happy to wait until things calm down.",
     chips: [{ color: "blue", text: "friendly reminder" }],
     hasAttachment: false,
   },
@@ -150,7 +146,8 @@ function useTypewriter({
         setText(buffer);
         const punctuationPause = computePunctuationPause(action.char);
         const randomPause = randomVariance ? Math.random() * randomVariance : 0;
-        const delay = (action.pace ?? baseSpeed) + punctuationPause + randomPause;
+        const delay =
+          (action.pace ?? baseSpeed) + punctuationPause + randomPause;
         timeoutId = setTimeout(runNext, delay);
         return;
       }
@@ -266,7 +263,8 @@ export default function FollowupCard() {
   const hasReached = (phase) => phaseIndex >= phaseOrder.indexOf(phase);
 
   const composeVisible = hasReached("compose_open");
-  const composeTypingActive = hasReached("compose_greeting") && !hasReached("compose_done");
+  const composeTypingActive =
+    hasReached("compose_greeting") && !hasReached("compose_done");
   const draftSavedVisible = hasReached("compose_pause");
 
   const userTranscript =
@@ -336,13 +334,15 @@ export default function FollowupCard() {
 
   useEffect(() => {
     if (manualPhase !== "compose_sentence") return;
-    if (!emailTyped.includes("Thanks again for being patient on pricing.")) return;
+    if (!emailTyped.includes("Thanks again for being patient on pricing."))
+      return;
     setManualPhase("compose_timing");
   }, [manualPhase, emailTyped]);
 
   useEffect(() => {
     if (manualPhase !== "compose_timing") return;
-    if (!emailTyped.includes("I'll send the updated numbers tomorrow morning.")) return;
+    if (!emailTyped.includes("I'll send the updated numbers tomorrow morning."))
+      return;
     setManualPhase("compose_signoff");
   }, [manualPhase, emailTyped]);
 
@@ -407,7 +407,9 @@ export default function FollowupCard() {
   }, [started]);
 
   const userTypeActive =
-    chatPhase === "user_final" || chatPhase === "ai_voice" || chatPhase === "ai_final";
+    chatPhase === "user_final" ||
+    chatPhase === "ai_voice" ||
+    chatPhase === "ai_final";
   const { text: userTyped, done: userDone } = useTypewriter({
     fullText: userTranscript,
     active: userTypeActive,
@@ -427,7 +429,8 @@ export default function FollowupCard() {
   });
 
   const userConfirm = "Send.";
-  const userConfirmActive = chatPhase === "user_followup" || chatPhase === "ai_wrap";
+  const userConfirmActive =
+    chatPhase === "user_followup" || chatPhase === "ai_wrap";
   const { text: userConfirmTyped, done: userConfirmDone } = useTypewriter({
     fullText: userConfirm,
     active: userConfirmActive,
@@ -435,7 +438,8 @@ export default function FollowupCard() {
     randomVariance: 12,
   });
 
-  const aiWrapResponse = "Sent. I’ll remind you tomorrow morning to send the pricing to Sarah.";
+  const aiWrapResponse =
+    "Sent. I’ll remind you tomorrow morning to send the pricing to Sarah.";
   const aiWrapTypeActive = chatPhase === "ai_wrap";
   const { text: aiWrapTyped, done: aiWrapDone } = useTypewriter({
     fullText: aiWrapResponse,
@@ -516,7 +520,8 @@ export default function FollowupCard() {
     chatPhase === "ai_final" ||
     chatPhase === "user_followup" ||
     chatPhase === "ai_wrap";
-  const showUserConfirmBubble = chatPhase === "user_followup" || chatPhase === "ai_wrap";
+  const showUserConfirmBubble =
+    chatPhase === "user_followup" || chatPhase === "ai_wrap";
   const showAiWrapBubble = chatPhase === "ai_wrap";
   const aiStillTalkingForUI = showAiBubble && !aiDone;
   const aiWrapTalkingForUI = showAiWrapBubble && !aiWrapDone;
@@ -528,12 +533,13 @@ export default function FollowupCard() {
       title="Replies that sound like you. Instantly."
       description={[
         <p key="p1" className="text-base leading-relaxed text-gray-700">
-          Say “Draft a reply,” and Claro writes the message in the tone you actually use with that person —
-          same greeting, same formality, same sign-off.
+          Say “Draft a reply,” and Claro writes the message in the tone you
+          actually use with that person — same greeting, same formality, same
+          sign-off.
         </p>,
         <p key="p2" className="text-sm leading-relaxed text-gray-500">
-          Without Claro, you’re scrolling, clicking, and typing it yourself. With Claro, you just describe the
-          intent and it’s ready to send.
+          Without Claro, you’re scrolling, clicking, and typing it yourself.
+          With Claro, you just describe the intent and it’s ready to send.
         </p>,
       ]}
       background={
@@ -579,24 +585,26 @@ export default function FollowupCard() {
                     y: 0,
                     rotate: 0,
                   }}
-                  exit={{ opacity: 0, y: 36, transition: { duration: 0.5, ease: "easeInOut" } }}
+                  exit={{
+                    opacity: 0,
+                    y: 36,
+                    transition: { duration: 0.5, ease: "easeInOut" },
+                  }}
                   transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
                   className="pointer-events-none absolute inset-0 z-30"
                 >
-              <GmailDraftCard
-                bodyText={emailTyped}
-                bodyDone={emailDone}
-                showQuotedThread={false}
-                signOff={SIGN_OFF_SNIPPET}
-                sendHovering={sendHovering}
-                draftSavedVisible={draftSavedVisible}
-              />
+                  <GmailDraftCard
+                    bodyText={emailTyped}
+                    bodyDone={emailDone}
+                    showQuotedThread={false}
+                    signOff={SIGN_OFF_SNIPPET}
+                    sendHovering={sendHovering}
+                    draftSavedVisible={draftSavedVisible}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>
-
           </div>
-
         </div>
 
         <div className="relative flex flex-1 justify-start lg:pl-6">
@@ -630,7 +638,9 @@ export default function FollowupCard() {
                     >
                       {userStillTalkingForUI && (
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[12px] font-medium text-white/90">Listening…</span>
+                          <span className="text-[12px] font-medium text-white/90">
+                            Listening…
+                          </span>
                           <VoiceBars active={chatPhase === "user_voice"} />
                         </div>
                       )}
@@ -647,18 +657,6 @@ export default function FollowupCard() {
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200 text-[10px] font-medium text-gray-700 ring-1 ring-gray-300">
                         You
                       </div>
-
-                      {chatPhase === "user_voice" && (
-                        <motion.div
-                          className="pointer-events-none absolute inset-0 rounded-full -z-10"
-                          style={{
-                            boxShadow:
-                              "0 0 8px rgba(59,130,246,0.6),0 0 16px rgba(59,130,246,0.4)",
-                          }}
-                          animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.08, 1] }}
-                          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-                        />
-                      )}
                     </div>
                   </motion.div>
                 )}
@@ -686,8 +684,15 @@ export default function FollowupCard() {
                             boxShadow:
                               "0 0 8px rgba(224,122,95,0.5),0 0 16px rgba(224,122,95,0.3)",
                           }}
-                          animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.08, 1] }}
-                          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                          animate={{
+                            opacity: [0.4, 0.8, 0.4],
+                            scale: [1, 1.08, 1],
+                          }}
+                          transition={{
+                            duration: 1.6,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
                         />
                       )}
                     </div>
@@ -774,8 +779,15 @@ export default function FollowupCard() {
                             boxShadow:
                               "0 0 8px rgba(224,122,95,0.5),0 0 16px rgba(224,122,95,0.3)",
                           }}
-                          animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.08, 1] }}
-                          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                          animate={{
+                            opacity: [0.4, 0.8, 0.4],
+                            scale: [1, 1.08, 1],
+                          }}
+                          transition={{
+                            duration: 1.6,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
                         />
                       )}
                     </div>
@@ -784,7 +796,8 @@ export default function FollowupCard() {
                       className="max-w-[260px] rounded-2xl px-4 py-3 bg-gray-100 text-gray-900 ring-1 ring-gray-200 border border-white/40 shadow-[0_24px_48px_rgba(0,0,0,0.12)] text-[14px] leading-[1.4] font-medium whitespace-pre-wrap break-words"
                       style={{
                         borderTopLeftRadius: "0.5rem",
-                        boxShadow: "0 28px 64px rgba(0,0,0,0.12), 0 6px 28px rgba(0,0,0,0.06)",
+                        boxShadow:
+                          "0 28px 64px rgba(0,0,0,0.12), 0 6px 28px rgba(0,0,0,0.06)",
                       }}
                     >
                       {aiWrapTalkingForUI && (
@@ -816,7 +829,14 @@ export default function FollowupCard() {
    SUBCOMPONENTS
    ================================================= */
 
-function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showChatStatus = true }) {
+function InboxPreviewCard({
+  phase,
+  dimmed,
+  chatPhase,
+  chatStarted,
+  aiDone,
+  showChatStatus = true,
+}) {
   const contactFirstName = TARGET_CONTACT.from.split(" ")[0];
 
   const manualStatusMap = {
@@ -867,14 +887,17 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
   const rows = FOLLOW_UP_ROWS;
 
   const inboxIsChill = chatPhase === "ai_final" && aiDone;
-  const statusTone = showChatStatus && chatStarted && chatPhase ? "ai" : "manual";
+  const statusTone =
+    showChatStatus && chatStarted && chatPhase ? "ai" : "manual";
   const statusClassName =
     statusTone === "manual"
       ? "absolute -top-10 left-4 z-20 flex max-w-[260px] flex-wrap items-center gap-2 rounded-full bg-[#fff2ed]/95 px-3.5 py-1.5 text-[11px] font-semibold text-[#b45309] shadow-[0_12px_28px_rgba(225,96,54,0.18)] ring-1 ring-[#fb923c]/40 border border-white/70"
       : "absolute -top-10 left-4 z-20 flex max-w-[260px] flex-wrap items-center gap-2 rounded-full bg-white/95 px-3.5 py-1.5 text-[11px] font-medium text-gray-600 shadow-[0_10px_30px_rgba(15,23,42,0.12)] ring-1 ring-gray-200 border border-white/70";
 
   const showContextMenu =
-    phase === "row_context" || phase === "reply_menu_hover" || phase === "reply_menu_click";
+    phase === "row_context" ||
+    phase === "reply_menu_hover" ||
+    phase === "reply_menu_click";
   const contextMenuHover = phase === "reply_menu_hover";
   const contextMenuPressed = phase === "reply_menu_click";
 
@@ -895,13 +918,19 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
         <div
           className="overflow-hidden rounded-xl border border-gray-200 bg-white/95 ring-1 ring-gray-100 shadow-[0_24px_60px_rgba(0,0,0,0.08)] transition-all duration-500"
           style={{
-            boxShadow: "0 28px 64px rgba(0,0,0,0.08), 0 6px 24px rgba(0,0,0,0.05)",
-            filter: dimmed ? "saturate(0.85) brightness(0.96)" : "saturate(1) brightness(1)",
+            boxShadow:
+              "0 28px 64px rgba(0,0,0,0.08), 0 6px 24px rgba(0,0,0,0.05)",
+            filter: dimmed
+              ? "saturate(0.85) brightness(0.96)"
+              : "saturate(1) brightness(1)",
             opacity: dimmed ? 0.85 : 1,
           }}
         >
           <div className="pt-3">
-            <motion.div animate={{ y: 0 }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}>
+            <motion.div
+              animate={{ y: 0 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            >
               {rows.map((row, index) => {
                 const isActive = index === activeIndex;
 
@@ -913,8 +942,7 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
                     phase={inboxIsChill ? "calm" : "manual"}
                     active={isActive}
                     {...row}
-                  >
-                  </InboxRow>
+                  ></InboxRow>
                 );
               })}
             </motion.div>
@@ -966,7 +994,6 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, chatStarted, aiDone, showC
   );
 }
 
-
 function GmailDraftCard({
   bodyText,
   bodyDone,
@@ -979,7 +1006,9 @@ function GmailDraftCard({
   const hasSignOff = Boolean(signOff) && bodyText.includes(signOff);
   const signOffIndex = hasSignOff ? bodyText.indexOf(signOff) : -1;
   const beforeSignOff = hasSignOff ? bodyText.slice(0, signOffIndex) : bodyText;
-  const signOffText = hasSignOff ? bodyText.slice(signOffIndex, signOffIndex + signOff.length) : "";
+  const signOffText = hasSignOff
+    ? bodyText.slice(signOffIndex, signOffIndex + signOff.length)
+    : "";
   const afterSignOff = hasSignOff
     ? bodyText.slice(signOffIndex + signOff.length)
     : "";
@@ -1031,7 +1060,8 @@ function GmailDraftCard({
               transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
               className="mb-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[12px] leading-relaxed text-gray-500 shadow-[0_12px_24px_rgba(15,23,42,0.08)]"
             >
-              <span className="font-medium text-gray-600">Sarah Quinn</span> • "Can you send the updated pricing by 5 so I can lock the deck?"
+              <span className="font-medium text-gray-600">Sarah Quinn</span> •
+              "Can you send the updated pricing by 5 so I can lock the deck?"
             </motion.div>
           )}
         </AnimatePresence>
@@ -1043,7 +1073,9 @@ function GmailDraftCard({
             layout="position"
             initial={false}
             animate={{
-              backgroundColor: highlightTone ? "rgba(224,122,95,0.22)" : "rgba(0,0,0,0)",
+              backgroundColor: highlightTone
+                ? "rgba(224,122,95,0.22)"
+                : "rgba(0,0,0,0)",
               color: highlightTone ? "#b45309" : "inherit",
               paddingInline: highlightTone ? "4px" : "2px",
               boxShadow: highlightTone
@@ -1128,9 +1160,21 @@ function VoiceBars({ active }) {
         <motion.span
           key={i}
           className="w-[2px] bg-current rounded-[1px] text-blue-100"
-          style={{ backgroundColor: "currentColor", color: "rgb(255 255 255 / 0.9)" }}
-          animate={active ? { height: ["4px", "11px", "5px", "9px", "6px"] } : { height: "5px" }}
-          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut", delay: d }}
+          style={{
+            backgroundColor: "currentColor",
+            color: "rgb(255 255 255 / 0.9)",
+          }}
+          animate={
+            active
+              ? { height: ["4px", "11px", "5px", "9px", "6px"] }
+              : { height: "5px" }
+          }
+          transition={{
+            duration: 1.4,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: d,
+          }}
           initial={false}
         />
       ))}
