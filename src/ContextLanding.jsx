@@ -21,6 +21,8 @@ import { RevealHeadline } from "./sections/RevealHeadline.jsx";
 import FloatingLogo from "./sections/FloatingLogo.jsx";
 import { howItWorksFeatures } from "./sections/how-it-works/index.js";
 
+const WAVEFORM_SRC = `${import.meta.env.BASE_URL}waveform.svg`;
+
 export default function ContextLanding() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -154,7 +156,7 @@ export default function ContextLanding() {
           >
             <span className="flex size-10 items-center justify-center rounded-full border border-[#E07A5F]/40 bg-white/80 shadow-sm transition-transform duration-300 group-hover:scale-105">
               <img
-                src="/waveform.svg"
+                src={WAVEFORM_SRC}
                 alt="Claro AI waveform logo"
                 className="h-6 w-6 object-contain"
               />
@@ -370,7 +372,7 @@ export default function ContextLanding() {
               className="flex items-center gap-3 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-left shadow-lg backdrop-blur"
             >
               <span className="flex size-9 items-center justify-center rounded-full bg-white/80">
-                <img src="/waveform.svg" alt="Claro AI" className="h-5 w-5" />
+                <img src={WAVEFORM_SRC} alt="Claro AI" className="h-5 w-5" />
               </span>
               <span className="text-xl font-silkscreen tracking-tight text-white">
                 <span className="text-[#E07A5F]">Claro</span>
