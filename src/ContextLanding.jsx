@@ -21,7 +21,6 @@ import { RevealHeadline } from "./sections/RevealHeadline.jsx";
 import FloatingLogo from "./sections/FloatingLogo.jsx";
 import { howItWorksFeatures } from "./sections/how-it-works/index.js";
 
-const WAVEFORM_SRC = `${import.meta.env.BASE_URL}waveform.svg`;
 
 export default function ContextLanding() {
   const [scrolled, setScrolled] = useState(false);
@@ -48,6 +47,7 @@ export default function ContextLanding() {
   const hasLoadedRef = useRef(document.readyState === "complete");
 
   const heroRef = useRef(null);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     const onLoad = () => {
@@ -156,10 +156,11 @@ export default function ContextLanding() {
           >
             <span className="flex size-10 items-center justify-center rounded-full border border-[#E07A5F]/40 bg-white/80 shadow-sm transition-transform duration-300 group-hover:scale-105">
               <img
-                src={WAVEFORM_SRC}
-                alt="Claro AI waveform logo"
-                className="h-6 w-6 object-contain"
-              />
+  src={`${import.meta.env.BASE_URL}waveform.svg`}
+  alt="Claro AI waveform logo"
+  className="h-6 w-6 object-contain"
+/>
+
             </span>
 
             <span className="text-[20px] font-silkscreen tracking-tight leading-none text-[#3D405B]">
@@ -243,78 +244,105 @@ export default function ContextLanding() {
       ) : null}
 
       <section
-        id="top"
-        ref={heroRef}
-        className="hero-canvas relative flex flex-col items-center justify-center min-h-[90vh] px-6 pt-28 md:pt-36 pb-18 lg:px-8 text-center"
-      >
-        <div className="hero-shell w-full max-w-5xl px-6 py-16 md:py-20 lg:px-16 mx-auto">
-          {/* Hero text block */}
-          <div className="hero-content flex flex-col items-center justify-center w-full max-w-3xl lg:max-w-4xl mx-auto text-center">
-            <RevealHeadline
-              text={"Clarity for the way you\nconnect"}
-              className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.05]"
-              cleanColor="#3D405B"
-              activeColor="#E07A5F"
-              durationMs={2400}
-              tileEnd={3.2}
-              threshold={0.4}
-              breathDelayMs={1200}
-            />
+  id="top"
+  ref={heroRef}
+  className="hero-canvas relative flex flex-col items-center justify-start min-h-[90vh] px-6 pt-[clamp(56px,8vh,96px)] pb-18 lg:px-8 text-center"
+>
+  <div className="hero-shell w-full max-w-5xl px-6 py-10 md:py-12 lg:px-16 mx-auto">
+    {/* Hero text block */}
+    <div className="hero-content flex flex-col items-center justify-center w-full max-w-3xl lg:max-w-4xl mx-auto text-center">
+      <RevealHeadline
+        text={"Clarity for the way you\nconnect"}
+        className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.05]"
+        cleanColor="#3D405B"
+        activeColor="#E07A5F"
+        durationMs={2400}
+        tileEnd={3.2}
+        threshold={0.4}
+        breathDelayMs={1200}
+      />
 
-            <p className="mt-6 text-lg sm:text-xl text-[#3D405B]/80 max-w-2xl mx-auto">
-              CLARO AI is a voice assistant for your email and calendar. It
-              understands how you connect — who matters, how you communicate,
-              and when to reach out.
-            </p>
+      <p className="mt-6 text-lg sm:text-xl text-[#3D405B]/80 max-w-2xl mx-auto">
+        CLARO AI is a voice assistant for your email and calendar. It
+        understands how you connect — who matters, how you communicate,
+        and when to reach out.
+      </p>
 
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <button
-                onClick={() => scrollTo("waitlist")}
-                className="btn-primary bg-[#E07A5F] hover:bg-[#d36f56]"
-              >
-                Join the waitlist
-              </button>
-              <button
-                onClick={() => scrollTo("how")}
-                className="btn-glass text-[#3D405B] border-[#3D405B]/20 hover:bg-white/80"
-              >
-                See how it works <ArrowRight size={16} />
-              </button>
-            </div>
-          </div>
+      <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+        <button
+          onClick={() => scrollTo("waitlist")}
+          className="btn-primary bg-[#E07A5F] hover:bg-[#d36f56]"
+        >
+          Join the waitlist
+        </button>
+        <button
+          onClick={() => scrollTo("how")}
+          className="btn-glass text-[#3D405B] border-[#3D405B]/20 hover:bg-white/80"
+        >
+          See how it works <ArrowRight size={16} />
+        </button>
+      </div>
+    </div>
 
-          {/* iPhone mock image from /public */}
-          <div className="mt-10 flex justify-center">
-            <img
-              src={`${import.meta.env.BASE_URL}standard-mockup.png`}
-              // You can also just do src="/standard-mockup.png"
-              alt="Claro AI on an iPhone screen"
-              className="max-w-full h-auto w-[180px] sm:w-[220px] md:w-[260px] lg:w-[300px] rounded-[28px] border border-black/5 bg-white shadow-2xl"
-              loading="lazy"
-              width={420}
-              height={860}
-            />
-          </div>
-        </div>
-
-        {/* Floating brand logos */}
-        <FloatingLogo
-          src={`${import.meta.env.BASE_URL}gmail.svg`}
-          alt="Gmail"
-          className="absolute left-[8%] top-[22%] w-[90px] sm:w-[110px] lg:w-[140px] z-30"
-          delay={0}
-          hideBelow="md"
-          targetRef={heroRef}
+    {/* iPhone mock video from /public */}
+    <div className="mt-10 flex justify-center">
+      {!prefersReducedMotion ? (
+        <video
+  className="max-w-full h-auto w-[440px] sm:w-[520px] md:w-[620px] lg:w-[720px] rounded-[36px] border border-black/5 bg-transparent shadow-2xl object-contain"
+  autoPlay
+  loop
+  muted
+  playsInline
+  preload="metadata"
+  poster={`${import.meta.env.BASE_URL}standard-mockup.png`}
+  width={420}
+  height={860}
+  style={{ backgroundColor: 'transparent' }}
+>
+          <source src={`${import.meta.env.BASE_URL}iphone-alpha.webm`} type="video/webm" />
+          {/* If you later add an MP4, uncomment the line below for broader support */}
+          {/* <source src={`${import.meta.env.BASE_URL}FIRST-TEST-MOV-SITE.mp4`} type="video/mp4" /> */}
+          {/* Fallback if the browser can't play video */}
+          <img
+            src={`${import.meta.env.BASE_URL}standard-mockup.png`}
+            alt="Claro AI on an iPhone screen"
+            width={420}
+            height={860}
+          />
+        </video>
+      ) : (
+        <img
+          src={`${import.meta.env.BASE_URL}standard-mockup.png`}
+          alt="Claro AI on an iPhone screen"
+          className="max-w-full h-auto w-[180px] sm:w-[220px] md:w-[260px] lg:w-[300px] rounded-[28px] border border-black/5 bg-white shadow-2xl"
+          loading="lazy"
+          width={420}
+          height={860}
         />
-        <FloatingLogo
-          src={`${import.meta.env.BASE_URL}google-calendar.svg`}
-          alt="Google Calendar"
-          className="absolute right-[8%] top-[22%] w-[85px] sm:w-[100px] lg:w-[130px] z-30"
-          delay={0.4}
-          hideBelow="md"
-          targetRef={heroRef}
-        />
-      </section>
+      )}
+    </div>
+  </div>
+
+  {/* Floating brand logos */}
+  <FloatingLogo
+    src={`${import.meta.env.BASE_URL}gmail.svg`}
+    alt="Gmail"
+    className="absolute left-[8%] top-[22%] w-[90px] sm:w-[110px] lg:w-[140px] z-30"
+    delay={0}
+    hideBelow="md"
+    targetRef={heroRef}
+  />
+  <FloatingLogo
+    src={`${import.meta.env.BASE_URL}google-calendar.svg`}
+    alt="Google Calendar"
+    className="absolute right-[8%] top-[22%] w-[85px] sm:w-[100px] lg:w-[130px] z-30"
+    delay={0.4}
+    hideBelow="md"
+    targetRef={heroRef}
+  />
+</section>
+
+      
 
       {/* Problem section */}
       <section
@@ -372,7 +400,12 @@ export default function ContextLanding() {
               className="flex items-center gap-3 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-left shadow-lg backdrop-blur"
             >
               <span className="flex size-9 items-center justify-center rounded-full bg-white/80">
-                <img src={WAVEFORM_SRC} alt="Claro AI" className="h-5 w-5" />
+                <img
+  src={`${import.meta.env.BASE_URL}waveform.svg`}
+  alt="Claro AI"
+  className="h-5 w-5"
+/>
+
               </span>
               <span className="text-xl font-silkscreen tracking-tight text-white">
                 <span className="text-[#E07A5F]">Claro</span>
