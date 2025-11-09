@@ -48,6 +48,12 @@ export default function ContextLanding() {
 
   const heroRef = useRef(null);
   const prefersReducedMotion = useReducedMotion();
+  const [subtextVisible, setSubtextVisible] = useState(prefersReducedMotion);
+  const [pillsVisible, setPillsVisible] = useState(prefersReducedMotion);
+  const [videoVisible, setVideoVisible] = useState(prefersReducedMotion);
+  const [videoReady, setVideoReady] = useState(false);
+  const videoRef = useRef(null);
+  const [isSafari, setIsSafari] = useState(false);
 
   useEffect(() => {
     const onLoad = () => {
@@ -56,6 +62,64 @@ export default function ContextLanding() {
     window.addEventListener("load", onLoad, { once: true });
     return () => window.removeEventListener("load", onLoad);
   }, []);
+  useEffect(() => {
+    if (!prefersReducedMotion) return;
+    setSubtextVisible(true);
+    setPillsVisible(true);
+    setVideoVisible(true);
+  }, [prefersReducedMotion]);
+
+  useEffect(() => {
+    if (!subtextVisible || prefersReducedMotion) return;
+    const timer = window.setTimeout(() => {
+      setPillsVisible(true);
+    }, 420);
+    return () => window.clearTimeout(timer);
+  }, [subtextVisible, prefersReducedMotion]);
+
+  useEffect(() => {
+    if (!pillsVisible || prefersReducedMotion) return;
+    const timer = window.setTimeout(() => {
+      setVideoVisible(true);
+    }, 420);
+    return () => window.clearTimeout(timer);
+  }, [pillsVisible, prefersReducedMotion]);
+
+  useEffect(() => {
+    if (typeof navigator === "undefined") return;
+    setIsSafari(
+      /Safari/i.test(navigator.userAgent) &&
+        !/Chrome|Chromium|Android/i.test(navigator.userAgent),
+    );
+  }, []);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+    const videoEl = videoRef.current;
+    if (!videoEl) return;
+
+    if (videoVisible && videoReady) {
+      videoEl.currentTime = 0;
+      const playPromise = videoEl.play?.();
+      if (playPromise?.catch) {
+        playPromise.catch(() => {});
+      }
+      return;
+    }
+
+    videoEl.pause?.();
+    if (videoReady) {
+      videoEl.currentTime = 0;
+    }
+  }, [videoVisible, videoReady, prefersReducedMotion]);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+    const videoEl = videoRef.current;
+    if (!videoEl) return;
+    setVideoReady(false);
+    videoEl.load();
+  }, [isSafari, prefersReducedMotion]);
 
   const scrollTo = useCallback((id) => {
     const el = document.getElementById(id);
@@ -100,6 +164,27 @@ export default function ContextLanding() {
 
     setMenuOpen(false);
   }, []);
+
+  const handleHeroRevealComplete = useCallback(() => {
+    if (prefersReducedMotion) {
+      setSubtextVisible(true);
+      setPillsVisible(true);
+      setVideoVisible(true);
+      return;
+    }
+    setSubtextVisible(true);
+  }, [
+    prefersReducedMotion,
+    setSubtextVisible,
+    setPillsVisible,
+    setVideoVisible,
+  ]);
+
+  const phoneVideoSrc = `${import.meta.env.BASE_URL}${
+    isSafari ? "iphone-safari.mov" : "iphone-alpha.webm"
+  }`;
+  const phoneVideoType = isSafari ? "video/quicktime" : "video/webm";
+  const phoneVideoKey = isSafari ? "safari-video" : "webm-video";
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -260,46 +345,90 @@ export default function ContextLanding() {
         tileEnd={3.2}
         threshold={0.4}
         breathDelayMs={1200}
+        onRevealComplete={handleHeroRevealComplete}
       />
 
-      <p className="mt-6 text-lg sm:text-xl text-[#3D405B]/80 max-w-2xl mx-auto">
-        CLARO AI is a voice assistant for your email and calendar. It
-        understands how you connect — who matters, how you communicate,
-        and when to reach out.
-      </p>
+      {subtextVisible && (
+        <motion.p
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={
+            prefersReducedMotion
+              ? { duration: 0 }
+              : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
+          }
+          className="mt-6 text-lg sm:text-xl text-[#3D405B]/80 max-w-2xl mx-auto"
+        >
+          CLARO AI is a voice assistant for your email and calendar. It
+          understands how you connect — who matters, how you communicate,
+          and when to reach out.
+        </motion.p>
+      )}
 
-      <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <button
-          onClick={() => scrollTo("waitlist")}
-          className="btn-primary bg-[#E07A5F] hover:bg-[#d36f56]"
+      {pillsVisible && (
+        <motion.div
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={
+            prefersReducedMotion
+              ? { duration: 0 }
+              : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
+          }
+          className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
         >
-          Join the waitlist
-        </button>
-        <button
-          onClick={() => scrollTo("how")}
-          className="btn-glass text-[#3D405B] border-[#3D405B]/20 hover:bg-white/80"
-        >
-          See how it works <ArrowRight size={16} />
-        </button>
-      </div>
+          <button
+            onClick={() => scrollTo("waitlist")}
+            className="btn-primary bg-[#E07A5F] hover:bg-[#d36f56]"
+          >
+            Join the waitlist
+          </button>
+          <button
+            onClick={() => scrollTo("how")}
+            className="btn-glass text-[#3D405B] border-[#3D405B]/20 hover:bg-white/80"
+          >
+            See how it works <ArrowRight size={16} />
+          </button>
+        </motion.div>
+      )}
     </div>
 
     {/* iPhone mock video from /public */}
-    <div className="mt-10 flex justify-center">
+    <motion.div
+      className="mt-10 flex justify-center"
+      initial={
+        prefersReducedMotion ? false : { opacity: 0, y: 32, scale: 0.98 }
+      }
+      animate={
+        videoVisible
+          ? { opacity: 1, y: 0, scale: 1 }
+          : { opacity: 0, y: 32, scale: 0.98 }
+      }
+      transition={
+        prefersReducedMotion
+          ? { duration: 0 }
+          : { duration: 0.65, ease: [0.22, 1, 0.36, 1] }
+      }
+    >
       {!prefersReducedMotion ? (
         <video
-  className="max-w-full h-auto w-[440px] sm:w-[520px] md:w-[620px] lg:w-[720px] rounded-[36px] border border-black/5 bg-transparent shadow-2xl object-contain"
-  autoPlay
-  loop
-  muted
-  playsInline
-  preload="metadata"
-  poster={`${import.meta.env.BASE_URL}standard-mockup.png`}
-  width={420}
-  height={860}
-  style={{ backgroundColor: 'transparent' }}
->
-          <source src={`${import.meta.env.BASE_URL}iphone-alpha.webm`} type="video/webm" />
+          key={phoneVideoKey}
+          ref={videoRef}
+          className="max-w-full h-auto w-[440px] sm:w-[520px] md:w-[620px] lg:w-[720px] rounded-[36px] border border-black/5 bg-transparent shadow-2xl object-contain"
+          loop
+          muted
+          playsInline
+          preload="auto"
+          poster={`${import.meta.env.BASE_URL}standard-mockup.png`}
+          width={420}
+          height={860}
+          onLoadedData={() => setVideoReady(true)}
+          style={{
+            backgroundColor: "transparent",
+            opacity: videoVisible && videoReady ? 1 : 0,
+            transition: "opacity 0.45s ease",
+          }}
+        >
+          <source src={phoneVideoSrc} type={phoneVideoType} />
           {/* If you later add an MP4, uncomment the line below for broader support */}
           {/* <source src={`${import.meta.env.BASE_URL}FIRST-TEST-MOV-SITE.mp4`} type="video/mp4" /> */}
           {/* Fallback if the browser can't play video */}
@@ -320,7 +449,7 @@ export default function ContextLanding() {
           height={860}
         />
       )}
-    </div>
+    </motion.div>
   </div>
 
   {/* Floating brand logos */}

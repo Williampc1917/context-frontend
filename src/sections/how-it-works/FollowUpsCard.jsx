@@ -525,6 +525,24 @@ export default function FollowupCard() {
   const showAiWrapBubble = chatPhase === "ai_wrap";
   const aiStillTalkingForUI = showAiBubble && !aiDone;
   const aiWrapTalkingForUI = showAiWrapBubble && !aiWrapDone;
+  const userConfirmStillTalkingForUI =
+    chatPhase === "user_followup" && !userConfirmDone;
+
+  const userBubbleFill = userStillTalkingForUI ? "#20252E" : "#2F3C4D";
+  const userBubbleStrokeGradient =
+    "linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02))";
+  const userBubbleTextColor = "rgba(255,255,255,0.96)";
+  const userBubbleBoxShadow = "0 6px 10px rgba(0,0,0,0.25)";
+  const userConfirmBubbleFill = userConfirmStillTalkingForUI
+    ? "#20252E"
+    : "#2F3C4D";
+  const aiBubbleFill = "#332C31";
+  const aiBubbleStrokeGradient =
+    "linear-gradient(135deg, rgba(234,132,103,0.32), rgba(243,154,131,0.14))";
+  const aiBubbleTextColor = "rgba(255,255,255,0.96)";
+  const aiBubbleSecondaryTextColor = "rgba(255,255,255,0.68)";
+  const aiBubbleBoxShadow =
+    "0 5px 8px rgba(0,0,0,0.2), 0 0 36px rgba(234,132,103,0.18), inset 0 0 10px rgba(234,132,103,0.12)";
 
   return (
     <FeatureLayout
@@ -569,9 +587,7 @@ export default function FollowupCard() {
                 phase={manualPhase}
                 dimmed={composeVisible}
                 chatPhase={chatPhase}
-                chatStarted={chatStarted}
                 aiDone={aiDone}
-                showChatStatus={false}
               />
             </motion.div>
 
@@ -615,7 +631,12 @@ export default function FollowupCard() {
           />
 
           <div className="relative w-full max-w-[360px]">
-            <div className="relative flex min-h-[220px] flex-col gap-3 pointer-events-none">
+            <div
+              className="
+                relative flex flex-col gap-3 pointer-events-none
+                h-[520px] sm:h-[480px] md:h-[440px] lg:h-[400px]
+              "
+            >
               <AnimatePresence>
                 {chatStarted && showUserBubble && (
                   <motion.div
@@ -628,17 +649,33 @@ export default function FollowupCard() {
                   >
                     <div
                       className="
-                        max-w-[230px]
+                        relative max-w-[230px]
                         rounded-2xl px-3 py-2 text-[13px] leading-snug
-                        text-white bg-gradient-to-br from-blue-500 to-blue-600
-                        shadow-[0_16px_40px_rgba(0,0,0,0.18)]
-                        ring-1 ring-blue-600/40 border border-white/10 break-words
+                        border border-transparent break-words overflow-hidden
                       "
-                      style={{ borderTopRightRadius: "0.5rem" }}
+                      style={{
+                        borderTopRightRadius: "0.5rem",
+                        backgroundColor: userBubbleFill,
+                        boxShadow: userBubbleBoxShadow,
+                        color: userBubbleTextColor,
+                      }}
                     >
+                      <span
+                        className="pointer-events-none absolute inset-0 rounded-2xl"
+                        style={{
+                          borderTopRightRadius: "0.5rem",
+                          padding: "1px",
+                          background: userBubbleStrokeGradient,
+                          WebkitMask:
+                            "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+                          WebkitMaskComposite: "xor",
+                          maskComposite: "exclude",
+                          zIndex: 1,
+                        }}
+                      />
                       {userStillTalkingForUI && (
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[12px] font-medium text-white/90">
+                          <span className="text-[12px] font-medium">
                             Listening…
                           </span>
                           <VoiceBars active={chatPhase === "user_voice"} />
@@ -646,7 +683,7 @@ export default function FollowupCard() {
                       )}
 
                       {chatPhase !== "user_voice" && (
-                        <div className="text-[13px] font-medium text-white whitespace-pre-wrap">
+                        <div className="text-[13px] font-medium whitespace-pre-wrap">
                           {userTyped}
                           {!userDone && <CaretBlink light />}
                         </div>
@@ -654,7 +691,7 @@ export default function FollowupCard() {
                     </div>
 
                     <div className="relative flex-shrink-0">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200 text-[10px] font-medium text-gray-700 ring-1 ring-gray-300">
+                      <div className="w-7 h-7 rounded-full bg-gray-200 text-gray-700 text-[10px] font-medium flex items-center justify-center ring-1 ring-gray-300 pointer-events-auto">
                         You
                       </div>
                     </div>
@@ -699,30 +736,45 @@ export default function FollowupCard() {
 
                     <div
                       className="
-                        max-w-[260px]
+                        relative max-w-[260px]
                         rounded-2xl px-4 py-3
-                        bg-gray-100 text-gray-900 ring-1 ring-gray-200
-                        border border-white/40 shadow-[0_24px_48px_rgba(0,0,0,0.12)]
                         text-[14px] leading-[1.4] font-medium whitespace-pre-wrap break-words
                       "
                       style={{
                         borderTopLeftRadius: "0.5rem",
-                        boxShadow:
-                          "0 28px 64px rgba(0,0,0,0.12), 0 6px 28px rgba(0,0,0,0.06)",
+                        backgroundColor: aiBubbleFill,
+                        color: aiBubbleTextColor,
+                        boxShadow: aiBubbleBoxShadow,
                       }}
                     >
+                      <span
+                        className="pointer-events-none absolute inset-0 rounded-2xl"
+                        style={{
+                          borderTopLeftRadius: "0.5rem",
+                          padding: "1.5px",
+                          background: aiBubbleStrokeGradient,
+                          WebkitMask:
+                            "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+                          WebkitMaskComposite: "xor",
+                          maskComposite: "exclude",
+                          zIndex: 1,
+                        }}
+                      />
                       {aiStillTalkingForUI && (
-                        <div className="mb-2 flex items-center gap-2 text-[12px] font-medium text-gray-700">
+                        <div
+                          className="mb-2 flex items-center gap-2 text-[12px] font-medium"
+                          style={{ color: aiBubbleSecondaryTextColor }}
+                        >
                           <span>Speaking…</span>
-                          <div className="text-gray-500">
+                          <div style={{ color: aiBubbleSecondaryTextColor }}>
                             <VoiceBars active />
                           </div>
                         </div>
                       )}
 
-                      <div className="text-gray-900">
+                      <div style={{ color: aiBubbleTextColor }}>
                         {aiTyped}
-                        {!aiDone && <CaretBlink />}
+                        {!aiDone && <CaretBlink light />}
                       </div>
                     </div>
                   </motion.div>
@@ -740,17 +792,38 @@ export default function FollowupCard() {
                     className="flex w-full justify-end gap-2 pointer-events-auto"
                   >
                     <div
-                      className="max-w-[230px] rounded-2xl px-3 py-2 text-[13px] leading-snug text-white bg-gradient-to-br from-blue-500 to-blue-600 shadow-[0_16px_40px_rgba(0,0,0,0.18)] ring-1 ring-blue-600/40 border border-white/10 break-words"
-                      style={{ borderTopRightRadius: "0.5rem" }}
+                      className="
+                        relative max-w-[230px] rounded-2xl px-3 py-2 text-[13px] leading-snug
+                        border border-transparent break-words overflow-hidden
+                      "
+                      style={{
+                        borderTopRightRadius: "0.5rem",
+                        backgroundColor: userConfirmBubbleFill,
+                        boxShadow: userBubbleBoxShadow,
+                        color: userBubbleTextColor,
+                      }}
                     >
-                      <div className="text-[13px] font-medium text-white whitespace-pre-wrap">
+                      <span
+                        className="pointer-events-none absolute inset-0 rounded-2xl"
+                        style={{
+                          borderTopRightRadius: "0.5rem",
+                          padding: "1px",
+                          background: userBubbleStrokeGradient,
+                          WebkitMask:
+                            "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+                          WebkitMaskComposite: "xor",
+                          maskComposite: "exclude",
+                          zIndex: 1,
+                        }}
+                      />
+                      <div className="text-[13px] font-medium whitespace-pre-wrap">
                         {userConfirmTyped}
                         {!userConfirmDone && <CaretBlink light />}
                       </div>
                     </div>
 
                     <div className="relative flex-shrink-0">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200 text-[10px] font-medium text-gray-700 ring-1 ring-gray-300">
+                      <div className="w-7 h-7 rounded-full bg-gray-200 text-gray-700 text-[10px] font-medium flex items-center justify-center ring-1 ring-gray-300 pointer-events-auto">
                         You
                       </div>
                     </div>
@@ -793,25 +866,42 @@ export default function FollowupCard() {
                     </div>
 
                     <div
-                      className="max-w-[260px] rounded-2xl px-4 py-3 bg-gray-100 text-gray-900 ring-1 ring-gray-200 border border-white/40 shadow-[0_24px_48px_rgba(0,0,0,0.12)] text-[14px] leading-[1.4] font-medium whitespace-pre-wrap break-words"
+                      className="relative max-w-[260px] rounded-2xl px-4 py-3 text-[14px] leading-[1.4] font-medium whitespace-pre-wrap break-words"
                       style={{
                         borderTopLeftRadius: "0.5rem",
-                        boxShadow:
-                          "0 28px 64px rgba(0,0,0,0.12), 0 6px 28px rgba(0,0,0,0.06)",
+                        backgroundColor: aiBubbleFill,
+                        color: aiBubbleTextColor,
+                        boxShadow: aiBubbleBoxShadow,
                       }}
                     >
+                      <span
+                        className="pointer-events-none absolute inset-0 rounded-2xl"
+                        style={{
+                          borderTopLeftRadius: "0.5rem",
+                          padding: "1.5px",
+                          background: aiBubbleStrokeGradient,
+                          WebkitMask:
+                            "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+                          WebkitMaskComposite: "xor",
+                          maskComposite: "exclude",
+                          zIndex: 1,
+                        }}
+                      />
                       {aiWrapTalkingForUI && (
-                        <div className="mb-2 flex items-center gap-2 text-[12px] font-medium text-gray-700">
+                        <div
+                          className="mb-2 flex items-center gap-2 text-[12px] font-medium"
+                          style={{ color: aiBubbleSecondaryTextColor }}
+                        >
                           <span>Speaking…</span>
-                          <div className="text-gray-500">
+                          <div style={{ color: aiBubbleSecondaryTextColor }}>
                             <VoiceBars active />
                           </div>
                         </div>
                       )}
 
-                      <div className="text-gray-900">
+                      <div style={{ color: aiBubbleTextColor }}>
                         {aiWrapTyped}
-                        {!aiWrapDone && <CaretBlink />}
+                        {!aiWrapDone && <CaretBlink light />}
                       </div>
                     </div>
                   </motion.div>
@@ -829,45 +919,7 @@ export default function FollowupCard() {
    SUBCOMPONENTS
    ================================================= */
 
-function InboxPreviewCard({
-  phase,
-  dimmed,
-  chatPhase,
-  chatStarted,
-  aiDone,
-  showChatStatus = true,
-}) {
-  const contactFirstName = TARGET_CONTACT.from.split(" ")[0];
-
-  const manualStatusMap = {
-    inbox_idle: `Inbox piling up — ${contactFirstName} still needs pricing.`,
-    row_hover: `Inbox piling up — ${contactFirstName} still needs pricing.`,
-    row_context: "Clock’s ticking — opening reply…",
-    reply_menu_hover: "Clock’s ticking — opening reply…",
-    reply_menu_click: "Clock’s ticking — opening reply…",
-    compose_open: "Clock’s ticking — opening reply…",
-    compose_greeting: "Tweaking tone",
-    compose_sentence: "Fixing phrasing instead of sending…",
-    compose_timing: "Clarifying timing…",
-    compose_signoff: "Choosing sign-off…",
-    compose_pause: "Still not sent.",
-    compose_done: "Still not sent.",
-  };
-
-  let statusLabel = manualStatusMap[phase];
-  if (typeof statusLabel === "function") {
-    statusLabel = statusLabel();
-  }
-
-  if (showChatStatus && chatStarted && chatPhase) {
-    const chatStatusMap = {
-      user_voice: "Just tell Claro what you need — no clicking.",
-      user_final: "Intent captured once. Claro remembers your tone.",
-      ai_voice: `Claro drafts instantly, matching your ${contactFirstName} sign-off.`,
-      ai_final: "Ready to send — tone matched in seconds.",
-    };
-    statusLabel = chatStatusMap[chatPhase] || statusLabel;
-  }
+function InboxPreviewCard({ phase, dimmed, chatPhase, aiDone }) {
 
   const highlightSarah =
     phase === "row_hover" ||
@@ -887,12 +939,6 @@ function InboxPreviewCard({
   const rows = FOLLOW_UP_ROWS;
 
   const inboxIsChill = chatPhase === "ai_final" && aiDone;
-  const statusTone =
-    showChatStatus && chatStarted && chatPhase ? "ai" : "manual";
-  const statusClassName =
-    statusTone === "manual"
-      ? "absolute -top-10 left-4 z-20 flex max-w-[260px] flex-wrap items-center gap-2 rounded-full bg-[#fff2ed]/95 px-3.5 py-1.5 text-[11px] font-semibold text-[#b45309] shadow-[0_12px_28px_rgba(225,96,54,0.18)] ring-1 ring-[#fb923c]/40 border border-white/70"
-      : "absolute -top-10 left-4 z-20 flex max-w-[260px] flex-wrap items-center gap-2 rounded-full bg-white/95 px-3.5 py-1.5 text-[11px] font-medium text-gray-600 shadow-[0_10px_30px_rgba(15,23,42,0.12)] ring-1 ring-gray-200 border border-white/70";
 
   const showContextMenu =
     phase === "row_context" ||
@@ -903,17 +949,6 @@ function InboxPreviewCard({
 
   return (
     <div className="relative">
-      {statusLabel && (
-        <motion.div
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className={statusClassName}
-        >
-          <span className="text-center leading-tight">{statusLabel}</span>
-        </motion.div>
-      )}
-
       <div className="relative w-full max-w-[380px]">
         <div
           className="overflow-hidden rounded-xl border border-gray-200 bg-white/95 ring-1 ring-gray-100 shadow-[0_24px_60px_rgba(0,0,0,0.08)] transition-all duration-500"

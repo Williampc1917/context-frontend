@@ -46,16 +46,31 @@ export function RevealHeadline({
 
   // Interactivity
   retriggerOnHover = false, // <-- ADDED BACK
+  onRevealComplete,
 }) {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
   const h1Ref = useRef(null);
   const rafRef = useRef(0);
+  const completionNotifiedRef = useRef(false);
+  const onRevealCompleteRef = useRef(onRevealComplete);
 
   // RAF + timer for the breathing overlay
   const breathRafRef = useRef(0);
   const breathTimeoutRef = useRef(0);
   const breathIdleTimeoutRef = useRef(0);
+
+  useEffect(() => {
+    onRevealCompleteRef.current = onRevealComplete;
+  }, [onRevealComplete]);
+
+  const notifyRevealComplete = () => {
+    if (completionNotifiedRef.current) return;
+    completionNotifiedRef.current = true;
+    if (typeof onRevealCompleteRef.current === "function") {
+      onRevealCompleteRef.current();
+    }
+  };
 
   // ---- Breathing config (internal) ----
   const BREATH = {
@@ -705,6 +720,7 @@ export function RevealHeadline({
         },
         Math.max(0, breathDelayMs),
       );
+      notifyRevealComplete();
     }
   }
 
@@ -715,6 +731,7 @@ export function RevealHeadline({
     // reset overlay & delay when retriggering
     stopBreathing();
     clearBreathDelay();
+    completionNotifiedRef.current = false;
 
     if (h1) h1.style.opacity = "0"; // hide DOM text at start
 
@@ -735,6 +752,7 @@ export function RevealHeadline({
           Math.max(0, breathDelayMs),
         );
       }
+      notifyRevealComplete();
       return;
     }
     St.start = 0;

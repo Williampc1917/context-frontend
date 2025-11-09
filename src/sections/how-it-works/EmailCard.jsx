@@ -120,6 +120,19 @@ export default function InboxToClarity() {
 
   const showAiBubble = phase === "ai_voice" || phase === "ai_final";
 
+  const userBubbleFill = userStillTalkingForUI ? "#20252E" : "#2F3C4D"; // bluish + ~20–25% lighter // ~30% lighten from #1A1719 / #232A35
+  const userBubbleStrokeGradient =
+    "linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02))";
+  const userBubbleTextColor = "rgba(255,255,255,0.96)";
+  const userBubbleBoxShadow = "0 6px 10px rgba(0,0,0,0.25)";
+
+  // AI bubble (match iOS)
+  const aiBubbleFill = "#332C31"; // slight lift (~10%) from #2A2328 for web contrast, keeps warm charcoal tone
+  const aiBubbleStrokeGradient = "linear-gradient(135deg, rgba(234,132,103,0.32), rgba(243,154,131,0.14))"; // brighter coral sheen (EA8467 -> F39A83)
+  const aiBubbleTextColor = "rgba(255,255,255,0.96)";
+  const aiBubbleSecondaryTextColor = "rgba(255,255,255,0.68)";
+  const aiBubbleBoxShadow = "0 5px 8px rgba(0,0,0,0.2), 0 0 36px rgba(234,132,103,0.18), inset 0 0 10px rgba(234,132,103,0.12)"; // stronger coral aura + gentle inner glow
+
   return (
     <FeatureLayout
       ref={rootRef}
@@ -265,21 +278,35 @@ export default function InboxToClarity() {
               <div
                 className="
     relative max-w-[220px] rounded-2xl px-3 py-2
-    text-[13px] leading-snug text-white
-    bg-[#3d405b]
-    ring-1 ring-[#3d405b]/40
-    border border-white/10
-    shadow-[0_16px_40px_rgba(61,64,91,0.28)]
+    text-[13px] leading-snug
+    border border-transparent
     break-words overflow-hidden
   "
                 style={{
                   borderTopRightRadius: "0.5rem", // subtle 'tail' corner
+                  backgroundColor: userBubbleFill,
+                  boxShadow: userBubbleBoxShadow,
+                  color: userBubbleTextColor,
                 }}
               >
+                {/* gradient stroke overlay (matches SwiftUI overlay stroke) */}
+                <span
+                  className="pointer-events-none absolute inset-0 rounded-2xl"
+                  style={{
+                    borderTopRightRadius: "0.5rem",
+                    padding: "1px",
+                    background: userBubbleStrokeGradient,
+                    WebkitMask:
+                      "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+                    WebkitMaskComposite: "xor",
+                    maskComposite: "exclude",
+                    zIndex: 1
+                  }}
+                />
                 {/* while you're still speaking */}
                 {userStillTalkingForUI && (
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[12px] font-medium text-white/90">
+                    <span className="text-[12px] font-medium">
                       Listening…
                     </span>
                     <VoiceBars active={userIsSpeaking} />
@@ -288,7 +315,7 @@ export default function InboxToClarity() {
 
                 {/* once we have transcript: typewriter */}
                 {userHasTranscript && (
-                  <div className="text-[13px] font-medium text-white whitespace-pre-wrap">
+                  <div className="text-[13px] font-medium whitespace-pre-wrap">
                     {userTypedText}
                     {!userDoneTyping && <CaretBlink light />}
                   </div>
@@ -352,31 +379,45 @@ export default function InboxToClarity() {
               {/* assistant bubble */}
               <div
                 className="
-                        max-w-[260px]
-                        rounded-2xl px-4 py-3
-                        bg-gray-100 text-gray-900 ring-1 ring-gray-200
-                        border border-white/40 shadow-[0_24px_48px_rgba(0,0,0,0.12)]
-                        text-[14px] leading-[1.4] font-medium whitespace-pre-wrap break-words
-                      "
+      relative
+      max-w-[260px]
+      rounded-2xl px-4 py-3
+      text-[14px] leading-[1.4] font-medium whitespace-pre-wrap break-words
+    "
                 style={{
                   borderTopLeftRadius: "0.5rem",
-                  boxShadow:
-                    "0 28px 64px rgba(0,0,0,0.12), 0 6px 28px rgba(0,0,0,0.06)",
+                  backgroundColor: aiBubbleFill,
+                  color: aiBubbleTextColor,
+                  boxShadow: aiBubbleBoxShadow
                 }}
               >
+                {/* gradient stroke overlay (matches SwiftUI overlay stroke) */}
+                <span
+                  className="pointer-events-none absolute inset-0 rounded-2xl"
+                  style={{
+                    borderTopLeftRadius: "0.5rem",
+                    padding: "1.5px",
+                    background: aiBubbleStrokeGradient,
+                    WebkitMask:
+                      "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+                    WebkitMaskComposite: "xor",
+                    maskComposite: "exclude",
+                    zIndex: 1
+                  }}
+                />
                 {/* Speaking… header lives INSIDE the bubble while AI is still "talking" */}
                 {aiStillTalkingForUI && (
-                  <div className="flex items-center gap-2 mb-2 text-[12px] font-medium text-gray-700">
+                  <div className="flex items-center gap-2 mb-2 text-[12px] font-medium" style={{ color: aiBubbleSecondaryTextColor }}>
                     <span>Speaking…</span>
-                    <div className="text-gray-500">
+                    <div style={{ color: aiBubbleSecondaryTextColor }}>
                       <VoiceBars active />
                     </div>
                   </div>
                 )}
 
-                <div className="text-gray-900">
+                <div style={{ color: aiBubbleTextColor }}>
                   {aiTypedText}
-                  {!aiDoneTyping && <CaretBlink />}
+                  {!aiDoneTyping && <CaretBlink light />}
                 </div>
               </div>
             </motion.div>
