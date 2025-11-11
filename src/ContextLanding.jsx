@@ -329,147 +329,147 @@ export default function ContextLanding() {
       ) : null}
 
       <section
-  id="top"
-  ref={heroRef}
-  className="hero-canvas relative flex flex-col items-center justify-start min-h-[90vh] px-6 pt-[clamp(56px,8vh,96px)] pb-18 lg:px-8 text-center"
->
-  <div className="hero-shell w-full max-w-5xl px-6 py-10 md:py-12 lg:px-16 mx-auto">
-    {/* Hero text block */}
-    <div className="hero-content flex flex-col items-center justify-center w-full max-w-3xl lg:max-w-4xl mx-auto text-center">
-      <RevealHeadline
-        text={"Clarity for the way you\nconnect"}
-        className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.05]"
-        cleanColor="#3D405B"
-        activeColor="#E07A5F"
-        durationMs={2400}
-        tileEnd={3.2}
-        threshold={0.4}
-        breathDelayMs={1200}
-        onRevealComplete={handleHeroRevealComplete}
-      />
+        id="top"
+        ref={heroRef}
+        className="hero-canvas relative flex flex-col items-center justify-start min-h-[90vh] px-4 sm:px-6 pt-[clamp(32px,6.5vh,88px)] pb-18 lg:px-8 text-center"
+      >
+        <div className="hero-shell w-full max-w-5xl px-5 sm:px-6 py-8 md:py-12 lg:px-16 mx-auto">
+          {/* Hero text block */}
+          <div className="hero-content flex flex-col items-center justify-center w-full max-w-3xl lg:max-w-4xl mx-auto text-center">
+            <RevealHeadline
+              text={"Clarity for the way you\nconnect"}
+              className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.05]"
+              cleanColor="#3D405B"
+              activeColor="#E07A5F"
+              durationMs={2400}
+              tileEnd={3.2}
+              threshold={0.4}
+              breathDelayMs={1200}
+              onRevealComplete={handleHeroRevealComplete}
+            />
 
-      {subtextVisible && (
-        <motion.p
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={
-            prefersReducedMotion
-              ? { duration: 0 }
-              : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
-          }
-          className="mt-6 text-lg sm:text-xl text-[#3D405B]/80 max-w-2xl mx-auto"
-        >
-          CLARO AI is a voice assistant for your email and calendar. It
-          understands how you connect — who matters, how you communicate,
-          and when to reach out.
-        </motion.p>
-      )}
+            {subtextVisible && (
+              <motion.p
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={
+                  prefersReducedMotion
+                    ? { duration: 0 }
+                    : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
+                }
+                className="mt-6 text-lg sm:text-xl text-[#3D405B]/80 max-w-2xl mx-auto"
+              >
+                CLARO AI is a voice assistant for your email and calendar. It
+                understands how you connect — who matters, how you communicate,
+                and when to reach out.
+              </motion.p>
+            )}
 
-      {pillsVisible && (
-        <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={
-            prefersReducedMotion
-              ? { duration: 0 }
-              : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
-          }
-          className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
-        >
-          <button
-            onClick={() => scrollTo("waitlist")}
-            className="btn-primary bg-[#E07A5F] hover:bg-[#d36f56]"
+            {pillsVisible && (
+              <motion.div
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={
+                  prefersReducedMotion
+                    ? { duration: 0 }
+                    : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
+                }
+                className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
+              >
+                <button
+                  onClick={() => scrollTo("waitlist")}
+                  className="btn-primary bg-[#E07A5F] hover:bg-[#d36f56]"
+                >
+                  Join the waitlist
+                </button>
+                <button
+                  onClick={() => scrollTo("how")}
+                  className="btn-glass text-[#3D405B] border-[#3D405B]/20 hover:bg-white/80"
+                >
+                  See how it works <ArrowRight size={16} />
+                </button>
+              </motion.div>
+            )}
+          </div>
+
+          {/* iPhone mock video from /public */}
+          <motion.div
+            className="mt-10 flex justify-center"
+            initial={
+              prefersReducedMotion ? false : { opacity: 0, y: 32, scale: 0.98 }
+            }
+            animate={
+              videoVisible
+                ? { opacity: 1, y: 0, scale: 1 }
+                : { opacity: 0, y: 32, scale: 0.98 }
+            }
+            transition={
+              prefersReducedMotion
+                ? { duration: 0 }
+                : { duration: 0.65, ease: [0.22, 1, 0.36, 1] }
+            }
           >
-            Join the waitlist
-          </button>
-          <button
-            onClick={() => scrollTo("how")}
-            className="btn-glass text-[#3D405B] border-[#3D405B]/20 hover:bg-white/80"
-          >
-            See how it works <ArrowRight size={16} />
-          </button>
-        </motion.div>
-      )}
-    </div>
+            {!prefersReducedMotion ? (
+              <video
+                key={phoneVideoKey}
+                ref={videoRef}
+                className="max-w-full h-auto w-[440px] sm:w-[520px] md:w-[620px] lg:w-[720px] rounded-[36px] border border-black/5 bg-transparent shadow-2xl object-contain"
+                loop
+                muted
+                playsInline
+                preload="auto"
+                poster={`${import.meta.env.BASE_URL}standard-mockup.png`}
+                width={420}
+                height={860}
+                onLoadedData={() => setVideoReady(true)}
+                style={{
+                  backgroundColor: "transparent",
+                  opacity: videoVisible && videoReady ? 1 : 0,
+                  transition: "opacity 0.45s ease",
+                }}
+              >
+                <source src={phoneVideoSrc} type={phoneVideoType} />
+                {/* If you later add an MP4, uncomment the line below for broader support */}
+                {/* <source src={`${import.meta.env.BASE_URL}FIRST-TEST-MOV-SITE.mp4`} type="video/mp4" /> */}
+                {/* Fallback if the browser can't play video */}
+                <img
+                  src={`${import.meta.env.BASE_URL}standard-mockup.png`}
+                  alt="Claro AI on an iPhone screen"
+                  width={420}
+                  height={860}
+                />
+              </video>
+            ) : (
+              <img
+                src={`${import.meta.env.BASE_URL}standard-mockup.png`}
+                alt="Claro AI on an iPhone screen"
+                className="max-w-full h-auto w-[180px] sm:w-[220px] md:w-[260px] lg:w-[300px] rounded-[28px] border border-black/5 bg-white shadow-2xl"
+                loading="lazy"
+                width={420}
+                height={860}
+              />
+            )}
+          </motion.div>
+        </div>
 
-    {/* iPhone mock video from /public */}
-    <motion.div
-      className="mt-10 flex justify-center"
-      initial={
-        prefersReducedMotion ? false : { opacity: 0, y: 32, scale: 0.98 }
-      }
-      animate={
-        videoVisible
-          ? { opacity: 1, y: 0, scale: 1 }
-          : { opacity: 0, y: 32, scale: 0.98 }
-      }
-      transition={
-        prefersReducedMotion
-          ? { duration: 0 }
-          : { duration: 0.65, ease: [0.22, 1, 0.36, 1] }
-      }
-    >
-      {!prefersReducedMotion ? (
-        <video
-          key={phoneVideoKey}
-          ref={videoRef}
-          className="max-w-full h-auto w-[440px] sm:w-[520px] md:w-[620px] lg:w-[720px] rounded-[36px] border border-black/5 bg-transparent shadow-2xl object-contain"
-          loop
-          muted
-          playsInline
-          preload="auto"
-          poster={`${import.meta.env.BASE_URL}standard-mockup.png`}
-          width={420}
-          height={860}
-          onLoadedData={() => setVideoReady(true)}
-          style={{
-            backgroundColor: "transparent",
-            opacity: videoVisible && videoReady ? 1 : 0,
-            transition: "opacity 0.45s ease",
-          }}
-        >
-          <source src={phoneVideoSrc} type={phoneVideoType} />
-          {/* If you later add an MP4, uncomment the line below for broader support */}
-          {/* <source src={`${import.meta.env.BASE_URL}FIRST-TEST-MOV-SITE.mp4`} type="video/mp4" /> */}
-          {/* Fallback if the browser can't play video */}
-          <img
-            src={`${import.meta.env.BASE_URL}standard-mockup.png`}
-            alt="Claro AI on an iPhone screen"
-            width={420}
-            height={860}
-          />
-        </video>
-      ) : (
-        <img
-          src={`${import.meta.env.BASE_URL}standard-mockup.png`}
-          alt="Claro AI on an iPhone screen"
-          className="max-w-full h-auto w-[180px] sm:w-[220px] md:w-[260px] lg:w-[300px] rounded-[28px] border border-black/5 bg-white shadow-2xl"
-          loading="lazy"
-          width={420}
-          height={860}
+        {/* Floating brand logos */}
+        <FloatingLogo
+          src={`${import.meta.env.BASE_URL}gmail.svg`}
+          alt="Gmail"
+          className="absolute left-[8%] top-[22%] w-[90px] sm:w-[110px] lg:w-[140px] z-30"
+          delay={0}
+          hideBelow="md"
+          targetRef={heroRef}
         />
-      )}
-    </motion.div>
-  </div>
-
-  {/* Floating brand logos */}
-  <FloatingLogo
-    src={`${import.meta.env.BASE_URL}gmail.svg`}
-    alt="Gmail"
-    className="absolute left-[8%] top-[22%] w-[90px] sm:w-[110px] lg:w-[140px] z-30"
-    delay={0}
-    hideBelow="md"
-    targetRef={heroRef}
-  />
-  <FloatingLogo
-    src={`${import.meta.env.BASE_URL}google-calendar.svg`}
-    alt="Google Calendar"
-    className="absolute right-[8%] top-[22%] w-[85px] sm:w-[100px] lg:w-[130px] z-30"
-    delay={0.4}
-    hideBelow="md"
-    targetRef={heroRef}
-  />
-</section>
+        <FloatingLogo
+          src={`${import.meta.env.BASE_URL}google-calendar.svg`}
+          alt="Google Calendar"
+          className="absolute right-[8%] top-[22%] w-[85px] sm:w-[100px] lg:w-[130px] z-30"
+          delay={0.4}
+          hideBelow="md"
+          targetRef={heroRef}
+        />
+      </section>
 
       
 
