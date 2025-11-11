@@ -376,8 +376,20 @@ export default function ProblemSection() {
         .type__text { display: inline-block; overflow: hidden; width: 0; padding-bottom: var(--reveal-pad); }
         .caret { position: absolute; top: 0; bottom: -0.05em; left: 0; width: 3px; background: #111827; transform: translateX(0); }
 
-        .stackHead { display: none; }
-        .stackLine { display: block; font-size: clamp(56px, 16vw, 120px); line-height: 1.02; letter-spacing: -0.015em; }
+        .stackHead {
+          display: none;
+          text-align: left;
+          margin-inline: auto;
+          width: fit-content;
+          max-width: 100%;
+        }
+        .stackLine {
+          display: block;
+          font-size: clamp(56px, 16vw, 120px);
+          line-height: 1.02;
+          letter-spacing: -0.015em;
+          text-align: left;
+        }
 
         .subline { margin-top: 18px; font-size: clamp(26px, 4.5vw, 44px); color: #4b5563; opacity: 0; transform: translateY(6px); }
 
@@ -397,7 +409,12 @@ export default function ProblemSection() {
 
         @media (max-width: 900px) {
           .typedHead { display: none; }
-          .stackHead { display: block; }
+          .stackHead {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: clamp(0.05em, 1vw, 0.16em);
+          }
           .subline   { font-size: clamp(22px, 7vw, 34px); }
           .particlesWrap { height: 64px; }
         }
