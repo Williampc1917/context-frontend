@@ -396,8 +396,10 @@ export default function ProblemSection() {
         @keyframes voiceShow     { to { opacity: 1; } }
 
         @media (max-width: 900px) {
+          .headlineBox { display: flex; flex-direction: column; align-items: flex-start; }
           .typedHead { display: none; }
-          .stackHead { display: block; }
+          .stackHead { display: block; text-align: left; width: 100%; }
+          .stackLine { text-align: left; margin-left: 0; }
           .subline   { font-size: clamp(22px, 7vw, 34px); }
           .particlesWrap { height: 64px; }
         }
