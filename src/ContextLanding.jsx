@@ -20,7 +20,7 @@ import { RevealHeadline } from "./sections/RevealHeadline.jsx";
 import FloatingLogo from "./sections/FloatingLogo.jsx";
 import { howItWorksFeatures } from "./sections/how-it-works/index.js";
 import ClaroBrainOverlay from "./sections/ClaroBrainOverlay.jsx";
-
+3
 
 export default function ContextLanding() {
   const [scrolled, setScrolled] = useState(false);
@@ -53,7 +53,6 @@ export default function ContextLanding() {
   const [videoVisible, setVideoVisible] = useState(prefersReducedMotion);
   const [videoReady, setVideoReady] = useState(false);
   const videoRef = useRef(null);
-  const [isSafari, setIsSafari] = useState(false);
 
   useEffect(() => {
     const onLoad = () => {
@@ -86,14 +85,6 @@ export default function ContextLanding() {
   }, [pillsVisible, prefersReducedMotion]);
 
   useEffect(() => {
-    if (typeof navigator === "undefined") return;
-    setIsSafari(
-      /Safari/i.test(navigator.userAgent) &&
-        !/Chrome|Chromium|Android/i.test(navigator.userAgent),
-    );
-  }, []);
-
-  useEffect(() => {
     if (prefersReducedMotion) return;
     const videoEl = videoRef.current;
     if (!videoEl) return;
@@ -119,7 +110,46 @@ export default function ContextLanding() {
     if (!videoEl) return;
     setVideoReady(false);
     videoEl.load();
-  }, [isSafari, prefersReducedMotion]);
+  }, [prefersReducedMotion]);
+
+  // Force inline muted autoplay on iOS + user-gesture fallback
+useEffect(() => {
+  const v = videoRef.current;
+  if (!v) return;
+
+  // make absolutely sure these are set on the DOM element
+  v.muted = true;
+  v.defaultMuted = true;
+  v.playsInline = true;
+  v.setAttribute('muted', '');
+  v.setAttribute('playsinline', '');
+  v.setAttribute('webkit-playsinline', 'true');
+
+  const tryPlay = () => {
+    const p = v.play?.();
+    if (p && p.catch) p.catch(() => {});
+  };
+
+  // try when enough is loaded
+  v.addEventListener('loadeddata', tryPlay, { once: true });
+  v.addEventListener('canplaythrough', tryPlay, { once: true });
+
+  // one-time user gesture fallback (covers Low Power Mode, etc.)
+  const onFirstInteract = () => {
+    tryPlay();
+    window.removeEventListener('touchstart', onFirstInteract);
+    window.removeEventListener('click', onFirstInteract);
+  };
+  window.addEventListener('touchstart', onFirstInteract, { once: true });
+  window.addEventListener('click', onFirstInteract, { once: true });
+
+  return () => {
+    v.removeEventListener('loadeddata', tryPlay);
+    v.removeEventListener('canplaythrough', tryPlay);
+    window.removeEventListener('touchstart', onFirstInteract);
+    window.removeEventListener('click', onFirstInteract);
+  };
+}, []);
 
   const scrollTo = useCallback((id) => {
     const el = document.getElementById(id);
@@ -179,12 +209,6 @@ export default function ContextLanding() {
     setPillsVisible,
     setVideoVisible,
   ]);
-
-  const phoneVideoSrc = `${import.meta.env.BASE_URL}${
-    isSafari ? "iphone-safari.mov" : "iphone-alpha.webm"
-  }`;
-  const phoneVideoType = isSafari ? "video/quicktime" : "video/webm";
-  const phoneVideoKey = isSafari ? "safari-video" : "webm-video";
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -411,34 +435,43 @@ export default function ContextLanding() {
     >
       {!prefersReducedMotion ? (
         <video
-          key={phoneVideoKey}
-          ref={videoRef}
-          className="max-w-full h-auto w-[440px] sm:w-[520px] md:w-[620px] lg:w-[720px] rounded-[36px] border border-black/5 bg-transparent shadow-2xl object-contain"
-          loop
-          muted
-          playsInline
-          preload="auto"
-          poster={`${import.meta.env.BASE_URL}standard-mockup.png`}
-          width={420}
-          height={860}
-          onLoadedData={() => setVideoReady(true)}
-          style={{
-            backgroundColor: "transparent",
-            opacity: videoVisible && videoReady ? 1 : 0,
-            transition: "opacity 0.45s ease",
-          }}
-        >
-          <source src={phoneVideoSrc} type={phoneVideoType} />
-          {/* If you later add an MP4, uncomment the line below for broader support */}
-          {/* <source src={`${import.meta.env.BASE_URL}FIRST-TEST-MOV-SITE.mp4`} type="video/mp4" /> */}
-          {/* Fallback if the browser can't play video */}
-          <img
-            src={`${import.meta.env.BASE_URL}standard-mockup.png`}
-            alt="Claro AI on an iPhone screen"
-            width={420}
-            height={860}
-          />
-        </video>
+  ref={videoRef}
+  className="max-w-full h-auto w-[440px] sm:w-[520px] md:w-[620px] lg:w-[720px] rounded-[36px] border border-black/5 bg-transparent shadow-2xl object-contain"
+  autoPlay
+  loop
+  muted
+  playsInline
+  webkit-playsinline="true"
+  preload="auto"
+  poster={`${import.meta.env.BASE_URL}standard-mockup.png`}
+  width={420}
+  height={860}
+  onLoadedData={() => setVideoReady(true)}
+  onCanPlayThrough={() => setVideoReady(true)}
+  style={{
+    backgroundColor: "transparent",
+    opacity: videoVisible && videoReady ? 1 : 0,
+    transition: "opacity 0.45s ease",
+  }}
+>
+  {/* Safari/iOS first: HEVC with alpha */}
+  <source
+    src={`${import.meta.env.BASE_URL}iphone-safari.mov`}
+    type='video/mp4; codecs="hvc1"'
+  />
+  {/* Chrome/Firefox: VP9 with alpha */}
+  <source
+    src={`${import.meta.env.BASE_URL}iphone-alpha.webm`}
+    type="video/webm"
+  />
+  {/* Fallback image */}
+  <img
+    src={`${import.meta.env.BASE_URL}standard-mockup.png`}
+    alt="Claro AI on an iPhone screen"
+    width={420}
+    height={860}
+  />
+</video>
       ) : (
         <img
           src={`${import.meta.env.BASE_URL}standard-mockup.png`}
