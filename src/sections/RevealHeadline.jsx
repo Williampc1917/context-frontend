@@ -1,5 +1,23 @@
 import React, { useEffect, useRef } from "react";
 
+const TWO_PI = Math.PI * 2;
+const SIN_LUT_SIZE = 4096; // power-of-two for cheap masking
+const SIN_LUT_MASK = SIN_LUT_SIZE - 1;
+const SIN_TABLE = new Float32Array(SIN_LUT_SIZE);
+for (let i = 0; i < SIN_LUT_SIZE; i += 1) {
+  SIN_TABLE[i] = Math.sin((i / SIN_LUT_SIZE) * TWO_PI);
+}
+
+function sinFast(theta) {
+  let t = theta % TWO_PI;
+  if (t < 0) t += TWO_PI;
+  const scaled = (t / TWO_PI) * SIN_LUT_SIZE;
+  const base = Math.floor(scaled) & SIN_LUT_MASK;
+  const next = (base + 1) & SIN_LUT_MASK;
+  const frac = scaled - Math.floor(scaled);
+  return SIN_TABLE[base] * (1 - frac) + SIN_TABLE[next] * frac;
+}
+
 /**
  * RevealHeadline — Pixel tiles → Crisp DOM text (DOM text fades in at the end)
  *
@@ -89,6 +107,7 @@ export function RevealHeadline({
     dpr: 1,
     w: 0,
     h: 0,
+    mobile: false,
     lines: [],
     centers: [], // [{cx, cy}] from DOM spans
     fontSize: 64,
@@ -319,6 +338,7 @@ export function RevealHeadline({
     // canvas dims: match the visible <h1> box exactly
     St.w = Math.max(1, Math.round(wrapRect.width));
     St.h = Math.max(1, Math.round(wrapRect.height));
+    St.mobile = St.w <= 768;
     const deviceDpr =
       typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
     const narrowCap = St.w <= 640 ? 1.5 : 2;
@@ -334,8 +354,18 @@ export function RevealHeadline({
     ];
     const endMin = Math.max(1.4, tileEnd * 0.7);
     const endMax = Math.max(endMin, tileEnd * 1.25);
+    
+    const densityScale =
+  St.w <= 480 ? 1.4 :
+  St.w <= 768 ? 1.2 :
+  St.w <= 1024 ? 1.1 :
+  1;
+
     const responsiveEnd = responsiveStops(St.w, endStops);
-    St.tileEnd = clamp(responsiveEnd, endMin, endMax);
+    const scaledEnd = responsiveEnd * densityScale;
+    const scaledEndMin = endMin * densityScale;
+    const scaledEndMax = endMax * densityScale;
+    St.tileEnd = clamp(scaledEnd, scaledEndMin, scaledEndMax);
 
     const startStops = [
       [0, Math.max(St.tileEnd + 0.6, tileStart * 0.68)],
@@ -345,10 +375,11 @@ export function RevealHeadline({
       [1280, tileStart],
       [1600, tileStart * 1.1],
     ];
-    const startMin = St.tileEnd + 0.5;
-    const startMax = Math.max(startMin, tileStart * 1.35);
     const responsiveStart = responsiveStops(St.w, startStops);
-    St.tileStart = clamp(responsiveStart, startMin, startMax);
+    const scaledStart = responsiveStart * densityScale;
+    const startMin = St.tileEnd + 0.5;
+    const startMax = Math.max(startMin, tileStart * 1.35 * densityScale);
+    St.tileStart = clamp(scaledStart, startMin, startMax);
 
     const alphaBaseStops = [
       [0, BREATH.alphaBase * 0.85],
@@ -552,6 +583,7 @@ export function RevealHeadline({
 
   // ---------- breathing overlay (with staged intro) ----------
   function drawBreath(now) {
+    if (S.current.mobile) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const St = S.current;
@@ -605,7 +637,7 @@ export function RevealHeadline({
         p.phase +
         omega * (now - S.current.breathStart) * p.rate +
         (p.spatial + S.current.flow);
-      const v = 0.5 + 0.5 * Math.sin(theta); // 0..1
+      const v = 0.5 + 0.5 * sinFast(theta); // 0..1
 
       const a = (St.breathAlphaBase + St.breathAlphaAmp * v) * introAlphaScale;
       let s = baseSize + St.breathSizeAmpPx * (v - 0.5) * 2;
@@ -631,6 +663,12 @@ export function RevealHeadline({
   }
 
   function breathTick(now) {
+    if (S.current.mobile) {
+      cancelAnimationFrame(breathRafRef.current);
+      breathRafRef.current = 0;
+      cancelLowPowerBreath();
+      return;
+    }
     if (!S.current.visible || prefersReducedMotion) {
       cancelAnimationFrame(breathRafRef.current);
       breathRafRef.current = 0;
@@ -656,6 +694,7 @@ export function RevealHeadline({
   }
 
   function startBreathing() {
+    if (S.current.mobile) return;
     if (h1Ref.current) h1Ref.current.style.opacity = "1";
     const now =
       typeof performance !== "undefined" ? performance.now() : Date.now();
@@ -688,6 +727,13 @@ export function RevealHeadline({
   function tick(now) {
     const St = S.current;
     if (!St.running) return;
+    if (!St.visible) {
+      if (!St.pausedAt) {
+        St.pausedAt = now;
+      }
+      rafRef.current = 0;
+      return;
+    }
     if (!St.docVisible) {
       if (!St.pausedAt) {
         St.pausedAt = now;
@@ -714,7 +760,11 @@ export function RevealHeadline({
       clearBreathDelay();
       breathTimeoutRef.current = window.setTimeout(
         () => {
-          if (S.current.visible && !prefersReducedMotion) {
+          if (
+            S.current.visible &&
+            !prefersReducedMotion &&
+            !S.current.mobile
+          ) {
             startBreathing();
           }
         },
@@ -743,7 +793,7 @@ export function RevealHeadline({
       St.progress = 1;
       if (h1) h1.style.opacity = "1";
 
-      if (!prefersReducedMotion && St.visible) {
+      if (!prefersReducedMotion && St.visible && !St.mobile) {
         clearBreathDelay();
         breathTimeoutRef.current = window.setTimeout(
           () => {
@@ -771,7 +821,12 @@ export function RevealHeadline({
   }
 
   function scheduleLowPowerBreath() {
-    if (breathIdleTimeoutRef.current || prefersReducedMotion) return;
+    if (
+      breathIdleTimeoutRef.current ||
+      prefersReducedMotion ||
+      S.current.mobile
+    )
+      return;
     if (!S.current.visible) return;
     const delay = S.current.docVisible ? 160 : 650;
     S.current.lowPower = true;
@@ -852,13 +907,30 @@ export function RevealHeadline({
 
     const io = new IntersectionObserver(
       (entries) => {
-        S.current.visible = !!entries[0]?.isIntersecting;
-        if (!S.current.visible) {
+        const isVisible = !!entries[0]?.isIntersecting;
+        S.current.visible = isVisible;
+        if (!isVisible) {
           stopBreathing();
           clearBreathDelay();
-        } else if (S.current.revealedOnce && !prefersReducedMotion) {
-          if (!breathRafRef.current && !breathTimeoutRef.current) {
-            startBreathing(); // resume without re-staging delay
+        } else {
+          if (S.current.pausedAt) {
+            S.current.start +=
+              (typeof performance !== "undefined"
+                ? performance.now()
+                : Date.now()) - S.current.pausedAt;
+            S.current.pausedAt = 0;
+          }
+          if (S.current.running && !rafRef.current) {
+            rafRef.current = requestAnimationFrame(tick);
+          }
+          if (
+            S.current.revealedOnce &&
+            !prefersReducedMotion &&
+            !S.current.mobile
+          ) {
+            if (!breathRafRef.current && !breathTimeoutRef.current) {
+              startBreathing(); // resume without re-staging delay
+            }
           }
         }
       },
@@ -880,7 +952,11 @@ export function RevealHeadline({
           cancelAnimationFrame(breathRafRef.current);
           breathRafRef.current = 0;
         }
-        if (S.current.revealedOnce && !prefersReducedMotion) {
+        if (
+          S.current.revealedOnce &&
+          !prefersReducedMotion &&
+          !S.current.mobile
+        ) {
           scheduleLowPowerBreath();
         }
       } else {
@@ -896,6 +972,7 @@ export function RevealHeadline({
         if (
           S.current.revealedOnce &&
           !prefersReducedMotion &&
+          !S.current.mobile &&
           !breathRafRef.current
         ) {
           breathRafRef.current = requestAnimationFrame(breathTick);

@@ -53,6 +53,10 @@ export default function ContextLanding() {
   const [videoVisible, setVideoVisible] = useState(prefersReducedMotion);
   const [videoReady, setVideoReady] = useState(false);
   const videoRef = useRef(null);
+  const videoHasStartedRef = useRef(false);
+  const safeAreaTop = "env(safe-area-inset-top, 0px)";
+  const heroSafePadding = `calc(${safeAreaTop} + clamp(56px, 8vh, 96px))`;
+  const mobileMenuOffset = `calc(4rem + ${safeAreaTop})`;
 
   useEffect(() => {
     const onLoad = () => {
@@ -84,25 +88,27 @@ export default function ContextLanding() {
     return () => window.clearTimeout(timer);
   }, [pillsVisible, prefersReducedMotion]);
 
+  const [heroInView, setHeroInView] = useState(true);
+
   useEffect(() => {
     if (prefersReducedMotion) return;
     const videoEl = videoRef.current;
     if (!videoEl) return;
 
-    if (videoVisible && videoReady) {
-      videoEl.currentTime = 0;
+    if (videoVisible && videoReady && heroInView) {
+      if (!videoHasStartedRef.current) {
+        videoEl.currentTime = 0;
+      }
       const playPromise = videoEl.play?.();
       if (playPromise?.catch) {
         playPromise.catch(() => {});
       }
+      videoHasStartedRef.current = true;
       return;
     }
 
     videoEl.pause?.();
-    if (videoReady) {
-      videoEl.currentTime = 0;
-    }
-  }, [videoVisible, videoReady, prefersReducedMotion]);
+  }, [videoVisible, videoReady, prefersReducedMotion, heroInView]);
 
   useEffect(() => {
     if (prefersReducedMotion) return;
@@ -110,6 +116,22 @@ export default function ContextLanding() {
     if (!videoEl) return;
     setVideoReady(false);
     videoEl.load();
+  }, [prefersReducedMotion]);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+    const heroEl = heroRef.current;
+    if (!heroEl) return;
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        setHeroInView(entry.isIntersecting);
+      },
+      { threshold: 0.25 },
+    );
+
+    io.observe(heroEl);
+    return () => io.disconnect();
   }, [prefersReducedMotion]);
 
   // Force inline muted autoplay on iOS + user-gesture fallback
@@ -236,6 +258,9 @@ useEffect(() => {
     };
   }, [menuOpen]);
 
+  const subtextActive = prefersReducedMotion || subtextVisible;
+  const pillsActive = prefersReducedMotion || pillsVisible;
+
   return (
     <div className="relative min-h-screen overflow-x-clip text-gray-900 bg-surface">
       <div className="pointer-events-none absolute inset-0 -z-20">
@@ -251,6 +276,7 @@ useEffect(() => {
       <div className="bg-noise pointer-events-none absolute inset-0 -z-10 mix-blend-soft-light opacity-60" />
 
       <nav
+        style={{ paddingTop: safeAreaTop }}
         className={`fixed top-0 z-50 w-full transition-all duration-300 ${
           scrolled
             ? "bg-white/35 backdrop-blur-2xl border-b border-white/30 shadow-lg"
@@ -317,7 +343,10 @@ useEffect(() => {
             className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm md:hidden"
             onClick={() => setMenuOpen(false)}
           />
-          <div className="fixed inset-x-0 top-16 z-50 px-4 pt-4 pb-6 md:hidden">
+          <div
+            style={{ top: mobileMenuOffset }}
+            className="fixed inset-x-0 z-50 px-4 pt-4 pb-6 md:hidden"
+          >
             <div className="rounded-3xl border border-white/60 bg-white/90 p-4 shadow-xl backdrop-blur-xl">
               <div className="space-y-2">
                 <MobileNavButton
@@ -353,10 +382,11 @@ useEffect(() => {
       ) : null}
 
       <section
-  id="top"
-  ref={heroRef}
-  className="hero-canvas relative flex flex-col items-center justify-start min-h-[90vh] px-6 pt-[clamp(56px,8vh,96px)] pb-18 lg:px-8 text-center"
->
+        id="top"
+        ref={heroRef}
+        style={{ paddingTop: heroSafePadding }}
+        className="hero-canvas relative flex flex-col items-center justify-start min-h-[90vh] px-6 pb-18 lg:px-8 text-center"
+      >
   <div className="hero-shell w-full max-w-5xl px-6 py-10 md:py-12 lg:px-16 mx-auto">
     {/* Hero text block */}
     <div className="hero-content flex flex-col items-center justify-center w-full max-w-3xl lg:max-w-4xl mx-auto text-center">
@@ -372,48 +402,64 @@ useEffect(() => {
         onRevealComplete={handleHeroRevealComplete}
       />
 
-      {subtextVisible && (
-        <motion.p
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={
-            prefersReducedMotion
-              ? { duration: 0 }
-              : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
-          }
-          className="mt-6 text-lg sm:text-xl text-[#3D405B]/80 max-w-2xl mx-auto"
-        >
-          CLARO AI is a voice assistant for your email and calendar. It
-          understands how you connect — who matters, how you communicate,
-          and when to reach out.
-        </motion.p>
-      )}
+      <motion.p
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+        animate={
+          subtextActive
+            ? { opacity: 1, y: 0 }
+            : { opacity: 0, y: 16 }
+        }
+        transition={
+          prefersReducedMotion
+            ? { duration: 0 }
+            : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
+        }
+        className="mt-6 text-lg sm:text-xl text-[#3D405B]/80 max-w-2xl mx-auto"
+        style={{
+          visibility: subtextActive ? "visible" : "hidden",
+          pointerEvents: subtextActive ? "auto" : "none",
+        }}
+        aria-hidden={!subtextActive}
+      >
+        CLARO AI is a voice assistant for your email and calendar. It
+        understands how you connect — who matters, how you communicate,
+        and when to reach out.
+      </motion.p>
 
-      {pillsVisible && (
-        <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={
-            prefersReducedMotion
-              ? { duration: 0 }
-              : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
-          }
-          className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
+      <motion.div
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+        animate={
+          pillsActive
+            ? { opacity: 1, y: 0 }
+            : { opacity: 0, y: 20 }
+        }
+        transition={
+          prefersReducedMotion
+            ? { duration: 0 }
+            : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
+        }
+        className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
+        style={{
+          visibility: pillsActive ? "visible" : "hidden",
+          pointerEvents: pillsActive ? "auto" : "none",
+        }}
+        aria-hidden={!pillsActive}
+      >
+        <button
+          onClick={() => scrollTo("waitlist")}
+          className="btn-primary bg-[#E07A5F] hover:bg-[#d36f56]"
+          tabIndex={pillsActive ? 0 : -1}
         >
-          <button
-            onClick={() => scrollTo("waitlist")}
-            className="btn-primary bg-[#E07A5F] hover:bg-[#d36f56]"
-          >
-            Join the waitlist
-          </button>
-          <button
-            onClick={() => scrollTo("how")}
-            className="btn-glass text-[#3D405B] border-[#3D405B]/20 hover:bg-white/80"
-          >
-            See how it works <ArrowRight size={16} />
-          </button>
-        </motion.div>
-      )}
+          Join the waitlist
+        </button>
+        <button
+          onClick={() => scrollTo("how")}
+          className="btn-glass text-[#3D405B] border-[#3D405B]/20 hover:bg-white/80"
+          tabIndex={pillsActive ? 0 : -1}
+        >
+          See how it works <ArrowRight size={16} />
+        </button>
+      </motion.div>
     </div>
 
     {/* iPhone mock video from /public */}
@@ -442,7 +488,7 @@ useEffect(() => {
   muted
   playsInline
   webkit-playsinline="true"
-  preload="auto"
+  preload="metadata"
   poster={`${import.meta.env.BASE_URL}standard-mockup.png`}
   width={420}
   height={860}
@@ -452,6 +498,8 @@ useEffect(() => {
     backgroundColor: "transparent",
     opacity: videoVisible && videoReady ? 1 : 0,
     transition: "opacity 0.45s ease",
+    willChange: "opacity, transform",
+    transform: "translateZ(0)",
   }}
 >
   {/* Safari/iOS first: HEVC with alpha */}

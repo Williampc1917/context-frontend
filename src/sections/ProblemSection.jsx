@@ -1,5 +1,5 @@
 // ProblemSection.jsx
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 /* =========================
    VoiceParticles (Canvas) — Smooth Wave in Bits (no grid)
@@ -198,14 +198,32 @@ export default function ProblemSection() {
   const boxRef = useRef(null);
   const measureRef = useRef(null);
   const rafFitRef = useRef(0);
+  const getIsMobile = () =>
+    typeof window !== "undefined"
+      ? window.matchMedia?.("(max-width: 900px)")?.matches ?? false
+      : false;
 
   const [play, setPlay] = useState(false);
   const [reduce, setReduce] = useState(false);
   const [fontPx, setFontPx] = useState(180);
   const [textWidthPx, setTextWidthPx] = useState(0);
+  const [isMobile, setIsMobile] = useState(getIsMobile);
+  const [mobileHeadlineVisible, setMobileHeadlineVisible] = useState(false);
+  const [mobileSublineVisible, setMobileSublineVisible] = useState(false);
+  const [mobileWaveVisible, setMobileWaveVisible] = useState(false);
+  const mobileSequenceStartedRef = useRef(false);
+  const mobileTimersRef = useRef([]);
 
   const line1 = "You type. You scroll. You drown in inboxes.";
   const line2 = "CLARO AI lets you talk your work into motion.";
+  const mobileLines = useMemo(
+    () => ["You type.", "You scroll.", "You drown", "in inboxes"],
+    [],
+  );
+  const clearMobileTimers = useCallback(() => {
+    mobileTimersRef.current.forEach((id) => clearTimeout(id));
+    mobileTimersRef.current = [];
+  }, []);
 
   const chars = useMemo(() => Array.from(line1).length, [line1]);
   const typeSpeed = 0.045;
@@ -221,20 +239,106 @@ export default function ProblemSection() {
   }, []);
 
   useEffect(() => {
+    const mq = window.matchMedia?.("(max-width: 900px)");
+    const update = () => setIsMobile(!!mq?.matches);
+    update();
+    if (mq) {
+      if (mq.addEventListener) {
+        mq.addEventListener("change", update);
+      } else if (mq.addListener) {
+        mq.addListener(update);
+      }
+    }
+    return () => {
+      if (mq) {
+        if (mq.removeEventListener) {
+          mq.removeEventListener("change", update);
+        } else if (mq.removeListener) {
+          mq.removeListener(update);
+        }
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearMobileTimers();
+    };
+  }, [clearMobileTimers]);
+
+  useEffect(() => {
+    if (!isMobile) {
+      clearMobileTimers();
+      mobileSequenceStartedRef.current = false;
+      setMobileHeadlineVisible(false);
+      setMobileSublineVisible(false);
+      setMobileWaveVisible(false);
+    }
+  }, [isMobile, clearMobileTimers]);
+
+  useEffect(() => {
+    if (reduce) {
+      setPlay(false);
+      return;
+    }
+
     const el = sectionRef.current;
     if (!el) return;
+
+    let mobileHasActivated = mobileSequenceStartedRef.current;
+
     const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          setPlay(true);
-          io.disconnect();
+      ([entry]) => {
+        if (isMobile) {
+          if (entry.isIntersecting && !mobileHasActivated) {
+            mobileHasActivated = true;
+            setPlay(true);
+          } else if (entry.isIntersecting && mobileHasActivated) {
+            setPlay(true);
+          }
+          return;
         }
+        setPlay(entry.isIntersecting);
       },
       { threshold: 0.35 },
     );
+
     io.observe(el);
-    return () => io.disconnect();
-  }, []);
+    return () => {
+      io.disconnect();
+      if (!isMobile) setPlay(false);
+    };
+  }, [reduce, isMobile]);
+
+  useEffect(() => {
+    if (!isMobile || reduce || !play) return;
+    if (mobileSequenceStartedRef.current) return;
+
+    mobileSequenceStartedRef.current = true;
+    setMobileHeadlineVisible(true);
+
+    const headlineToSubDelay = 260;
+    const subToWaveDelay = 600;
+    const subTimer = window.setTimeout(() => {
+      setMobileSublineVisible(true);
+    }, headlineToSubDelay);
+    const waveTimer = window.setTimeout(() => {
+      setMobileWaveVisible(true);
+    }, subToWaveDelay);
+
+    mobileTimersRef.current.push(subTimer, waveTimer);
+  }, [isMobile, reduce, play]);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    if (reduce) {
+      clearMobileTimers();
+      mobileSequenceStartedRef.current = true;
+      setMobileHeadlineVisible(true);
+      setMobileSublineVisible(true);
+      setMobileWaveVisible(false);
+    }
+  }, [isMobile, reduce, clearMobileTimers]);
 
   // Fit single-line headline (no clipping, resize-safe)
   useEffect(() => {
@@ -297,22 +401,25 @@ export default function ProblemSection() {
     };
   }, [line1, fontPx, textWidthPx]);
 
+  const effectiveWaveDelay = isMobile ? 0.05 : waveDelay;
+  const effectiveTypeDuration = isMobile ? 0 : typeDur;
+
   const vars = useMemo(
     () => ({
       ["--chars"]: chars,
-      ["--type-dur"]: `${typeDur}s`,
-      ["--wave-delay"]: `${waveDelay}s`,
+      ["--type-dur"]: `${effectiveTypeDuration}s`,
+      ["--wave-delay"]: `${effectiveWaveDelay}s`,
       ["--fs"]: `${fontPx}px`,
       ["--text-w"]: `${Math.max(0, textWidthPx)}px`,
       ["--reveal-pad"]: "0.18em", // protect descenders from clipping
     }),
-    [chars, typeDur, waveDelay, fontPx, textWidthPx],
+    [chars, effectiveTypeDuration, effectiveWaveDelay, fontPx, textWidthPx],
   );
 
   return (
     <section
       ref={sectionRef}
-      className={`relative overflow-hidden py-16 sm:py-20 md:py-28 ${play ? "is-play" : ""} ${reduce ? "is-reduced" : ""}`}
+      className={`relative overflow-hidden py-16 sm:py-20 md:py-28 ${play ? "is-play" : ""} ${reduce ? "is-reduced" : ""} ${isMobile ? "is-mobile" : ""}`}
       style={vars}
     >
       <div
@@ -325,33 +432,63 @@ export default function ProblemSection() {
         </span>
 
         <div ref={boxRef} className="headlineBox">
-          {/* Desktop typed */}
-          <h1 className="headline typedHead" style={{ fontSize: "var(--fs)" }}>
-            <span className="type">
-              <span className="type__text" aria-hidden="true">
-                {line1}
+          {!isMobile && (
+            <h1 className="headline typedHead" style={{ fontSize: "var(--fs)" }}>
+              <span className="type">
+                <span className="type__text" aria-hidden="true">
+                  {line1}
+                </span>
+                <span className="sr-only">{line1}</span>
+                <span className="caret" aria-hidden="true" />
               </span>
-              <span className="sr-only">{line1}</span>
-              <span className="caret" aria-hidden="true" />
-            </span>
-          </h1>
+            </h1>
+          )}
 
-          {/* ≤900px stacked */}
-          <h1 className="headline stackHead" aria-hidden="true">
-            <span className="stackLine">You type.</span>
-            <span className="stackLine">You scroll.</span>
-            <span className="stackLine">You drown in inboxes.</span>
-          </h1>
+          {isMobile && (
+            <h1
+              className={`headline mobileHead transition-all duration-500 ${
+                mobileHeadlineVisible
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-4"
+              }`}
+            >
+              {mobileLines.map((text, idx) => (
+                <span key={idx} className="mobileLine">
+                  {text}
+                </span>
+              ))}
+            </h1>
+          )}
         </div>
 
-        <p className="subline">{line2}</p>
+        {isMobile ? (
+          <p
+            className="subline"
+            style={{
+              opacity: mobileSublineVisible ? 1 : 0,
+              transform: mobileSublineVisible ? "translateY(0)" : "translateY(6px)",
+              transition: "opacity 0.45s ease, transform 0.45s ease",
+            }}
+          >
+            {line2}
+          </p>
+        ) : (
+          <p className="subline">{line2}</p>
+        )}
 
-        <VoiceParticles
-          play={play}
-          delay={waveDelay}
-          reducedMotion={reduce}
-          height={96}
-        />
+        <div
+          className={
+            isMobile
+              ? `transition-all duration-500 ${
+                  mobileWaveVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
+                }`
+              : ""
+          }
+        >
+          {!reduce && (!isMobile || mobileWaveVisible) && (
+            <VoiceParticles play={play} delay={isMobile ? 0 : waveDelay} height={96} />
+          )}
+        </div>
       </div>
 
       <style>{`
@@ -376,8 +513,25 @@ export default function ProblemSection() {
         .type__text { display: inline-block; overflow: hidden; width: 0; padding-bottom: var(--reveal-pad); }
         .caret { position: absolute; top: 0; bottom: -0.05em; left: 0; width: 3px; background: #111827; transform: translateX(0); }
 
-        .stackHead { display: none; }
-        .stackLine { display: block; font-size: clamp(56px, 16vw, 120px); line-height: 1.02; letter-spacing: -0.015em; }
+        
+        .mobileHead {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          justify-content: flex-start;
+          margin: 0;
+          width: min(100%, 480px);
+          text-align: left;
+          letter-spacing: -0.015em;
+          line-height: 1.02;
+          gap: 0.05em;
+        }
+        .mobileLine {
+          display: block;
+          font-size: clamp(56px, 16vw, 120px);
+          font-weight: 800;
+          width: 100%;
+        }
 
         .subline { margin-top: 18px; font-size: clamp(26px, 4.5vw, 44px); color: #4b5563; opacity: 0; transform: translateY(6px); }
 
@@ -396,8 +550,6 @@ export default function ProblemSection() {
         @keyframes voiceShow     { to { opacity: 1; } }
 
         @media (max-width: 900px) {
-          .typedHead { display: none; }
-          .stackHead { display: block; }
           .subline   { font-size: clamp(22px, 7vw, 34px); }
           .particlesWrap { height: 64px; }
         }
