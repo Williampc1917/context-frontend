@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useReducedMotion, motion, AnimatePresence } from "framer-motion";
 import {
-  Mic,
   ArrowRight,
   Menu,
   X,
@@ -20,6 +19,7 @@ import ProblemSection from "./sections/ProblemSection.jsx";
 import { RevealHeadline } from "./sections/RevealHeadline.jsx";
 import FloatingLogo from "./sections/FloatingLogo.jsx";
 import { howItWorksFeatures } from "./sections/how-it-works/index.js";
+import ClaroBrainOverlay from "./sections/ClaroBrainOverlay.jsx";
 
 
 export default function ContextLanding() {
@@ -483,6 +483,33 @@ export default function ContextLanding() {
         </div>
       </section>
 
+      {/* Claro brain / solution section */}
+      <section
+        id="solution"
+        className="section-plain px-6 py-24 lg:px-8 scroll-mt-24 lg:scroll-mt-32"
+      >
+        <div className="mx-auto grid w-full max-w-6xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <h2 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
+                Built on four intelligent cores
+              </h2>
+              <p className="text-lg text-slate-600 sm:text-xl">
+                The system understands every conversation in context, adapting to how you write, what you promise, and who matters most.
+              </p>
+              <p className="text-lg text-slate-600 sm:text-xl">
+                Together, these cores power your communication, making it more human, responsive, and intelligent.
+              </p>
+            </div>
+          </div>
+          <div className="relative">
+            <div className="relative rounded-[32px] border border-white/30 bg-[#080B14] p-3 shadow-[0_30px_80px_rgba(15,23,42,0.45)] ring-1 ring-white/10">
+              <ClaroBrainOverlay height={560} />
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="how" className="section-plain w-full py-28 px-4">
         <div className="mx-auto mb-20 flex max-w-4xl justify-center text-center">
           <HowItWorksHeading />
@@ -783,14 +810,19 @@ function HowItWorksHeading() {
       transition={
         prefersReducedMotion ? undefined : { duration: 0.6, ease: "easeOut" }
       }
-      className="flex items-center justify-center px-4 py-4"
+      className="flex items-center justify-center px-4 py-8"
     >
-      <motion.h2
-        variants={headingVariants}
-        className="text-5xl font-bold tracking-tight text-[#1c1f33] sm:text-6xl md:text-7xl"
-      >
-        How Claro Works
-      </motion.h2>
+      <div className="inline-flex flex-col items-center gap-4 rounded-[32px] bg-white/80 px-8 py-6 text-center shadow-[0_25px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+        <span className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">
+          Clarity in action
+        </span>
+        <motion.h2
+          variants={headingVariants}
+          className="text-5xl font-semibold tracking-tight text-[#5A5E76] sm:text-6xl md:text-7xl"
+        >
+          How Claro Works
+        </motion.h2>
+      </div>
     </motion.div>
   );
 }
