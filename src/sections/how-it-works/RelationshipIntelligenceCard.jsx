@@ -11,8 +11,8 @@ export default function RelationshipIntelligenceCard() {
         </p>,
       ]}
       background={
-        <div className="pointer-events-none absolute inset-0 mx-auto max-w-6xl opacity-35 blur-[110px]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_40%,rgba(16,185,129,0.12),transparent_70%)]" />
+        <div className="pointer-events-none absolute inset-0 -z-10 mx-auto max-w-6xl opacity-50 blur-[110px]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_40%,rgba(93,234,212,0.12),transparent_70%)]" />
         </div>
       }
     >

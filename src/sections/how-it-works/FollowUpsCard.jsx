@@ -562,10 +562,10 @@ export default function FollowupCard() {
       ]}
       background={
         <div
-          className="pointer-events-none absolute inset-0 mx-auto max-w-6xl blur-[100px] opacity-40"
+          className="pointer-events-none absolute inset-0 -z-10 mx-auto max-w-6xl blur-[110px] opacity-50"
           style={{
             background:
-              "radial-gradient(circle at 60% 40%, rgba(224,122,95,0.10) 0%, rgba(255,255,255,0) 70%)",
+              "radial-gradient(circle at 58% 38%, rgba(139,145,245,0.18) 0%, rgba(255,255,255,0) 72%)",
           }}
         />
       }
@@ -951,7 +951,7 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, aiDone }) {
     <div className="relative">
       <div className="relative w-full max-w-[380px]">
         <div
-          className="overflow-hidden rounded-xl border border-gray-200 bg-white/95 ring-1 ring-gray-100 shadow-[0_24px_60px_rgba(0,0,0,0.08)] transition-all duration-500"
+          className="overflow-hidden rounded-2xl border border-transparent bg-white/95 shadow-[0_24px_60px_rgba(0,0,0,0.08)] transition-all duration-500"
           style={{
             boxShadow:
               "0 28px 64px rgba(0,0,0,0.08), 0 6px 24px rgba(0,0,0,0.05)",

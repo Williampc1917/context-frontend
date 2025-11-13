@@ -1,13 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useReducedMotion, motion, AnimatePresence } from "framer-motion";
-import {
-  ArrowRight,
-  Menu,
-  X,
-  Mail,
-  Twitter,
-  Linkedin,
-} from "lucide-react";
+import { ArrowRight, Menu, X, Linkedin } from "lucide-react";
 import "./index.css";
 import { rafThrottle } from "./utils/throttle";
 import { useForm, ValidationError } from "@formspree/react";
@@ -320,7 +313,7 @@ useEffect(() => {
           <div className="ml-auto flex items-center justify-end gap-3">
             <button
               onClick={() => scrollTo("waitlist")}
-              className="hidden btn-primary sm:inline-flex"
+              className="hidden sm:inline-flex items-center rounded-full bg-[#0F172A] px-4 py-2 text-sm font-semibold text-white shadow-lg transition-transform duration-200 hover:scale-[1.02]"
             >
               Join the waitlist
             </button>
@@ -482,7 +475,7 @@ useEffect(() => {
       {!prefersReducedMotion ? (
         <video
   ref={videoRef}
-  className="max-w-full h-auto w-[440px] sm:w-[520px] md:w-[620px] lg:w-[720px] rounded-[36px] border border-black/5 bg-transparent shadow-2xl object-contain"
+  className="w-full max-w-[500px] sm:max-w-[560px] md:max-w-[620px] lg:max-w-[720px] h-auto rounded-[36px] border border-black/5 bg-transparent shadow-2xl object-contain"
   autoPlay
   loop
   muted
@@ -524,7 +517,7 @@ useEffect(() => {
         <img
           src={`${import.meta.env.BASE_URL}standard-mockup.png`}
           alt="Claro AI on an iPhone screen"
-          className="max-w-full h-auto w-[180px] sm:w-[220px] md:w-[260px] lg:w-[300px] rounded-[28px] border border-black/5 bg-white shadow-2xl"
+          className="w-full max-w-[320px] sm:max-w-[360px] md:max-w-[420px] lg:max-w-[480px] h-auto rounded-[28px] border border-black/5 bg-white shadow-2xl"
           loading="lazy"
           width={420}
           height={860}
@@ -612,24 +605,23 @@ useEffect(() => {
       >
         <div className="waitlist-content mx-auto max-w-4xl text-center">
           <h3 className="text-4xl font-bold tracking-tight">
-            Intelligence for how you connect.
+            Intelligence for how you connect
           </h3>
           <p className="mt-3 text-lg text-gray-600">
-            Join professionals who manage their most important relationships
-            with Context.
+            Join early users who stay organized, responsive, and connected with less effort
           </p>
           <WaitlistForm />
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="relative mt-20 overflow-hidden border-t border-white/50 bg-[#111323] text-white">
+      <footer className="relative mt-0 overflow-hidden border-t border-white/50 bg-[#111323] text-white">
         <div className="pointer-events-none absolute inset-0 opacity-70">
           <div className="absolute -left-20 top-[-10%] h-72 w-72 rounded-full bg-[radial-gradient(circle_at_center,rgba(224,122,95,0.45),transparent_65%)] blur-3xl" />
           <div className="absolute right-[-10%] bottom-[-20%] h-80 w-80 rounded-full bg-[radial-gradient(circle_at_center,rgba(56,189,248,0.35),transparent_65%)] blur-3xl" />
         </div>
 
-        <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-12 px-6 py-16 lg:flex-row lg:justify-between lg:gap-16">
+        <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-12 px-6 py-16 lg:flex-row lg:items-start lg:justify-between lg:gap-20">
           <div className="max-w-sm">
             <button
               type="button"
@@ -649,25 +641,14 @@ useEffect(() => {
                 <span className="ml-1 text-white">AI</span>
               </span>
             </button>
-            <p className="mt-4 text-base text-white/70">
-              Claro AI is the relationship intelligence copilot that keeps your
-              communications warm and the right follow-ups on track.
-            </p>
-            <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-white/70">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1">
-                <Mail size={16} />
-                hello@claro.ai
-              </span>
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1">
-                Based in my room
-              </span>
+            <div className="mt-4 text-sm text-white/70">
             </div>
             <div className="mt-6 flex items-center gap-3">
               <FooterSocialLink
-                href="https://twitter.com"
+                href="https://x.com"
                 label="Follow Claro AI on X"
               >
-                <Twitter size={18} />
+                <XLogo size={18} />
               </FooterSocialLink>
               <FooterSocialLink
                 href="https://linkedin.com"
@@ -678,7 +659,7 @@ useEffect(() => {
             </div>
           </div>
 
-          <div className="flex flex-1 flex-col gap-12 sm:flex-row sm:justify-between lg:gap-16">
+          <div className="flex flex-1 flex-col gap-10 sm:flex-row sm:justify-end">
             <FooterNavGroup
               title="Product"
               links={[
@@ -688,22 +669,6 @@ useEffect(() => {
                 { label: "Waitlist", target: "waitlist" },
               ]}
               onNavigate={scrollTo}
-            />
-            <FooterNavGroup
-              title="Company"
-              links={[
-                { label: "About", href: "#" },
-                { label: "Careers", href: "#" },
-                { label: "Press", href: "#" },
-              ]}
-            />
-            <FooterNavGroup
-              title="Resources"
-              links={[
-                { label: "Privacy", href: "#" },
-                { label: "Terms", href: "#" },
-                { label: "Support", href: "mailto:hello@claro.ai" },
-              ]}
             />
           </div>
         </div>
@@ -957,5 +922,24 @@ function FooterSocialLink({ href, label, children }) {
     >
       {children}
     </a>
+  );
+}
+
+function XLogo({ size = 18, ...props }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      role="img"
+      aria-hidden="true"
+      focusable="false"
+      {...props}
+    >
+      <path
+        d="M18.8 2h3.5l-7.4 8.5L22 22h-7.4l-5.2-6.7L4 22H0.5l7.7-8.9L0 2h7.4l4.6 6.1L18.8 2z"
+        fill="currentColor"
+      />
+    </svg>
   );
 }
