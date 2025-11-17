@@ -601,7 +601,7 @@ useEffect(() => {
         id="waitlist"
         ref={waitlistRef}
         data-revealed={waitlistVisible}
-        className="waitlist-section section-grad px-6 py-24 lg:px-8 scroll-mt-24 lg:scroll-mt-32"
+        className="waitlist-section px-6 py-24 lg:px-8 scroll-mt-24 lg:scroll-mt-32"
       >
         <div className="waitlist-content mx-auto max-w-4xl text-center">
           <h3 className="text-4xl font-bold tracking-tight">
