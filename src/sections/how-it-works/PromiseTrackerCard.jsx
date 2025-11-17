@@ -120,11 +120,6 @@ export default function PromiseTrackerCard() {
           are not trying to keep track of every loose end by yourself.
         </p>,
       ]}
-      background={
-        <div className="pointer-events-none absolute inset-0 -z-10 mx-auto max-w-6xl opacity-50 blur-[110px]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_42%,rgba(250,204,21,0.20),transparent_72%)]" />
-        </div>
-      }
     >
       <div className="relative flex h-[360px] w-full max-w-[340px] items-center justify-center">
         <div className="pointer-events-none absolute inset-[-8%] -z-10 bg-[radial-gradient(circle_at_50%_40%,rgba(255,255,255,0.95),rgba(255,255,255,0.35),transparent_70%)] blur-[90px]" />

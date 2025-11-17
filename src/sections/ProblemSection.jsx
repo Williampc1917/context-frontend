@@ -217,7 +217,11 @@ export default function ProblemSection() {
   const line1 = "You type. You scroll. You drown in inboxes.";
   const line2 = "CLARO AI lets you talk your work into motion.";
   const mobileLines = useMemo(
-    () => ["You type.", "You scroll.", "You drown", "in inboxes"],
+    () => [
+      { text: "You type.", accent: false },
+      { text: "You scroll.", accent: false },
+      { text: "You drown in inboxes.", accent: true },
+    ],
     [],
   );
   const clearMobileTimers = useCallback(() => {
@@ -452,8 +456,8 @@ export default function ProblemSection() {
                   : "opacity-0 translate-y-4"
               }`}
             >
-              {mobileLines.map((text, idx) => (
-                <span key={idx} className="mobileLine">
+              {mobileLines.map(({ text, accent }, idx) => (
+                <span key={idx} className={`mobileLine ${accent ? "is-accent" : ""}`}>
                   {text}
                 </span>
               ))}
@@ -520,17 +524,24 @@ export default function ProblemSection() {
           align-items: flex-start;
           justify-content: flex-start;
           margin: 0;
-          width: min(100%, 480px);
+          width: min(100%, 520px);
           text-align: left;
           letter-spacing: -0.015em;
           line-height: 1.02;
-          gap: 0.05em;
+          gap: 0.35em;
+          padding: 0 0.1em;
         }
         .mobileLine {
           display: block;
-          font-size: clamp(56px, 16vw, 120px);
+          font-size: clamp(38px, 10vw, 82px);
           font-weight: 800;
           width: 100%;
+          line-height: 1.08;
+          text-wrap: balance;
+          color: #0b0d10;
+        }
+        .mobileLine.is-accent {
+          font-size: clamp(42px, 11vw, 88px);
         }
 
         .subline { margin-top: 18px; font-size: clamp(26px, 4.5vw, 44px); color: #4b5563; opacity: 0; transform: translateY(6px); }

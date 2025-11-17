@@ -148,15 +148,6 @@ export default function InboxToClarity() {
           you ahead.
         </p>,
       ]}
-      background={
-        <div
-          className="pointer-events-none absolute inset-0 -z-10 mx-auto max-w-6xl blur-[110px] opacity-50"
-          style={{
-            background:
-              "radial-gradient(circle at 60% 40%, rgba(224,122,95,0.26) 0%, rgba(255,255,255,0) 70%)",
-          }}
-        />
-      }
     >
       {/* INBOX CARD */}
       <motion.div

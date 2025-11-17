@@ -1,41 +1,14 @@
 import { forwardRef } from "react";
 
 export default forwardRef(function FeatureLayout(
-  {
-    background,
-    eyebrow,
-    title,
-    description = [],
-    children,
-    className = "",
-    reverse = false,
-  },
+  { eyebrow, title, description = [], children, className = "", reverse = false },
   ref,
 ) {
   return (
     <article
       ref={ref}
-      className={`relative mx-auto grid w-full max-w-6xl items-center gap-12 overflow-hidden px-6 py-20 md:grid-cols-2 ${className}`}
+      className={`relative mx-auto grid w-full max-w-6xl items-center gap-12 overflow-hidden rounded-[40px] bg-[#F8F7F4] px-6 py-20 md:grid-cols-2 ${className}`}
     >
-      <div className="pointer-events-none absolute inset-0 -z-20">
-        <div
-          className="absolute inset-0 rounded-[40px]"
-          style={{
-            background:
-              "linear-gradient(185deg, rgba(255,255,255,0.98) 0%, rgba(248,247,244,0.92) 100%)",
-          }}
-        />
-        <div
-          className="absolute inset-0 rounded-[40px]"
-          style={{
-            background:
-              "radial-gradient(120% 80% at 50% 0%, rgba(255,255,255,0.45), transparent 70%)",
-          }}
-        />
-      </div>
-
-      {background}
-
       <div
         className={`relative flex w-full justify-center ${reverse ? "md:order-2" : "md:order-1"}`}
       >

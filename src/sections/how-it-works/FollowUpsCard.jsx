@@ -560,15 +560,6 @@ export default function FollowupCard() {
           With Claro, you just describe the intent and it’s ready to send.
         </p>,
       ]}
-      background={
-        <div
-          className="pointer-events-none absolute inset-0 -z-10 mx-auto max-w-6xl blur-[110px] opacity-50"
-          style={{
-            background:
-              "radial-gradient(circle at 58% 38%, rgba(139,145,245,0.18) 0%, rgba(255,255,255,0) 72%)",
-          }}
-        />
-      }
     >
       <div className="relative flex w-full flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex flex-1 flex-col items-start gap-6">
