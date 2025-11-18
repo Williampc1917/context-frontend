@@ -1,5 +1,11 @@
 // ProblemSection.jsx
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 /* =========================
    VoiceParticles (Canvas) — Smooth Wave in Bits (no grid)
@@ -200,7 +206,7 @@ export default function ProblemSection() {
   const rafFitRef = useRef(0);
   const getIsMobile = () =>
     typeof window !== "undefined"
-      ? window.matchMedia?.("(max-width: 900px)")?.matches ?? false
+      ? (window.matchMedia?.("(max-width: 900px)")?.matches ?? false)
       : false;
 
   const [play, setPlay] = useState(false);
@@ -437,7 +443,10 @@ export default function ProblemSection() {
 
         <div ref={boxRef} className="headlineBox">
           {!isMobile && (
-            <h1 className="headline typedHead" style={{ fontSize: "var(--fs)" }}>
+            <h1
+              className="headline typedHead"
+              style={{ fontSize: "var(--fs)" }}
+            >
               <span className="type">
                 <span className="type__text" aria-hidden="true">
                   {line1}
@@ -457,7 +466,10 @@ export default function ProblemSection() {
               }`}
             >
               {mobileLines.map(({ text, accent }, idx) => (
-                <span key={idx} className={`mobileLine ${accent ? "is-accent" : ""}`}>
+                <span
+                  key={idx}
+                  className={`mobileLine ${accent ? "is-accent" : ""}`}
+                >
                   {text}
                 </span>
               ))}
@@ -470,7 +482,9 @@ export default function ProblemSection() {
             className="subline"
             style={{
               opacity: mobileSublineVisible ? 1 : 0,
-              transform: mobileSublineVisible ? "translateY(0)" : "translateY(6px)",
+              transform: mobileSublineVisible
+                ? "translateY(0)"
+                : "translateY(6px)",
               transition: "opacity 0.45s ease, transform 0.45s ease",
             }}
           >
@@ -484,13 +498,19 @@ export default function ProblemSection() {
           className={
             isMobile
               ? `transition-all duration-500 ${
-                  mobileWaveVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
+                  mobileWaveVisible
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-3"
                 }`
               : ""
           }
         >
           {!reduce && (!isMobile || mobileWaveVisible) && (
-            <VoiceParticles play={play} delay={isMobile ? 0 : waveDelay} height={96} />
+            <VoiceParticles
+              play={play}
+              delay={isMobile ? 0 : waveDelay}
+              height={96}
+            />
           )}
         </div>
       </div>

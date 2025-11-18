@@ -150,7 +150,7 @@ const CHAOS_BITS = [
     type: "card",
     icon: "keyContact",
     title: "Key Contact",
-    detail: "The \"matters most\" node",
+    detail: 'The "matters most" node',
     accent: "#0A84FF",
     background:
       "linear-gradient(145deg, rgba(255,255,255,0.98), rgba(243,246,251,0.92))",
@@ -319,8 +319,8 @@ function FloatingBit({
 }) {
   const groupConfig = bit.group ? groupStacks[bit.group] : null;
   const drift = useMemo(() => {
-    const radius = stacked ? 5 : bit.floatRadius ?? 24;
-    const tilt = stacked ? 3 : bit.maxTilt ?? 10;
+    const radius = stacked ? 5 : (bit.floatRadius ?? 24);
+    const tilt = stacked ? 3 : (bit.maxTilt ?? 10);
 
     return {
       x: [
@@ -375,10 +375,7 @@ function FloatingBit({
   );
 
   const stackTargetStyle = useMemo(
-    () =>
-      groupConfig
-        ? toPercentPosition(groupConfig.stack)
-        : null,
+    () => (groupConfig ? toPercentPosition(groupConfig.stack) : null),
     [groupConfig],
   );
 
@@ -390,9 +387,7 @@ function FloatingBit({
   const stackScale = stacked ? 1 - stackIndex * 0.02 : 1;
   const stackOpacity = stacked ? Math.max(0.65, 1 - stackIndex * 0.18) : 1;
   const zIndex =
-    stacked && groupConfig
-      ? groupConfig.zBase - stackIndex
-      : bit.layer ?? 1;
+    stacked && groupConfig ? groupConfig.zBase - stackIndex : (bit.layer ?? 1);
 
   const baseDelay = (bit.layer ?? 1) * 0.08;
   const transition = stacked
@@ -480,8 +475,14 @@ function WaveformHub({ stacked, connections = [] }) {
             strokeLinecap="round"
             fill="none"
             initial={{ opacity: 0, pathLength: 0 }}
-            animate={{ opacity: stacked ? 0.8 : 0, pathLength: stacked ? 1 : 0 }}
-            transition={{ duration: 1.2, delay: stacked ? 0.6 + index * 0.15 : 0 }}
+            animate={{
+              opacity: stacked ? 0.8 : 0,
+              pathLength: stacked ? 1 : 0,
+            }}
+            transition={{
+              duration: 1.2,
+              delay: stacked ? 0.6 + index * 0.15 : 0,
+            }}
           />
         ))}
         <motion.circle
@@ -502,7 +503,10 @@ function WaveformHub({ stacked, connections = [] }) {
             fill="#8BCAE6"
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: stacked ? 0.9 : 0, scale: stacked ? 1 : 0.5 }}
-            transition={{ duration: 0.6, delay: stacked ? 0.9 + index * 0.15 : 0 }}
+            transition={{
+              duration: 0.6,
+              delay: stacked ? 0.9 + index * 0.15 : 0,
+            }}
           />
         ))}
       </motion.svg>
@@ -520,9 +524,17 @@ function WaveformHub({ stacked, connections = [] }) {
         style={{ top: `${HUB_POSITION.top}%`, left: `${HUB_POSITION.left}%` }}
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: stacked ? 1 : 0, scale: stacked ? 1 : 0.8 }}
-        transition={{ duration: 0.7, delay: stacked ? 0.8 : 0, ease: [0.22, 1, 0.36, 1] }}
+        transition={{
+          duration: 0.7,
+          delay: stacked ? 0.8 : 0,
+          ease: [0.22, 1, 0.36, 1],
+        }}
       >
-        <img src="/waveform.svg" alt="waveform" className="h-16 w-16 object-contain" />
+        <img
+          src="/waveform.svg"
+          alt="waveform"
+          className="h-16 w-16 object-contain"
+        />
       </motion.div>
     </div>
   );
@@ -538,11 +550,17 @@ function CardBit({ bit }) {
     >
       <div className="flex items-center gap-2 font-semibold text-slate-800">
         <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow-inner">
-          <Icon className="h-3.5 w-3.5" strokeWidth={2.4} style={{ color: bit.accent }} />
+          <Icon
+            className="h-3.5 w-3.5"
+            strokeWidth={2.4}
+            style={{ color: bit.accent }}
+          />
         </span>
         {bit.title}
       </div>
-      <p className="mt-1 text-[9px] font-medium text-slate-500 sm:text-[10px]">{bit.detail}</p>
+      <p className="mt-1 text-[9px] font-medium text-slate-500 sm:text-[10px]">
+        {bit.detail}
+      </p>
     </div>
   );
 }
@@ -562,7 +580,9 @@ function PersonBit({ bit }) {
         <div className="text-[10px] font-semibold text-slate-800 sm:text-[11px]">
           {bit.note}
         </div>
-        <div className="text-[9px] text-slate-500 sm:text-[10px]">{bit.sub}</div>
+        <div className="text-[9px] text-slate-500 sm:text-[10px]">
+          {bit.sub}
+        </div>
       </div>
     </div>
   );

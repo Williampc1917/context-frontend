@@ -13,7 +13,7 @@ import { RevealHeadline } from "./sections/RevealHeadline.jsx";
 import FloatingLogo from "./sections/FloatingLogo.jsx";
 import { howItWorksFeatures } from "./sections/how-it-works/index.js";
 import ClaroBrainOverlay from "./sections/ClaroBrainOverlay.jsx";
-3
+3;
 
 export default function ContextLanding() {
   const [scrolled, setScrolled] = useState(false);
@@ -128,43 +128,43 @@ export default function ContextLanding() {
   }, [prefersReducedMotion]);
 
   // Force inline muted autoplay on iOS + user-gesture fallback
-useEffect(() => {
-  const v = videoRef.current;
-  if (!v) return;
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
 
-  // make absolutely sure these are set on the DOM element
-  v.muted = true;
-  v.defaultMuted = true;
-  v.playsInline = true;
-  v.setAttribute('muted', '');
-  v.setAttribute('playsinline', '');
-  v.setAttribute('webkit-playsinline', 'true');
+    // make absolutely sure these are set on the DOM element
+    v.muted = true;
+    v.defaultMuted = true;
+    v.playsInline = true;
+    v.setAttribute("muted", "");
+    v.setAttribute("playsinline", "");
+    v.setAttribute("webkit-playsinline", "true");
 
-  const tryPlay = () => {
-    const p = v.play?.();
-    if (p && p.catch) p.catch(() => {});
-  };
+    const tryPlay = () => {
+      const p = v.play?.();
+      if (p && p.catch) p.catch(() => {});
+    };
 
-  // try when enough is loaded
-  v.addEventListener('loadeddata', tryPlay, { once: true });
-  v.addEventListener('canplaythrough', tryPlay, { once: true });
+    // try when enough is loaded
+    v.addEventListener("loadeddata", tryPlay, { once: true });
+    v.addEventListener("canplaythrough", tryPlay, { once: true });
 
-  // one-time user gesture fallback (covers Low Power Mode, etc.)
-  const onFirstInteract = () => {
-    tryPlay();
-    window.removeEventListener('touchstart', onFirstInteract);
-    window.removeEventListener('click', onFirstInteract);
-  };
-  window.addEventListener('touchstart', onFirstInteract, { once: true });
-  window.addEventListener('click', onFirstInteract, { once: true });
+    // one-time user gesture fallback (covers Low Power Mode, etc.)
+    const onFirstInteract = () => {
+      tryPlay();
+      window.removeEventListener("touchstart", onFirstInteract);
+      window.removeEventListener("click", onFirstInteract);
+    };
+    window.addEventListener("touchstart", onFirstInteract, { once: true });
+    window.addEventListener("click", onFirstInteract, { once: true });
 
-  return () => {
-    v.removeEventListener('loadeddata', tryPlay);
-    v.removeEventListener('canplaythrough', tryPlay);
-    window.removeEventListener('touchstart', onFirstInteract);
-    window.removeEventListener('click', onFirstInteract);
-  };
-}, []);
+    return () => {
+      v.removeEventListener("loadeddata", tryPlay);
+      v.removeEventListener("canplaythrough", tryPlay);
+      window.removeEventListener("touchstart", onFirstInteract);
+      window.removeEventListener("click", onFirstInteract);
+    };
+  }, []);
 
   const scrollTo = useCallback((id) => {
     const el = document.getElementById(id);
@@ -282,17 +282,16 @@ useEffect(() => {
             onClick={() => scrollTo("top")}
             className="group flex items-center gap-3 rounded-full px-2 py-1 transition-colors hover:bg-white/70"
           >
-            <span className="flex size-10 items-center justify-center rounded-full border border-[#E07A5F]/40 bg-white/80 shadow-sm transition-transform duration-300 group-hover:scale-105">
+            <span className="flex size-10 items-center justify-center rounded-full border border-[#C98C72]/40 bg-white/80 shadow-sm transition-transform duration-300 group-hover:scale-105">
               <img
-  src={`${import.meta.env.BASE_URL}waveform.svg`}
-  alt="Claro AI waveform logo"
-  className="h-6 w-6 object-contain"
-/>
-
+                src={`${import.meta.env.BASE_URL}waveform.svg`}
+                alt="Claro AI waveform logo"
+                className="h-6 w-6 object-contain"
+              />
             </span>
 
             <span className="text-[20px] font-silkscreen tracking-tight leading-none text-[#3D405B]">
-              <span className="text-[#E07A5F]">Claro</span>
+              <span className="text-[#C98C72]">Claro</span>
               <span className="ml-1">AI</span>
             </span>
           </button>
@@ -304,7 +303,6 @@ useEffect(() => {
                 onClick={() => scrollTo("problem")}
               />
               <NavLink label="Solution" onClick={() => scrollTo("solution")} />
-              <NavLink label="Features" onClick={() => scrollTo("features")} />
               <NavLink label="How it works" onClick={() => scrollTo("how")} />
               <NavLink label="Waitlist" onClick={() => scrollTo("waitlist")} />
             </div>
@@ -351,10 +349,6 @@ useEffect(() => {
                   onClick={() => scrollTo("solution")}
                 />
                 <MobileNavButton
-                  label="Features"
-                  onClick={() => scrollTo("features")}
-                />
-                <MobileNavButton
                   label="How it works"
                   onClick={() => scrollTo("how")}
                 />
@@ -380,172 +374,166 @@ useEffect(() => {
         style={{ paddingTop: heroSafePadding }}
         className="hero-canvas relative flex flex-col items-center justify-start min-h-[90vh] px-6 pb-18 lg:px-8 text-center"
       >
-  <div className="hero-shell w-full max-w-5xl px-6 py-10 md:py-12 lg:px-16 mx-auto">
-    {/* Hero text block */}
-    <div className="hero-content flex flex-col items-center justify-center w-full max-w-3xl lg:max-w-4xl mx-auto text-center">
-      <RevealHeadline
-        text={"Clarity for the way you\nconnect"}
-        className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.05]"
-        cleanColor="#3D405B"
-        activeColor="#E07A5F"
-        durationMs={2400}
-        tileEnd={3.2}
-        threshold={0.4}
-        breathDelayMs={1200}
-        onRevealComplete={handleHeroRevealComplete}
-      />
+        <div className="hero-shell w-full max-w-5xl px-6 py-10 md:py-12 lg:px-16 mx-auto">
+          {/* Hero text block */}
+          <div className="hero-content flex flex-col items-center justify-center w-full max-w-3xl lg:max-w-4xl mx-auto text-center">
+            <RevealHeadline
+              text={"Clarity for the way you\nconnect"}
+              className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.05]"
+              cleanColor="#3D405B"
+              activeColor="#C98C72"
+              durationMs={2400}
+              tileEnd={3.2}
+              threshold={0.4}
+              breathDelayMs={1200}
+              onRevealComplete={handleHeroRevealComplete}
+            />
 
-      <motion.p
-        initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
-        animate={
-          subtextActive
-            ? { opacity: 1, y: 0 }
-            : { opacity: 0, y: 16 }
-        }
-        transition={
-          prefersReducedMotion
-            ? { duration: 0 }
-            : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
-        }
-        className="mt-6 text-lg sm:text-xl text-[#3D405B]/80 max-w-2xl mx-auto"
-        style={{
-          visibility: subtextActive ? "visible" : "hidden",
-          pointerEvents: subtextActive ? "auto" : "none",
-        }}
-        aria-hidden={!subtextActive}
-      >
-        CLARO AI is a voice assistant for your email and calendar. It
-        understands how you connect — who matters, how you communicate,
-        and when to reach out.
-      </motion.p>
+            <motion.p
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+              animate={
+                subtextActive ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }
+              }
+              transition={
+                prefersReducedMotion
+                  ? { duration: 0 }
+                  : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
+              }
+              className="mt-6 text-lg sm:text-xl text-[#3D405B]/80 max-w-2xl mx-auto"
+              style={{
+                visibility: subtextActive ? "visible" : "hidden",
+                pointerEvents: subtextActive ? "auto" : "none",
+              }}
+              aria-hidden={!subtextActive}
+            >
+              CLARO AI is a voice assistant for your email and calendar. It
+              understands how you connect — who matters, how you communicate,
+              and when to reach out.
+            </motion.p>
 
-      <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-        animate={
-          pillsActive
-            ? { opacity: 1, y: 0 }
-            : { opacity: 0, y: 20 }
-        }
-        transition={
-          prefersReducedMotion
-            ? { duration: 0 }
-            : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
-        }
-        className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
-        style={{
-          visibility: pillsActive ? "visible" : "hidden",
-          pointerEvents: pillsActive ? "auto" : "none",
-        }}
-        aria-hidden={!pillsActive}
-      >
-        <button
-          onClick={() => scrollTo("waitlist")}
-          className="btn-primary bg-[#E07A5F] hover:bg-[#d36f56]"
-          tabIndex={pillsActive ? 0 : -1}
-        >
-          Join the waitlist
-        </button>
-        <button
-          onClick={() => scrollTo("how")}
-          className="btn-glass text-[#3D405B] border-[#3D405B]/20 hover:bg-white/80"
-          tabIndex={pillsActive ? 0 : -1}
-        >
-          See how it works <ArrowRight size={16} />
-        </button>
-      </motion.div>
-    </div>
+            <motion.div
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+              animate={
+                pillsActive ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
+              }
+              transition={
+                prefersReducedMotion
+                  ? { duration: 0 }
+                  : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
+              }
+              className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
+              style={{
+                visibility: pillsActive ? "visible" : "hidden",
+                pointerEvents: pillsActive ? "auto" : "none",
+              }}
+              aria-hidden={!pillsActive}
+            >
+              <button
+                onClick={() => scrollTo("waitlist")}
+                className="btn-primary bg-[#C98C72] hover:bg-[#b67a63]"
+                tabIndex={pillsActive ? 0 : -1}
+              >
+                Join the waitlist
+              </button>
+              <button
+                onClick={() => scrollTo("how")}
+                className="btn-glass text-[#3D405B] border-[#3D405B]/20 hover:bg-white/80"
+                tabIndex={pillsActive ? 0 : -1}
+              >
+                See how it works <ArrowRight size={16} />
+              </button>
+            </motion.div>
+          </div>
 
-    {/* iPhone mock video from /public */}
-    <motion.div
-      className="mt-10 flex justify-center"
-      initial={
-        prefersReducedMotion ? false : { opacity: 0, y: 32, scale: 0.98 }
-      }
-      animate={
-        videoVisible
-          ? { opacity: 1, y: 0, scale: 1 }
-          : { opacity: 0, y: 32, scale: 0.98 }
-      }
-      transition={
-        prefersReducedMotion
-          ? { duration: 0 }
-          : { duration: 0.65, ease: [0.22, 1, 0.36, 1] }
-      }
-    >
-      {!prefersReducedMotion ? (
-        <video
-  ref={videoRef}
-  className="w-full max-w-[500px] sm:max-w-[560px] md:max-w-[620px] lg:max-w-[720px] h-auto rounded-[36px] border border-black/5 bg-transparent shadow-2xl object-contain"
-  autoPlay
-  loop
-  muted
-  playsInline
-  webkit-playsinline="true"
-  preload="metadata"
-  poster={`${import.meta.env.BASE_URL}standard-mockup.png`}
-  width={420}
-  height={860}
-  onLoadedData={() => setVideoReady(true)}
-  onCanPlayThrough={() => setVideoReady(true)}
-  style={{
-    backgroundColor: "transparent",
-    opacity: videoVisible && videoReady ? 1 : 0,
-    transition: "opacity 0.45s ease",
-    willChange: "opacity, transform",
-    transform: "translateZ(0)",
-  }}
->
-  {/* Safari/iOS first: HEVC with alpha */}
-  <source
-    src={`${import.meta.env.BASE_URL}iphone-safari.mov`}
-    type='video/mp4; codecs="hvc1"'
-  />
-  {/* Chrome/Firefox: VP9 with alpha */}
-  <source
-    src={`${import.meta.env.BASE_URL}iphone-alpha.webm`}
-    type="video/webm"
-  />
-  {/* Fallback image */}
-  <img
-    src={`${import.meta.env.BASE_URL}standard-mockup.png`}
-    alt="Claro AI on an iPhone screen"
-    width={420}
-    height={860}
-  />
-</video>
-      ) : (
-        <img
-          src={`${import.meta.env.BASE_URL}standard-mockup.png`}
-          alt="Claro AI on an iPhone screen"
-          className="w-full max-w-[320px] sm:max-w-[360px] md:max-w-[420px] lg:max-w-[480px] h-auto rounded-[28px] border border-black/5 bg-white shadow-2xl"
-          loading="lazy"
-          width={420}
-          height={860}
+          {/* iPhone mock video from /public */}
+          <motion.div
+            className="mt-10 flex justify-center"
+            initial={
+              prefersReducedMotion ? false : { opacity: 0, y: 32, scale: 0.98 }
+            }
+            animate={
+              videoVisible
+                ? { opacity: 1, y: 0, scale: 1 }
+                : { opacity: 0, y: 32, scale: 0.98 }
+            }
+            transition={
+              prefersReducedMotion
+                ? { duration: 0 }
+                : { duration: 0.65, ease: [0.22, 1, 0.36, 1] }
+            }
+          >
+            {!prefersReducedMotion ? (
+              <video
+                ref={videoRef}
+                className="w-full max-w-[500px] sm:max-w-[560px] md:max-w-[620px] lg:max-w-[720px] h-auto rounded-[36px] border border-black/5 bg-transparent shadow-2xl object-contain"
+                autoPlay
+                loop
+                muted
+                playsInline
+                webkit-playsinline="true"
+                preload="metadata"
+                poster={`${import.meta.env.BASE_URL}standard-mockup.png`}
+                width={420}
+                height={860}
+                onLoadedData={() => setVideoReady(true)}
+                onCanPlayThrough={() => setVideoReady(true)}
+                style={{
+                  backgroundColor: "transparent",
+                  opacity: videoVisible && videoReady ? 1 : 0,
+                  transition: "opacity 0.45s ease",
+                  willChange: "opacity, transform",
+                  transform: "translateZ(0)",
+                }}
+              >
+                {/* Safari/iOS first: HEVC with alpha */}
+                <source
+                  src={`${import.meta.env.BASE_URL}iphone-safari.mov`}
+                  type='video/mp4; codecs="hvc1"'
+                />
+                {/* Chrome/Firefox: VP9 with alpha */}
+                <source
+                  src={`${import.meta.env.BASE_URL}iphone-alpha.webm`}
+                  type="video/webm"
+                />
+                {/* Fallback image */}
+                <img
+                  src={`${import.meta.env.BASE_URL}standard-mockup.png`}
+                  alt="Claro AI on an iPhone screen"
+                  width={420}
+                  height={860}
+                />
+              </video>
+            ) : (
+              <img
+                src={`${import.meta.env.BASE_URL}standard-mockup.png`}
+                alt="Claro AI on an iPhone screen"
+                className="w-full max-w-[320px] sm:max-w-[360px] md:max-w-[420px] lg:max-w-[480px] h-auto rounded-[28px] border border-black/5 bg-white shadow-2xl"
+                loading="lazy"
+                width={420}
+                height={860}
+              />
+            )}
+          </motion.div>
+        </div>
+
+        {/* Floating brand logos */}
+        <FloatingLogo
+          src={`${import.meta.env.BASE_URL}gmail.svg`}
+          alt="Gmail"
+          className="absolute left-[8%] top-[22%] w-[90px] sm:w-[110px] lg:w-[140px] z-30"
+          delay={0}
+          hideBelow="md"
+          targetRef={heroRef}
         />
-      )}
-    </motion.div>
-  </div>
-
-  {/* Floating brand logos */}
-  <FloatingLogo
-    src={`${import.meta.env.BASE_URL}gmail.svg`}
-    alt="Gmail"
-    className="absolute left-[8%] top-[22%] w-[90px] sm:w-[110px] lg:w-[140px] z-30"
-    delay={0}
-    hideBelow="md"
-    targetRef={heroRef}
-  />
-  <FloatingLogo
-    src={`${import.meta.env.BASE_URL}google-calendar.svg`}
-    alt="Google Calendar"
-    className="absolute right-[8%] top-[22%] w-[85px] sm:w-[100px] lg:w-[130px] z-30"
-    delay={0.4}
-    hideBelow="md"
-    targetRef={heroRef}
-  />
-</section>
-
-      
+        <FloatingLogo
+          src={`${import.meta.env.BASE_URL}google-calendar.svg`}
+          alt="Google Calendar"
+          className="absolute right-[8%] top-[22%] w-[85px] sm:w-[100px] lg:w-[130px] z-30"
+          delay={0.4}
+          hideBelow="md"
+          targetRef={heroRef}
+        />
+      </section>
 
       {/* Problem section */}
       <section
@@ -569,10 +557,12 @@ useEffect(() => {
                 Built on four intelligent cores
               </h2>
               <p className="text-lg text-slate-600 sm:text-xl">
-                The system understands every conversation in context, adapting to how you write, what you promise, and who matters most.
+                The system understands every conversation in context, adapting
+                to how you write, what you promise, and who matters most.
               </p>
               <p className="text-lg text-slate-600 sm:text-xl">
-                Together, these cores power your communication, making it more human, responsive, and intelligent.
+                Together, these cores power your communication, making it more
+                human, responsive, and intelligent.
               </p>
             </div>
           </div>
@@ -608,7 +598,8 @@ useEffect(() => {
             Intelligence for how you connect
           </h3>
           <p className="mt-3 text-lg text-gray-600">
-            Join early users who stay organized, responsive, and connected with less effort
+            Join early users who stay organized, responsive, and connected with
+            less effort
           </p>
           <WaitlistForm />
         </div>
@@ -630,19 +621,17 @@ useEffect(() => {
             >
               <span className="flex size-9 items-center justify-center rounded-full bg-white/80">
                 <img
-  src={`${import.meta.env.BASE_URL}waveform.svg`}
-  alt="Claro AI"
-  className="h-5 w-5"
-/>
-
+                  src={`${import.meta.env.BASE_URL}waveform.svg`}
+                  alt="Claro AI"
+                  className="h-5 w-5"
+                />
               </span>
               <span className="text-xl font-silkscreen tracking-tight text-white">
-                <span className="text-[#E07A5F]">Claro</span>
+                <span className="text-[#C98C72]">Claro</span>
                 <span className="ml-1 text-white">AI</span>
               </span>
             </button>
-            <div className="mt-4 text-sm text-white/70">
-            </div>
+            <div className="mt-4 text-sm text-white/70"></div>
             <div className="mt-6 flex items-center gap-3">
               <FooterSocialLink
                 href="https://x.com"
@@ -678,7 +667,7 @@ useEffect(() => {
             <p>© {new Date().getFullYear()} Claro AI. All rights reserved.</p>
             <p className="flex items-center gap-2">
               <span
-                className="inline-flex h-2 w-2 animate-pulse rounded-full bg-[#E07A5F]"
+                className="inline-flex h-2 w-2 animate-pulse rounded-full bg-[#C98C72]"
                 aria-hidden
               />
               Based in New York.
@@ -825,51 +814,22 @@ function NavLink({ label, onClick }) {
       className="group relative text-[#3D405B]/75 transition-colors duration-200 hover:text-[#3D405B] focus:outline-none"
     >
       {label}
-      <span className="pointer-events-none absolute -bottom-2 left-1/2 h-0.5 w-0 -translate-x-1/2 rounded-full bg-[#E07A5F]/70 transition-all duration-300 group-hover:w-7" />
+      <span className="pointer-events-none absolute -bottom-2 left-1/2 h-0.5 w-0 -translate-x-1/2 rounded-full bg-[#C98C72]/70 transition-all duration-300 group-hover:w-7" />
     </button>
   );
 }
 
 function HowItWorksHeading() {
-  const prefersReducedMotion = useReducedMotion();
-
-  const transition = prefersReducedMotion
-    ? { duration: 0 }
-    : { duration: 0.8, ease: [0.22, 1, 0.36, 1] };
-
-  const headingVariants = {
-    initial: prefersReducedMotion
-      ? { opacity: 1, y: 0 }
-      : { opacity: 0, y: 16 },
-    animate: {
-      opacity: 1,
-      y: 0,
-      transition,
-    },
-  };
-
   return (
-    <motion.div
-      initial={{ opacity: prefersReducedMotion ? 1 : 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true, amount: 0.7 }}
-      transition={
-        prefersReducedMotion ? undefined : { duration: 0.6, ease: "easeOut" }
-      }
-      className="flex items-center justify-center px-4 py-8"
-    >
-      <div className="inline-flex flex-col items-center gap-4 rounded-[32px] bg-white/80 px-8 py-6 text-center shadow-[0_25px_80px_rgba(15,23,42,0.08)] backdrop-blur">
-        <span className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">
-          Clarity in action
-        </span>
-        <motion.h2
-          variants={headingVariants}
-          className="text-5xl font-semibold tracking-tight text-[#5A5E76] sm:text-6xl md:text-7xl"
-        >
-          How Claro Works
-        </motion.h2>
-      </div>
-    </motion.div>
+    <div className="space-y-4 text-center">
+      <h2 className="how-it-works-title text-4xl font-semibold tracking-tight text-black sm:text-5xl">
+        How Claro Works
+      </h2>
+      <p className="how-it-works-subtitle text-lg text-black sm:text-xl">
+        Built with the same clarity and intelligence that powers every Claro
+        experience.
+      </p>
+    </div>
   );
 }
 

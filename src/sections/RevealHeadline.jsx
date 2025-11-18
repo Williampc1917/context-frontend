@@ -32,7 +32,7 @@ export function RevealHeadline({
   className = "text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.05]",
   // Brand + fonts (DOM text uses cleanFont)
   cleanColor = "#3D405B",
-  activeColor = "#E07A5F",
+  activeColor = "#C98C72",
   cleanFont = "system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif",
 
   // Timing / motion (REVEAL)
@@ -354,12 +354,9 @@ export function RevealHeadline({
     ];
     const endMin = Math.max(1.4, tileEnd * 0.7);
     const endMax = Math.max(endMin, tileEnd * 1.25);
-    
+
     const densityScale =
-  St.w <= 480 ? 1.4 :
-  St.w <= 768 ? 1.2 :
-  St.w <= 1024 ? 1.1 :
-  1;
+      St.w <= 480 ? 1.4 : St.w <= 768 ? 1.2 : St.w <= 1024 ? 1.1 : 1;
 
     const responsiveEnd = responsiveStops(St.w, endStops);
     const scaledEnd = responsiveEnd * densityScale;
@@ -760,11 +757,7 @@ export function RevealHeadline({
       clearBreathDelay();
       breathTimeoutRef.current = window.setTimeout(
         () => {
-          if (
-            S.current.visible &&
-            !prefersReducedMotion &&
-            !S.current.mobile
-          ) {
+          if (S.current.visible && !prefersReducedMotion && !S.current.mobile) {
             startBreathing();
           }
         },

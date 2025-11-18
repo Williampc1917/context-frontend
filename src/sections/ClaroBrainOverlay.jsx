@@ -3,31 +3,32 @@ import React from "react";
 const CORE_CAPSULES = [
   {
     title: "Relationship Intelligence",
-    blurb: "Ranks and monitors your top connections in real time.",
+    blurb: "Ranks and monitors your top connections in real time",
     hoverBlurb:
-      "Tracks every interaction across Gmail and Calendar to reveal your most valuable relationships and gently nudges you before they fade.",
+      "Tracks every interaction across Gmail and Calendar to reveal your most valuable relationships and gently nudges you before they fade",
     accent: "#F59E0B",
   },
   {
     title: "Tone Engine",
     blurb:
-      "Writes every email in your voice, adapting naturally to how you communicate with each person.",
+      "Writes every email in your voice, adapting naturally to how you communicate with each person",
     hoverBlurb:
-      "Learns your rhythm and phrasing from past messages, crafting replies that feel personal, consistent, and authentically you.",
+      "Learns your rhythm and phrasing from past messages, crafting replies that feel personal, consistent, and authentically you",
     accent: "#60A5FA",
   },
   {
     title: "Context Graph",
-    blurb: "Connects every thread, meeting, and commitment into one cohesive view.",
+    blurb:
+      "Connects every thread, meeting, and commitment into one cohesive view",
     hoverBlurb:
-      "Links conversations, topics, and upcoming events into a single timeline so you always have full context before responding or speaking.",
+      "Links conversations, topics, and upcoming events into a single timeline so you always have full context before responding or speaking",
     accent: "#A78BFA",
   },
   {
     title: "Memory Core",
-    blurb: "Remembers every promise and helps you follow through effortlessly.",
+    blurb: "Remembers every promise and helps you follow through effortlessly",
     hoverBlurb:
-      "Captures commitments and due dates as you talk or write, surfacing reminders exactly when you need them so nothing slips through.",
+      "Captures commitments and due dates as you talk or write, surfacing reminders exactly when you need them so nothing slips through",
     accent: "#5EEAD4",
   },
 ];
@@ -87,7 +88,9 @@ export default function ClaroBrainOverlay({
       {overlayData ? (
         <div
           className={`pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-[32px] bg-[#060912]/70 backdrop-blur-2xl transition-all duration-500 ease-out ${
-            isOverlayVisible ? "opacity-100 scale-100" : "opacity-0 scale-[0.97]"
+            isOverlayVisible
+              ? "opacity-100 scale-100"
+              : "opacity-0 scale-[0.97]"
           }`}
           aria-hidden={!isOverlayVisible}
         >

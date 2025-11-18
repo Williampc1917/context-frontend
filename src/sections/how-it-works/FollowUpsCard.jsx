@@ -547,7 +547,6 @@ export default function FollowupCard() {
   return (
     <FeatureLayout
       ref={rootRef}
-      eyebrow="Feature 02"
       title="Replies that sound like you. Instantly."
       description={[
         <p key="p1" className="text-base leading-relaxed text-gray-700">
@@ -555,7 +554,7 @@ export default function FollowupCard() {
           actually use with that person — same greeting, same formality, same
           sign-off.
         </p>,
-        <p key="p2" className="text-sm leading-relaxed text-gray-500">
+        <p key="p2" className="text-sm leading-relaxed text-gray-600">
           Without Claro, you’re scrolling, clicking, and typing it yourself.
           With Claro, you just describe the intent and it’s ready to send.
         </p>,
@@ -911,7 +910,6 @@ export default function FollowupCard() {
    ================================================= */
 
 function InboxPreviewCard({ phase, dimmed, chatPhase, aiDone }) {
-
   const highlightSarah =
     phase === "row_hover" ||
     phase === "row_context" ||

@@ -128,24 +128,23 @@ export default function InboxToClarity() {
 
   // AI bubble (match iOS)
   const aiBubbleFill = "#332C31"; // slight lift (~10%) from #2A2328 for web contrast, keeps warm charcoal tone
-  const aiBubbleStrokeGradient = "linear-gradient(135deg, rgba(234,132,103,0.32), rgba(243,154,131,0.14))"; // brighter coral sheen (EA8467 -> F39A83)
+  const aiBubbleStrokeGradient =
+    "linear-gradient(135deg, rgba(234,132,103,0.32), rgba(243,154,131,0.14))"; // brighter coral sheen (EA8467 -> F39A83)
   const aiBubbleTextColor = "rgba(255,255,255,0.96)";
   const aiBubbleSecondaryTextColor = "rgba(255,255,255,0.68)";
-  const aiBubbleBoxShadow = "0 5px 8px rgba(0,0,0,0.2), 0 0 36px rgba(234,132,103,0.18), inset 0 0 10px rgba(234,132,103,0.12)"; // stronger coral aura + gentle inner glow
+  const aiBubbleBoxShadow =
+    "0 5px 8px rgba(0,0,0,0.2), 0 0 36px rgba(234,132,103,0.18), inset 0 0 10px rgba(234,132,103,0.12)"; // stronger coral aura + gentle inner glow
 
   return (
     <FeatureLayout
       ref={rootRef}
-      eyebrow="Feature 01"
       title="Your daily briefing, in a single command."
       description={[
         <p key="catch" className="text-base leading-relaxed text-gray-700">
-          Say “Catch me up,” and Claro speaks your priorities — your key
-          relationships, urgent follow-ups, and open promises.
+          Say “Catch me up,” and Claro speaks your priorities: your key relationships, urgent follow-ups, and open promises.
         </p>,
-        <p key="briefing" className="text-sm leading-relaxed text-gray-500">
-          No scrolling, no searching — just a simple voice briefing that keeps
-          you ahead.
+        <p key="briefing" className="text-sm leading-relaxed text-gray-600">
+          No scrolling and no searching. Just a simple voice briefing that keeps you ahead.
         </p>,
       ]}
     >
@@ -291,15 +290,13 @@ export default function InboxToClarity() {
                       "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
                     WebkitMaskComposite: "xor",
                     maskComposite: "exclude",
-                    zIndex: 1
+                    zIndex: 1,
                   }}
                 />
                 {/* while you're still speaking */}
                 {userStillTalkingForUI && (
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[12px] font-medium">
-                      Listening…
-                    </span>
+                    <span className="text-[12px] font-medium">Listening…</span>
                     <VoiceBars active={userIsSpeaking} />
                   </div>
                 )}
@@ -379,7 +376,7 @@ export default function InboxToClarity() {
                   borderTopLeftRadius: "0.5rem",
                   backgroundColor: aiBubbleFill,
                   color: aiBubbleTextColor,
-                  boxShadow: aiBubbleBoxShadow
+                  boxShadow: aiBubbleBoxShadow,
                 }}
               >
                 {/* gradient stroke overlay (matches SwiftUI overlay stroke) */}
@@ -393,12 +390,15 @@ export default function InboxToClarity() {
                       "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
                     WebkitMaskComposite: "xor",
                     maskComposite: "exclude",
-                    zIndex: 1
+                    zIndex: 1,
                   }}
                 />
                 {/* Speaking… header lives INSIDE the bubble while AI is still "talking" */}
                 {aiStillTalkingForUI && (
-                  <div className="flex items-center gap-2 mb-2 text-[12px] font-medium" style={{ color: aiBubbleSecondaryTextColor }}>
+                  <div
+                    className="flex items-center gap-2 mb-2 text-[12px] font-medium"
+                    style={{ color: aiBubbleSecondaryTextColor }}
+                  >
                     <span>Speaking…</span>
                     <div style={{ color: aiBubbleSecondaryTextColor }}>
                       <VoiceBars active />

@@ -7,7 +7,7 @@ const SMART_ALERTS = [
   {
     id: "alex",
     name: "Alex Wong",
-    message: 'Promised follow-up “next week.”',
+    message: "Promised follow-up “next week.”",
     action: "Send update",
     severityColor: "#F5C544",
   },
@@ -108,14 +108,13 @@ export default function PromiseTrackerCard() {
   return (
     <FeatureLayout
       ref={rootRef}
-      eyebrow="Feature 04"
       title="Smart Alerts that keep every promise in sight."
       description={[
         <p key="summary" className="text-base leading-relaxed text-gray-700">
           Claro notices the moments that matter, when you owe a reply, miss a
           follow up, or forget a promise, and gathers them into one clear place.
         </p>,
-        <p key="detail" className="text-sm leading-relaxed text-gray-500">
+        <p key="detail" className="text-sm leading-relaxed text-gray-600">
           The mental load of remembering every little thing goes away, and you
           are not trying to keep track of every loose end by yourself.
         </p>,
@@ -198,7 +197,9 @@ function SmartAlertCard({ alert }) {
             />
             <span className="text-[15px] font-semibold text-white">{name}</span>
           </div>
-          <p className="text-[13.5px] leading-relaxed text-white/70">{message}</p>
+          <p className="text-[13.5px] leading-relaxed text-white/70">
+            {message}
+          </p>
         </div>
 
         <div

@@ -4,7 +4,6 @@ import RelationshipIntelligenceVisual from "./RelationshipIntelligenceVisual.jsx
 export default function RelationshipIntelligenceCard() {
   return (
     <FeatureLayout
-      eyebrow="Feature 03"
       title="Relationship intelligence that maps your world."
       description={[
         <p key="primary" className="text-base leading-relaxed text-gray-700">
@@ -12,7 +11,7 @@ export default function RelationshipIntelligenceCard() {
           interactions, shifting priorities, and the connections that matter
           most. It’s context you can actually use.
         </p>,
-        <p key="secondary" className="text-sm leading-relaxed text-gray-500">
+        <p key="secondary" className="text-sm leading-relaxed text-gray-600">
           Otherwise you’re left piecing things together from scattered threads
           and half-remembered conversations.
         </p>,
