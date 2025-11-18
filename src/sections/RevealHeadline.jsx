@@ -32,7 +32,7 @@ export function RevealHeadline({
   className = "text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.05]",
   // Brand + fonts (DOM text uses cleanFont)
   cleanColor = "#3D405B",
-  activeColor = "#C98C72",
+  activeColor = "#E07A5F",
   cleanFont = "system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif",
 
   // Timing / motion (REVEAL)

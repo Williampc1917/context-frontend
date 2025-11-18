@@ -282,7 +282,7 @@ export default function ContextLanding() {
             onClick={() => scrollTo("top")}
             className="group flex items-center gap-3 rounded-full px-2 py-1 transition-colors hover:bg-white/70"
           >
-            <span className="flex size-10 items-center justify-center rounded-full border border-[#C98C72]/40 bg-white/80 shadow-sm transition-transform duration-300 group-hover:scale-105">
+            <span className="flex size-10 items-center justify-center rounded-full border border-[#E07A5F]/40 bg-white/80 shadow-sm transition-transform duration-300 group-hover:scale-105">
               <img
                 src={`${import.meta.env.BASE_URL}waveform.svg`}
                 alt="Claro AI waveform logo"
@@ -291,7 +291,7 @@ export default function ContextLanding() {
             </span>
 
             <span className="text-[20px] font-silkscreen tracking-tight leading-none text-[#3D405B]">
-              <span className="text-[#C98C72]">Claro</span>
+              <span className="text-[#E07A5F]">Claro</span>
               <span className="ml-1">AI</span>
             </span>
           </button>
@@ -381,7 +381,7 @@ export default function ContextLanding() {
               text={"Clarity for the way you\nconnect"}
               className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.05]"
               cleanColor="#3D405B"
-              activeColor="#C98C72"
+              activeColor="#E07A5F"
               durationMs={2400}
               tileEnd={3.2}
               threshold={0.4}
@@ -430,7 +430,7 @@ export default function ContextLanding() {
             >
               <button
                 onClick={() => scrollTo("waitlist")}
-                className="btn-primary bg-[#C98C72] hover:bg-[#b67a63]"
+                className="btn-primary bg-[#E07A5F] hover:bg-[#d36f56]"
                 tabIndex={pillsActive ? 0 : -1}
               >
                 Join the waitlist
@@ -627,7 +627,7 @@ export default function ContextLanding() {
                 />
               </span>
               <span className="text-xl font-silkscreen tracking-tight text-white">
-                <span className="text-[#C98C72]">Claro</span>
+                <span className="text-[#E07A5F]">Claro</span>
                 <span className="ml-1 text-white">AI</span>
               </span>
             </button>
@@ -667,7 +667,7 @@ export default function ContextLanding() {
             <p>© {new Date().getFullYear()} Claro AI. All rights reserved.</p>
             <p className="flex items-center gap-2">
               <span
-                className="inline-flex h-2 w-2 animate-pulse rounded-full bg-[#C98C72]"
+                className="inline-flex h-2 w-2 animate-pulse rounded-full bg-[#E07A5F]"
                 aria-hidden
               />
               Based in New York.
@@ -814,7 +814,7 @@ function NavLink({ label, onClick }) {
       className="group relative text-[#3D405B]/75 transition-colors duration-200 hover:text-[#3D405B] focus:outline-none"
     >
       {label}
-      <span className="pointer-events-none absolute -bottom-2 left-1/2 h-0.5 w-0 -translate-x-1/2 rounded-full bg-[#C98C72]/70 transition-all duration-300 group-hover:w-7" />
+      <span className="pointer-events-none absolute -bottom-2 left-1/2 h-0.5 w-0 -translate-x-1/2 rounded-full bg-[#E07A5F]/70 transition-all duration-300 group-hover:w-7" />
     </button>
   );
 }
