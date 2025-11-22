@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Claro | Supabase Redirect</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Silkscreen:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --text: #1f2933;
+        --muted: #4b5563;
+        --accent: #3d405b;
+        --pill: #e07a5f;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: radial-gradient(
+              120% 120% at 18% 20%,
+              rgba(224, 122, 95, 0.08),
+              transparent 60%
+            ),
+          radial-gradient(
+              130% 100% at 90% 0%,
+              rgba(61, 64, 91, 0.12),
+              transparent 70%
+            ),
+          linear-gradient(180deg, #fafafa 0%, #ffffff 70%);
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      body::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'>\
+<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /></filter>\
+<rect width='100%' height='100%' filter='url(%23n)' opacity='0.015' /></svg>");
+        pointer-events: none;
+      }
+
+      main {
+        position: relative;
+        z-index: 1;
+        width: min(560px, 100%);
+        padding: 40px;
+        border-radius: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 25px 60px rgba(61, 64, 91, 0.12);
+        backdrop-filter: blur(18px);
+      }
+
+      .eyebrow {
+        font-family: "Silkscreen", sans-serif;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.2em;
+        color: var(--accent);
+      }
+
+      h1 {
+        font-size: clamp(1.5rem, 2.2vw, 2.1rem);
+        line-height: 1.2;
+        margin: 0.5rem 0 1rem;
+        color: var(--accent);
+      }
+
+      p {
+        margin: 0 0 1.5rem;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .url-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.9rem 1.2rem;
+        border-radius: 999px;
+        font-weight: 600;
+        color: #fff;
+        background: linear-gradient(120deg, var(--pill), #f2a365);
+        box-shadow: 0 12px 35px rgba(224, 122, 95, 0.28);
+        font-size: 1rem;
+      }
+
+      .confirm-block {
+        margin-top: 1.8rem;
+        padding: 1.5rem;
+        border-radius: 24px;
+        background: rgba(240, 244, 248, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+      }
+
+      .confirm-block span {
+        display: block;
+        font-weight: 600;
+        color: var(--accent);
+        margin-bottom: 0.5rem;
+      }
+
+      ul {
+        list-style: disc;
+        padding-left: 1.4rem;
+        margin: 0;
+        color: var(--muted);
+      }
+
+      li {
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+      }
+
+      li:last-child {
+        margin-bottom: 0;
+      }
+
+      strong {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">Claro Verify</p>
+      <h1>Supabase redirect confirmed.</h1>
+      <p>
+        The verify/reset flow can safely return visitors to this page. Use the
+        exact URL below wherever Supabase asks for hosted redirect values.
+      </p>
+      <div class="url-pill">https://try-claroai.com/verified</div>
+      <div class="confirm-block">
+        <span>Confirm that this URL is set in Supabase as:</span>
+        <ul>
+          <li><strong>Site URL</strong> → https://try-claroai.com/verified</li>
+          <li>
+            <strong>Additional Redirect URLs</strong> →
+            https://try-claroai.com/verified
+          </li>
+        </ul>
+      </div>
+    </main>
+  </body>
+</html>
