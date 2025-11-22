@@ -125,20 +125,10 @@
         margin-bottom: 0.5rem;
       }
 
-      ul {
-        list-style: disc;
-        padding-left: 1.4rem;
-        margin: 0;
+      .admin-line {
+        margin: 0 0 0.35rem;
         color: var(--muted);
-      }
-
-      li {
-        margin-bottom: 0.5rem;
         font-weight: 500;
-      }
-
-      li:last-child {
-        margin-bottom: 0;
       }
 
       strong {
@@ -152,19 +142,18 @@
       <h1>You're verified and ready to go.</h1>
       <p>
         Thanks for confirming your email. You can close this tab or head back to
-        Claro—your session will continue seamlessly. Keep this link handy if you
-        ever need to retrace your steps.
+        Claro—your session will continue seamlessly.
       </p>
       <div class="url-pill">https://try-claroai.com/verified</div>
       <div class="confirm-block">
         <span>For Supabase admins, keep redirects pointed here:</span>
-        <ul>
-          <li><strong>Site URL</strong> → https://try-claroai.com/verified</li>
-          <li>
-            <strong>Additional Redirect URLs</strong> →
-            https://try-claroai.com/verified
-          </li>
-        </ul>
+        <p class="admin-line">
+          <strong>Site URL</strong> → https://try-claroai.com/verified
+        </p>
+        <p class="admin-line">
+          <strong>Additional Redirect URLs</strong> →
+          https://try-claroai.com/verified
+        </p>
       </div>
     </main>
   </body>
