@@ -3,5 +3,15 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  base: "/", // ✅ always load from root, works for custom domains
+  base: "/",
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "framer-motion": ["framer-motion"],
+          "lucide": ["lucide-react"],
+        },
+      },
+    },
+  },
 });
