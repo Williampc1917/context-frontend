@@ -9,10 +9,10 @@ export default function RelationshipIntelligenceCard() {
         <p key="primary" className="text-base leading-relaxed text-gray-700">
           Claro builds a simple, living picture of the people around you: recent
           interactions, shifting priorities, and the connections that matter
-          most. It’s context you can actually use.
+          most. It’s context you can actually use
         </p>,
         <p key="secondary" className="text-sm leading-relaxed text-gray-600">
-          Otherwise you’re left piecing things together from scattered threads.
+          Otherwise you’re left piecing things together from scattered threads
         </p>,
       ]}
     >

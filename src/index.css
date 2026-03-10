@@ -198,14 +198,6 @@
   background-size: cover;
 }
 
-.how-it-works-title,
-.how-it-works-subtitle {
-  color: #000 !important;
-  mix-blend-mode: normal !important;
-  background: none !important;
-  -webkit-text-fill-color: #000;
-}
-
 html {
   scroll-behavior: smooth;
 }

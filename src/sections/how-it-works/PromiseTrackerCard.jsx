@@ -116,10 +116,10 @@ export default function PromiseTrackerCard() {
       description={[
         <p key="summary" className="text-base leading-relaxed text-gray-700">
           Claro keeps track of the moments that matter, when you owe a reply, miss a
-          follow up, or forget a promise, and gathers them into one clear place.
+          follow up, or forget a promise, and gathers them into one clear place
         </p>,
         <p key="detail" className="text-sm leading-relaxed text-gray-600">
-          You are not left keeping track of every loose end yourself.
+          You are not left keeping track of every loose end yourself
         </p>,
       ]}
     >

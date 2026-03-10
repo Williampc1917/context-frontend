@@ -381,9 +381,9 @@ function FloatingBit({
     started && gathered && stackTargetStyle ? stackTargetStyle : restingStyle;
 
   const stackIndex = bit.stackIndex ?? 0;
-  const stackOffsetY = stacked ? stackIndex * 6 : 0;
+  const stackOffsetY = 0;
   const stackScale = stacked ? 1 - stackIndex * 0.02 : 1;
-  const stackOpacity = stacked ? Math.max(0.65, 1 - stackIndex * 0.18) : 1;
+  const stackOpacity = stacked ? (stackIndex === 0 ? 1 : 0) : 1;
   const zIndex =
     stacked && groupConfig ? groupConfig.zBase - stackIndex : (bit.layer ?? 1);
 

@@ -553,10 +553,10 @@ export default function FollowupCard() {
         <p key="p1" className="text-base leading-relaxed text-gray-700">
           Say “Draft a reply,” and Claro writes the message in the tone you
           actually use with that person, with the same greeting, the same formality, the same
-          sign-off.
+          sign-off
         </p>,
         <p key="p2" className="text-sm leading-relaxed text-gray-600">
-          Without Claro, you’re scrolling, clicking, and typing it yourself.
+          Without Claro, you’re scrolling, clicking, and typing it yourself
         </p>,
       ]}
     >

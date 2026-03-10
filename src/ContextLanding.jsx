@@ -14,6 +14,20 @@ import FloatingLogo from "./sections/FloatingLogo.jsx";
 import { howItWorksFeatures } from "./sections/how-it-works/index.js";
 3;
 
+const SECTION_THEME_COLORS = [
+  { id: "top", color: "#F8F3F4" },
+  { id: "problem", color: "#F7F6F4" },
+  { id: "how", color: "#F7F6F4" },
+  { id: "waitlist", color: "#F8F3F4" },
+  { id: "footer", color: "#111323" },
+];
+
+function setThemeColor(color) {
+  document
+    .querySelectorAll('meta[name="theme-color"]')
+    .forEach((metaTag) => metaTag.setAttribute("content", color));
+}
+
 export default function ContextLanding() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -21,18 +35,47 @@ export default function ContextLanding() {
     threshold: 0.15,
     rootMargin: "0px 0px -30% 0px",
   });
+  const themeColorRef = useRef("");
 
   // Throttled scroll handler for better performance
   useEffect(() => {
+    const resolveThemeColor = () => {
+      const probeY = window.innerHeight * 0.18;
+      let nextColor = SECTION_THEME_COLORS[0].color;
+
+      for (const { id, color } of SECTION_THEME_COLORS) {
+        const section = document.getElementById(id);
+        if (!section) continue;
+
+        if (section.getBoundingClientRect().top <= probeY) {
+          nextColor = color;
+          continue;
+        }
+
+        break;
+      }
+
+      return nextColor;
+    };
+
     const handleScroll = rafThrottle(() => {
       setScrolled(window.scrollY > 10);
+
+      const nextThemeColor = resolveThemeColor();
+      if (themeColorRef.current === nextThemeColor) return;
+
+      themeColorRef.current = nextThemeColor;
+      setThemeColor(nextThemeColor);
     });
 
     // Passive listener - browser knows we won't preventDefault
     window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll);
+    handleScroll();
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
     };
   }, []);
 
@@ -255,61 +298,66 @@ export default function ContextLanding() {
       </div>
       <div className="bg-noise pointer-events-none absolute inset-0 -z-10 mix-blend-soft-light opacity-60" />
 
-      <nav
-        style={{ paddingTop: safeAreaTop }}
-        className={`fixed top-0 z-50 w-full transition-all duration-300 ${
-          scrolled
-            ? "bg-white/35 backdrop-blur-2xl border-b border-white/30 shadow-lg"
-            : "bg-transparent"
-        }`}
-      >
-        <div className="relative mx-auto flex h-16 w-full max-w-6xl items-center gap-4 px-4 sm:px-6 lg:px-8">
-          <button
-            type="button"
-            onClick={() => scrollTo("top")}
-            className="group flex items-center gap-3 rounded-full px-2 py-1 transition-colors hover:bg-white/70"
+      <nav className="fixed inset-x-0 top-0 z-50">
+        <div aria-hidden="true" style={{ height: safeAreaTop }} />
+        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div
+            className={`relative flex h-16 items-center gap-4 transition-all duration-300 ${
+              scrolled
+                ? "rounded-[28px] border border-white/45 bg-white/50 shadow-lg backdrop-blur-2xl"
+                : "bg-transparent"
+            }`}
           >
-            <span className="flex size-10 items-center justify-center rounded-full border border-[#E07A5F]/40 bg-white/80 shadow-sm transition-transform duration-300 group-hover:scale-105">
-              <img
-                src={`${import.meta.env.BASE_URL}waveform.svg`}
-                alt="Claro AI waveform logo"
-                className="h-6 w-6 object-contain"
-              />
-            </span>
-
-            <span className="text-[20px] font-silkscreen tracking-tight leading-none text-[#3D405B]">
-              <span className="text-[#E07A5F]">Claro</span>
-              <span className="ml-1">AI</span>
-            </span>
-          </button>
-
-          <div className="pointer-events-none absolute inset-0 hidden items-center justify-center md:flex">
-            <div className="pointer-events-auto flex items-center gap-10 text-[15px] font-medium text-[#3D405B]/80">
-              <NavLink
-                label="The problem"
-                onClick={() => scrollTo("problem")}
-              />
-              <NavLink label="How it works" onClick={() => scrollTo("how")} />
-              <NavLink label="Waitlist" onClick={() => scrollTo("waitlist")} />
-            </div>
-          </div>
-
-          <div className="ml-auto flex items-center justify-end gap-3">
-            <button
-              onClick={() => scrollTo("waitlist")}
-              className="hidden sm:inline-flex items-center rounded-full bg-[#0F172A] px-4 py-2 text-sm font-semibold text-white shadow-lg transition-transform duration-200 hover:scale-[1.02]"
-            >
-              Join the waitlist
-            </button>
             <button
               type="button"
-              className="inline-flex items-center justify-center rounded-full border border-gray-200 bg-white/80 p-2 text-gray-700 shadow-sm transition-colors hover:bg-white md:hidden"
-              aria-label="Toggle navigation menu"
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen((open) => !open)}
+              onClick={() => scrollTo("top")}
+              className="group flex items-center gap-3 rounded-full px-2 py-1 transition-colors hover:bg-white/70"
             >
-              {menuOpen ? <X size={20} /> : <Menu size={20} />}
+              <span className="flex size-10 items-center justify-center rounded-full border border-[#E07A5F]/40 bg-white/80 shadow-sm transition-transform duration-300 group-hover:scale-105">
+                <img
+                  src={`${import.meta.env.BASE_URL}waveform.svg`}
+                  alt="Claro AI waveform logo"
+                  className="h-6 w-6 object-contain"
+                />
+              </span>
+
+              <span className="text-[20px] font-silkscreen tracking-tight leading-none text-[#3D405B]">
+                <span className="text-[#E07A5F]">Claro</span>
+                <span className="ml-1">AI</span>
+              </span>
             </button>
+
+            <div className="pointer-events-none absolute inset-0 hidden items-center justify-center md:flex">
+              <div className="pointer-events-auto flex items-center gap-10 text-[15px] font-medium text-[#3D405B]/80">
+                <NavLink
+                  label="The Problem"
+                  onClick={() => scrollTo("problem")}
+                />
+                <NavLink label="How It Works" onClick={() => scrollTo("how")} />
+                <NavLink
+                  label="Waitlist"
+                  onClick={() => scrollTo("waitlist")}
+                />
+              </div>
+            </div>
+
+            <div className="ml-auto flex items-center justify-end gap-3">
+              <button
+                onClick={() => scrollTo("waitlist")}
+                className="hidden sm:inline-flex items-center rounded-full bg-[#0F172A] px-4 py-2 text-sm font-semibold text-white shadow-lg transition-transform duration-200 hover:scale-[1.02]"
+              >
+                Join the waitlist
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-full border border-gray-200 bg-white/80 p-2 text-gray-700 shadow-sm transition-colors hover:bg-white md:hidden"
+                aria-label="Toggle navigation menu"
+                aria-expanded={menuOpen}
+                onClick={() => setMenuOpen((open) => !open)}
+              >
+                {menuOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            </div>
           </div>
         </div>
       </nav>
@@ -327,11 +375,11 @@ export default function ContextLanding() {
             <div className="rounded-3xl border border-white/60 bg-white/90 p-4 shadow-xl backdrop-blur-xl">
               <div className="space-y-2">
                 <MobileNavButton
-                  label="The problem"
+                  label="The Problem"
                   onClick={() => scrollTo("problem")}
                 />
                 <MobileNavButton
-                  label="How it works"
+                  label="How It Works"
                   onClick={() => scrollTo("how")}
                 />
                 <MobileNavButton
@@ -390,8 +438,8 @@ export default function ContextLanding() {
               aria-hidden={!subtextActive}
             >
               CLARO AI is a voice assistant for your email and calendar. It
-              understands how you connect, who matters, how you communicate,
-              and when to reach out
+              understands your relationships, who matters most, how you
+              communicate, and when to reach out
             </motion.p>
 
             <motion.div
@@ -503,7 +551,7 @@ export default function ContextLanding() {
         <FloatingLogo
           src={`${import.meta.env.BASE_URL}gmail.svg`}
           alt="Gmail"
-          className="absolute left-[8%] top-[22%] w-[90px] sm:w-[110px] lg:w-[140px] z-30"
+          className="absolute left-[8%] top-[22%] w-[72px] sm:w-[92px] lg:w-[118px] z-30"
           delay={0}
           hideBelow="md"
           targetRef={heroRef}
@@ -511,7 +559,7 @@ export default function ContextLanding() {
         <FloatingLogo
           src={`${import.meta.env.BASE_URL}google-calendar.svg`}
           alt="Google Calendar"
-          className="absolute right-[8%] top-[22%] w-[85px] sm:w-[100px] lg:w-[130px] z-30"
+          className="absolute right-[8%] top-[22%] w-[68px] sm:w-[86px] lg:w-[110px] z-30"
           delay={0.4}
           hideBelow="md"
           targetRef={heroRef}
@@ -562,7 +610,10 @@ export default function ContextLanding() {
       </section>
 
       {/* Footer */}
-      <footer className="relative mt-0 overflow-hidden border-t border-white/50 bg-[#111323] text-white">
+      <footer
+        id="footer"
+        className="relative mt-0 overflow-hidden border-t border-white/50 bg-[#111323] text-white"
+      >
         <div className="pointer-events-none absolute inset-0 opacity-70">
           <div className="absolute -left-20 top-[-10%] h-72 w-72 rounded-full bg-[radial-gradient(circle_at_center,rgba(224,122,95,0.45),transparent_65%)] blur-3xl" />
           <div className="absolute right-[-10%] bottom-[-20%] h-80 w-80 rounded-full bg-[radial-gradient(circle_at_center,rgba(56,189,248,0.35),transparent_65%)] blur-3xl" />
@@ -592,9 +643,10 @@ export default function ContextLanding() {
 
           <div className="flex flex-1 flex-col gap-10 sm:flex-row sm:justify-end">
             <FooterNavGroup
-              title="Product"
+              title="Explore"
               links={[
-                { label: "How it works", target: "how" },
+                { label: "The Problem", target: "problem" },
+                { label: "How It Works", target: "how" },
                 { label: "Waitlist", target: "waitlist" },
               ]}
               onNavigate={scrollTo}
@@ -754,14 +806,10 @@ function NavLink({ label, onClick }) {
 
 function HowItWorksHeading() {
   return (
-    <div className="space-y-4 text-center">
-      <h2 className="how-it-works-title text-4xl font-semibold tracking-tight text-black sm:text-5xl">
+    <div className="relative isolate text-center">
+      <h2 className="text-5xl font-extrabold tracking-[-0.04em] text-slate-950 sm:text-6xl [mix-blend-mode:normal] [filter:none]">
         How Claro Works
       </h2>
-      <p className="how-it-works-subtitle text-lg text-black sm:text-xl">
-        Built with the same clarity and intelligence that powers every Claro
-        experience
-      </p>
     </div>
   );
 }

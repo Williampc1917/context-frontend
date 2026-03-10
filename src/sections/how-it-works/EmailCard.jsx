@@ -141,10 +141,10 @@ export default function InboxToClarity() {
       title="Your daily briefing, in a single command"
       description={[
         <p key="catch" className="text-base leading-relaxed text-gray-700">
-          Say “Catch me up,” and Claro speaks your priorities: your key relationships, urgent follow-ups, and open promises.
+          Say “Catch me up,” and Claro speaks your priorities: your key relationships, urgent follow-ups, and open promises
         </p>,
         <p key="briefing" className="text-sm leading-relaxed text-gray-600">
-          No scrolling and no searching. Just a simple voice briefing that keeps you ahead.
+          No scrolling and no searching. Just a simple voice briefing that keeps you ahead
         </p>,
       ]}
     >
