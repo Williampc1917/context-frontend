@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useReducedMotion, motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Menu, X, Linkedin } from "lucide-react";
+import { ArrowRight, Menu, Moon, Sun, X } from "lucide-react";
 import "./index.css";
 import { rafThrottle } from "./utils/throttle";
 import { useForm, ValidationError } from "@formspree/react";
@@ -12,15 +12,41 @@ import ProblemSection from "./sections/ProblemSection.jsx";
 import { RevealHeadline } from "./sections/RevealHeadline.jsx";
 import FloatingLogo from "./sections/FloatingLogo.jsx";
 import { howItWorksFeatures } from "./sections/how-it-works/index.js";
-3;
 
-const SECTION_THEME_COLORS = [
-  { id: "top", color: "#F8F3F4" },
-  { id: "problem", color: "#F7F6F4" },
-  { id: "how", color: "#F7F6F4" },
-  { id: "waitlist", color: "#F8F3F4" },
-  { id: "footer", color: "#111323" },
-];
+void motion;
+
+const THEME_STORAGE_KEY = "claro-theme";
+const SECTION_THEME_COLORS = {
+  light: [
+    { id: "top", color: "#F8F3F4" },
+    { id: "problem", color: "#F7F6F4" },
+    { id: "how", color: "#F7F6F4" },
+    { id: "waitlist", color: "#F8F3F4" },
+    { id: "footer", color: "#111323" },
+  ],
+  dark: [
+    { id: "top", color: "#0c0d12" },
+    { id: "problem", color: "#111827" },
+    { id: "how", color: "#111827" },
+    { id: "waitlist", color: "#0c1220" },
+    { id: "footer", color: "#060913" },
+  ],
+};
+
+function getInitialTheme() {
+  if (typeof window === "undefined") return "light";
+
+  try {
+    const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (storedTheme === "light" || storedTheme === "dark") return storedTheme;
+  } catch (error) {
+    void error;
+  }
+
+  return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches
+    ? "dark"
+    : "light";
+}
 
 function setThemeColor(color) {
   document
@@ -31,19 +57,35 @@ function setThemeColor(color) {
 export default function ContextLanding() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [theme, setTheme] = useState(getInitialTheme);
   const { ref: waitlistRef, isVisible: waitlistVisible } = useSection({
     threshold: 0.15,
     rootMargin: "0px 0px -30% 0px",
   });
   const themeColorRef = useRef("");
+  const isDark = theme === "dark";
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle("dark", isDark);
+    root.dataset.theme = theme;
+
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch (error) {
+      void error;
+    }
+  }, [theme, isDark]);
 
   // Throttled scroll handler for better performance
   useEffect(() => {
+    const sectionThemeColors = SECTION_THEME_COLORS[theme];
+
     const resolveThemeColor = () => {
       const probeY = window.innerHeight * 0.18;
-      let nextColor = SECTION_THEME_COLORS[0].color;
+      let nextColor = sectionThemeColors[0].color;
 
-      for (const { id, color } of SECTION_THEME_COLORS) {
+      for (const { id, color } of sectionThemeColors) {
         const section = document.getElementById(id);
         if (!section) continue;
 
@@ -77,7 +119,7 @@ export default function ContextLanding() {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
     };
-  }, []);
+  }, [theme]);
 
   const hasLoadedRef = useRef(document.readyState === "complete");
 
@@ -283,9 +325,14 @@ export default function ContextLanding() {
 
   const subtextActive = prefersReducedMotion || subtextVisible;
   const pillsActive = prefersReducedMotion || pillsVisible;
+  const toggleTheme = () =>
+    setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"));
 
   return (
-    <div className="relative min-h-screen overflow-x-clip text-gray-900 bg-surface">
+    <div
+      className="relative min-h-screen overflow-x-clip bg-surface text-[var(--page-text)] transition-colors duration-300"
+      data-theme={theme}
+    >
       <div className="pointer-events-none absolute inset-0 -z-20">
         {/* Use CSS animation instead of Framer Motion parallax */}
         <div className="hero-orb hero-orb-1">
@@ -294,9 +341,9 @@ export default function ContextLanding() {
         <div className="hero-orb hero-orb-2">
           <div className="size-full bg-[radial-gradient(circle_at_center,rgba(56,189,248,.22),transparent_65%)]" />
         </div>
-        <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-[#FAF9F7]/80 via-[#FAF9F7]/40 to-transparent backdrop-blur-sm" />
+        <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-[#FAF9F7]/80 via-[#FAF9F7]/40 to-transparent backdrop-blur-sm dark:from-[#09111d]/90 dark:via-[#09111d]/40" />
       </div>
-      <div className="bg-noise pointer-events-none absolute inset-0 -z-10 mix-blend-soft-light opacity-60" />
+      <div className="bg-noise pointer-events-none absolute inset-0 -z-10 opacity-60 mix-blend-soft-light dark:opacity-30 dark:mix-blend-normal" />
 
       <nav className="fixed inset-x-0 top-0 z-50">
         <div aria-hidden="true" style={{ height: safeAreaTop }} />
@@ -304,31 +351,31 @@ export default function ContextLanding() {
           <div
             className={`relative flex h-16 items-center gap-4 transition-all duration-300 ${
               scrolled
-                ? "rounded-[28px] border border-white/45 bg-white/50 shadow-lg backdrop-blur-2xl"
+                ? "rounded-[28px] border border-white/45 bg-white/50 shadow-lg backdrop-blur-2xl dark:border-white/10 dark:bg-[#0c1320]/75 dark:shadow-[0_16px_40px_rgba(2,6,23,0.45)]"
                 : "bg-transparent"
             }`}
           >
             <button
               type="button"
               onClick={() => scrollTo("top")}
-              className="group flex items-center gap-3 rounded-full px-2 py-1 transition-colors hover:bg-white/70"
+              className="group flex items-center gap-3 rounded-full px-2 py-1 transition-colors hover:bg-white/70 dark:hover:bg-white/8"
             >
-              <span className="flex size-10 items-center justify-center rounded-full border border-[#E07A5F]/40 bg-white/80 shadow-sm transition-transform duration-300 group-hover:scale-105">
+              <span className="flex size-10 items-center justify-center rounded-full border border-[#E07A5F]/40 bg-white/80 shadow-sm transition-transform duration-300 group-hover:scale-105 dark:border-[#E07A5F]/45 dark:bg-white/18 dark:shadow-[0_10px_28px_rgba(2,6,23,0.42)]">
                 <img
                   src={`${import.meta.env.BASE_URL}waveform.svg`}
                   alt="Claro AI waveform logo"
-                  className="h-6 w-6 object-contain"
+                  className="h-7 w-7 object-contain dark:brightness-110 dark:contrast-125"
                 />
               </span>
 
-              <span className="text-[20px] font-silkscreen tracking-tight leading-none text-[#3D405B]">
+              <span className="text-[20px] font-silkscreen tracking-tight leading-none text-[#3D405B] dark:text-white">
                 <span className="text-[#E07A5F]">Claro</span>
                 <span className="ml-1">AI</span>
               </span>
             </button>
 
             <div className="pointer-events-none absolute inset-0 hidden items-center justify-center md:flex">
-              <div className="pointer-events-auto flex items-center gap-10 text-[15px] font-medium text-[#3D405B]/80">
+              <div className="pointer-events-auto flex items-center gap-10 text-[15px] font-medium text-[#3D405B]/80 dark:text-white/75">
                 <NavLink
                   label="The Problem"
                   onClick={() => scrollTo("problem")}
@@ -342,15 +389,16 @@ export default function ContextLanding() {
             </div>
 
             <div className="ml-auto flex items-center justify-end gap-3">
+              <ThemeToggleButton isDark={isDark} onClick={toggleTheme} />
               <button
                 onClick={() => scrollTo("waitlist")}
-                className="hidden sm:inline-flex items-center rounded-full bg-[#0F172A] px-4 py-2 text-sm font-semibold text-white shadow-lg transition-transform duration-200 hover:scale-[1.02]"
+                className="hidden sm:inline-flex items-center rounded-full bg-[#0F172A] px-4 py-2 text-sm font-semibold text-white shadow-lg transition-transform duration-200 hover:scale-[1.02] dark:bg-[#E07A5F] dark:hover:bg-[#d36f56]"
               >
                 Join the waitlist
               </button>
               <button
                 type="button"
-                className="inline-flex items-center justify-center rounded-full border border-gray-200 bg-white/80 p-2 text-gray-700 shadow-sm transition-colors hover:bg-white md:hidden"
+                className="inline-flex items-center justify-center rounded-full border border-gray-200 bg-white/80 p-2 text-gray-700 shadow-sm transition-colors hover:bg-white md:hidden dark:border-white/10 dark:bg-white/8 dark:text-white/85 dark:hover:bg-white/12"
                 aria-label="Toggle navigation menu"
                 aria-expanded={menuOpen}
                 onClick={() => setMenuOpen((open) => !open)}
@@ -365,15 +413,20 @@ export default function ContextLanding() {
       {menuOpen ? (
         <>
           <div
-            className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm md:hidden dark:bg-black/65"
             onClick={() => setMenuOpen(false)}
           />
           <div
             style={{ top: mobileMenuOffset }}
             className="fixed inset-x-0 z-50 px-4 pt-4 pb-6 md:hidden"
           >
-            <div className="rounded-3xl border border-white/60 bg-white/90 p-4 shadow-xl backdrop-blur-xl">
+            <div className="rounded-3xl border border-white/60 bg-white/90 p-4 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-[#101826]/92 dark:shadow-[0_24px_70px_rgba(2,6,23,0.5)]">
               <div className="space-y-2">
+                <ThemeToggleButton
+                  isDark={isDark}
+                  onClick={toggleTheme}
+                  fullWidth
+                />
                 <MobileNavButton
                   label="The Problem"
                   onClick={() => scrollTo("problem")}
@@ -410,7 +463,7 @@ export default function ContextLanding() {
             <RevealHeadline
               text={"Clarity for the way you\nconnect"}
               className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.05]"
-              cleanColor="#3D405B"
+              cleanColor={isDark ? "#F4F7FF" : "#3D405B"}
               activeColor="#E07A5F"
               durationMs={2400}
               tileEnd={3.2}
@@ -430,7 +483,7 @@ export default function ContextLanding() {
                   ? { duration: 0 }
                   : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
               }
-              className="mt-6 text-lg sm:text-xl text-[#3D405B]/80 max-w-2xl mx-auto"
+              className="mt-6 max-w-2xl mx-auto text-lg text-[#3D405B]/80 sm:text-xl dark:text-slate-300"
               style={{
                 visibility: subtextActive ? "visible" : "hidden",
                 pointerEvents: subtextActive ? "auto" : "none",
@@ -468,7 +521,7 @@ export default function ContextLanding() {
               </button>
               <button
                 onClick={() => scrollTo("how")}
-                className="btn-glass text-[#3D405B] border-[#3D405B]/20 hover:bg-white/80"
+                className="btn-glass border-[#3D405B]/20 text-[#3D405B] hover:bg-white/80 dark:border-white/12 dark:text-white dark:hover:bg-white/12"
                 tabIndex={pillsActive ? 0 : -1}
               >
                 See how it works <ArrowRight size={16} />
@@ -496,7 +549,7 @@ export default function ContextLanding() {
             {!prefersReducedMotion ? (
               <video
                 ref={videoRef}
-                className="w-full max-w-[500px] sm:max-w-[560px] md:max-w-[620px] lg:max-w-[720px] h-auto rounded-[36px] border border-black/5 bg-transparent shadow-2xl object-contain"
+                className="h-auto w-full max-w-[500px] rounded-[36px] border border-black/5 bg-transparent object-contain shadow-2xl sm:max-w-[560px] md:max-w-[620px] lg:max-w-[720px] dark:border-white/10 dark:shadow-[0_30px_80px_rgba(2,6,23,0.52)]"
                 autoPlay
                 loop
                 muted
@@ -538,7 +591,7 @@ export default function ContextLanding() {
               <img
                 src={`${import.meta.env.BASE_URL}standard-mockup.png`}
                 alt="Claro AI on an iPhone screen"
-                className="w-full max-w-[320px] sm:max-w-[360px] md:max-w-[420px] lg:max-w-[480px] h-auto rounded-[28px] border border-black/5 bg-white shadow-2xl"
+                className="h-auto w-full max-w-[320px] rounded-[28px] border border-black/5 bg-white shadow-2xl sm:max-w-[360px] md:max-w-[420px] lg:max-w-[480px] dark:border-white/10 dark:bg-slate-900 dark:shadow-[0_30px_80px_rgba(2,6,23,0.52)]"
                 loading="lazy"
                 width={420}
                 height={860}
@@ -572,7 +625,7 @@ export default function ContextLanding() {
         className="section-plain px-6 py-20 lg:px-8 scroll-mt-24 lg:scroll-mt-32"
       >
         <div className="mx-auto max-w-7xl">
-          <ProblemSection />
+          <ProblemSection theme={theme} />
         </div>
       </section>
 
@@ -583,9 +636,9 @@ export default function ContextLanding() {
 
         <div className="flex flex-col items-center gap-16">
           <Suspense fallback={null}>
-            {howItWorksFeatures.map(({ id, Component }) => (
-              <Component key={id} />
-            ))}
+            {howItWorksFeatures.map(({ id, Component }) =>
+              React.createElement(Component, { key: id, theme }),
+            )}
           </Suspense>
         </div>
       </section>
@@ -598,10 +651,10 @@ export default function ContextLanding() {
         className="waitlist-section px-6 py-24 lg:px-8 scroll-mt-24 lg:scroll-mt-32"
       >
         <div className="waitlist-content mx-auto max-w-4xl text-center">
-          <h3 className="text-4xl font-bold tracking-tight">
+          <h3 className="text-4xl font-bold tracking-tight dark:text-white">
             Intelligence for how you connect
           </h3>
-          <p className="mt-3 text-lg text-gray-600">
+          <p className="mt-3 text-lg text-gray-600 dark:text-slate-300">
             Join early users who stay organized, responsive, and connected with
             less effort
           </p>
@@ -612,7 +665,7 @@ export default function ContextLanding() {
       {/* Footer */}
       <footer
         id="footer"
-        className="relative mt-0 overflow-hidden border-t border-white/50 bg-[#111323] text-white"
+        className="relative mt-0 overflow-hidden border-t border-white/50 bg-[#111323] text-white dark:border-white/10 dark:bg-[#060913]"
       >
         <div className="pointer-events-none absolute inset-0 opacity-70">
           <div className="absolute -left-20 top-[-10%] h-72 w-72 rounded-full bg-[radial-gradient(circle_at_center,rgba(224,122,95,0.45),transparent_65%)] blur-3xl" />
@@ -624,9 +677,9 @@ export default function ContextLanding() {
             <button
               type="button"
               onClick={() => scrollTo("top")}
-              className="flex items-center gap-3 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-left shadow-lg backdrop-blur"
+              className="flex items-center gap-3 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-left shadow-lg backdrop-blur dark:border-white/12 dark:bg-white/6"
             >
-              <span className="flex size-9 items-center justify-center rounded-full bg-white/80">
+              <span className="flex size-9 items-center justify-center rounded-full bg-white/80 dark:bg-white/12">
                 <img
                   src={`${import.meta.env.BASE_URL}waveform.svg`}
                   alt="Claro AI"
@@ -669,10 +722,32 @@ function MobileNavButton({ label, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center justify-between rounded-2xl border border-white/70 bg-white px-4 py-3 text-sm font-medium text-gray-800 shadow-sm transition-colors hover:bg-white/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+      className="flex w-full items-center justify-between rounded-2xl border border-white/70 bg-white px-4 py-3 text-sm font-medium text-gray-800 shadow-sm transition-colors hover:bg-white/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-white/10 dark:bg-white/6 dark:text-slate-100 dark:hover:bg-white/10 dark:focus-visible:ring-[#E07A5F]"
     >
       <span>{label}</span>
-      <ArrowRight size={16} className="text-gray-400" aria-hidden />
+      <ArrowRight
+        size={16}
+        className="text-gray-400 dark:text-slate-500"
+        aria-hidden
+      />
+    </button>
+  );
+}
+
+function ThemeToggleButton({ isDark, onClick, fullWidth = false }) {
+  const Icon = isDark ? Sun : Moon;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full border border-[#3D405B]/12 bg-white/80 px-3 py-2 text-sm font-medium text-[#3D405B] shadow-sm backdrop-blur transition-colors hover:bg-white dark:border-white/10 dark:bg-white/8 dark:text-white/90 dark:hover:bg-white/12 ${
+        fullWidth ? "w-full" : ""
+      }`}
+    >
+      <Icon size={16} />
+      <span>{isDark ? "Light mode" : "Dark mode"}</span>
     </button>
   );
 }
@@ -694,7 +769,7 @@ function WaitlistForm() {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.96 }}
           transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-          className="mx-auto mt-6 max-w-xl rounded-2xl border border-white/60 bg-white/70 p-5 text-center backdrop-blur-xl shadow-[0_10px_24px_rgba(15,23,42,.08)]"
+          className="mx-auto mt-6 max-w-xl rounded-2xl border border-white/60 bg-white/70 p-5 text-center shadow-[0_10px_24px_rgba(15,23,42,.08)] backdrop-blur-xl dark:border-white/10 dark:bg-white/8 dark:shadow-[0_20px_50px_rgba(2,6,23,0.35)]"
         >
           <motion.div
             initial={{ scale: 0 }}
@@ -705,8 +780,8 @@ function WaitlistForm() {
           >
             ✓
           </motion.div>
-          <h4 className="text-lg font-semibold">All set.</h4>
-          <p className="mt-1 text-sm text-gray-600">
+          <h4 className="text-lg font-semibold dark:text-white">All set.</h4>
+          <p className="mt-1 text-sm text-gray-600 dark:text-slate-300">
             We’ll reach out to <span className="font-medium">{email}</span>.
           </p>
         </motion.div>
@@ -734,7 +809,7 @@ function WaitlistForm() {
         id="email"
         name="email" // 👈 Formspree requires a name
         placeholder="you@company.com"
-        className="w-full rounded-full border border-white/60 bg-white/80 px-4 py-3 text-sm outline-none backdrop-blur-xl focus:border-indigo-400"
+        className="w-full rounded-full border border-white/60 bg-white/80 px-4 py-3 text-sm outline-none backdrop-blur-xl focus:border-indigo-400 dark:border-white/10 dark:bg-white/8 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-[#E07A5F]"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         disabled={state.submitting}
@@ -781,7 +856,7 @@ function WaitlistForm() {
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-sm text-rose-600 mt-2"
+          className="mt-2 text-sm text-rose-600 dark:text-rose-400"
           role="alert"
         >
           Something went wrong. Please try again.
@@ -796,7 +871,7 @@ function NavLink({ label, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="group relative text-[#3D405B]/75 transition-colors duration-200 hover:text-[#3D405B] focus:outline-none"
+      className="group relative text-[#3D405B]/75 transition-colors duration-200 hover:text-[#3D405B] focus:outline-none dark:text-white/70 dark:hover:text-white"
     >
       {label}
       <span className="pointer-events-none absolute -bottom-2 left-1/2 h-0.5 w-0 -translate-x-1/2 rounded-full bg-[#E07A5F]/70 transition-all duration-300 group-hover:w-7" />
@@ -807,7 +882,7 @@ function NavLink({ label, onClick }) {
 function HowItWorksHeading() {
   return (
     <div className="relative isolate text-center">
-      <h2 className="text-5xl font-extrabold tracking-[-0.04em] text-slate-950 sm:text-6xl [mix-blend-mode:normal] [filter:none]">
+      <h2 className="text-5xl font-extrabold tracking-[-0.04em] text-slate-950 sm:text-6xl [filter:none] [mix-blend-mode:normal] dark:text-white">
         How Claro Works
       </h2>
     </div>

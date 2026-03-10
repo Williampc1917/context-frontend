@@ -7,6 +7,8 @@ import {
   useSpring,
 } from "framer-motion";
 
+void motion;
+
 /**
  * FloatingLogo (fade-in on scroll, then stick forever)
  * - Scroll drives wrapper opacity/translateY until `stickAtProgress` is reached.

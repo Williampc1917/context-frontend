@@ -3,6 +3,8 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 import FeatureLayout from "./FeatureLayout.jsx";
 
+void motion;
+
 const SMART_ALERTS = [
   {
     id: "alex",
@@ -114,17 +116,23 @@ export default function PromiseTrackerCard() {
       ref={rootRef}
       title="Smart Alerts that keep every promise in sight"
       description={[
-        <p key="summary" className="text-base leading-relaxed text-gray-700">
+        <p
+          key="summary"
+          className="text-base leading-relaxed text-gray-700 dark:text-slate-200"
+        >
           Claro keeps track of the moments that matter, when you owe a reply, miss a
           follow up, or forget a promise, and gathers them into one clear place
         </p>,
-        <p key="detail" className="text-sm leading-relaxed text-gray-600">
+        <p
+          key="detail"
+          className="text-sm leading-relaxed text-gray-600 dark:text-slate-400"
+        >
           You are not left keeping track of every loose end yourself
         </p>,
       ]}
     >
       <div className="relative flex h-[360px] w-full max-w-[340px] items-center justify-center">
-        <div className="pointer-events-none absolute inset-[-8%] -z-10 bg-[radial-gradient(circle_at_50%_40%,rgba(255,255,255,0.95),rgba(255,255,255,0.35),transparent_70%)] blur-[90px]" />
+        <div className="pointer-events-none absolute inset-[-8%] -z-10 bg-[radial-gradient(circle_at_50%_40%,rgba(255,255,255,0.95),rgba(255,255,255,0.35),transparent_70%)] blur-[90px] dark:bg-[radial-gradient(circle_at_50%_40%,rgba(30,41,59,0.75),rgba(30,41,59,0.18),transparent_70%)]" />
         <motion.div
           className="relative w-full pt-1"
           initial={{ opacity: 0, y: 36, scale: 0.97 }}

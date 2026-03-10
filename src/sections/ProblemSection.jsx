@@ -15,6 +15,7 @@ function VoiceParticles({
   delay = 0,
   reducedMotion = false,
   height = 96,
+  palette,
 }) {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
@@ -36,8 +37,8 @@ function VoiceParticles({
       fadeAlpha: 0.36,
       bitGapCss: 10,
       bitScale: 0.52,
-      fillMain: "#ff8a3d",
-      fillEcho: "rgba(255,179,106,0.35)",
+      fillMain: palette.fillMain,
+      fillEcho: palette.fillEcho,
     };
 
     const drawFrame = () => {
@@ -102,7 +103,7 @@ function VoiceParticles({
       roRef.current?.disconnect();
       if (startTimer.current) clearTimeout(startTimer.current);
     };
-  }, [play, delay, reducedMotion, height]);
+  }, [play, delay, reducedMotion, height, palette]);
 
   return (
     <div ref={wrapRef} className="particlesWrap">
@@ -114,7 +115,7 @@ function VoiceParticles({
 /* =========================
    Section (headline + typing, no clipping)
    ========================= */
-export default function ProblemSection() {
+export default function ProblemSection({ theme = "light" }) {
   const sectionRef = useRef(null);
   const boxRef = useRef(null);
   const measureRef = useRef(null);
@@ -317,6 +318,27 @@ export default function ProblemSection() {
 
   const effectiveWaveDelay = isMobile ? 0.05 : waveDelay;
   const effectiveTypeDuration = isMobile ? 0 : typeDur;
+  const palette = useMemo(
+    () =>
+      theme === "dark"
+        ? {
+            fillMain: "#ff9f68",
+            fillEcho: "rgba(125,211,252,0.28)",
+            headline: "#f8fbff",
+            caret: "#f8fafc",
+            mobileAccent: "#ffd2bf",
+            subline: "#bfd0e6",
+          }
+        : {
+            fillMain: "#ff8a3d",
+            fillEcho: "rgba(255,179,106,0.35)",
+            headline: "#0b0d10",
+            caret: "#111827",
+            mobileAccent: "#0b0d10",
+            subline: "#4b5563",
+          },
+    [theme],
+  );
 
   const vars = useMemo(
     () => ({
@@ -414,6 +436,7 @@ export default function ProblemSection() {
               play={play}
               delay={isMobile ? 0 : waveDelay}
               height={96}
+              palette={palette}
             />
           )}
         </div>
@@ -425,7 +448,7 @@ export default function ProblemSection() {
           margin: 0;
           line-height: 1.06;
           font-weight: 800;
-          color: #0b0d10;
+          color: ${palette.headline};
           letter-spacing: -0.012em;
           text-rendering: optimizeLegibility;
         }
@@ -439,7 +462,7 @@ export default function ProblemSection() {
         .typedHead { display: block; }
         .type { position: relative; display: inline-block; white-space: nowrap; margin-bottom: calc(var(--reveal-pad) * -1); }
         .type__text { display: inline-block; overflow: hidden; width: 0; padding-bottom: var(--reveal-pad); }
-        .caret { position: absolute; top: 0; bottom: -0.05em; left: 0; width: 3px; background: #111827; transform: translateX(0); }
+        .caret { position: absolute; top: 0; bottom: -0.05em; left: 0; width: 3px; background: ${palette.caret}; transform: translateX(0); }
 
         
         .mobileHead {
@@ -462,13 +485,14 @@ export default function ProblemSection() {
           width: 100%;
           line-height: 1.08;
           text-wrap: balance;
-          color: #0b0d10;
+          color: ${palette.headline};
         }
         .mobileLine.is-accent {
           font-size: clamp(42px, 11vw, 88px);
+          color: ${palette.mobileAccent};
         }
 
-        .subline { margin-top: 18px; font-size: clamp(26px, 4.5vw, 44px); color: #4b5563; opacity: 0; transform: translateY(6px); }
+        .subline { margin-top: 18px; font-size: clamp(26px, 4.5vw, 44px); color: ${palette.subline}; opacity: 0; transform: translateY(6px); }
 
         .particlesWrap { margin-top: 28px; opacity: 0; pointer-events: none; width: 100%; height: 96px; }
         .particlesWrap canvas { width: 100%; height: 100%; display: block; }

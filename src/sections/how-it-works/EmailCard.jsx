@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import FeatureLayout from "./FeatureLayout.jsx";
 import InboxRow from "./InboxRow.jsx";
 
+void motion;
+
 /* -------------------------------------------------
    Hook: typewriter / live captions
    - When `active` is true, reveal `fullText` char by char
@@ -140,10 +142,16 @@ export default function InboxToClarity() {
       ref={rootRef}
       title="Your daily briefing, in a single command"
       description={[
-        <p key="catch" className="text-base leading-relaxed text-gray-700">
+        <p
+          key="catch"
+          className="text-base leading-relaxed text-gray-700 dark:text-slate-200"
+        >
           Say “Catch me up,” and Claro speaks your priorities: your key relationships, urgent follow-ups, and open promises
         </p>,
-        <p key="briefing" className="text-sm leading-relaxed text-gray-600">
+        <p
+          key="briefing"
+          className="text-sm leading-relaxed text-gray-600 dark:text-slate-400"
+        >
           No scrolling and no searching. Just a simple voice briefing that keeps you ahead
         </p>,
       ]}
@@ -157,7 +165,7 @@ export default function InboxToClarity() {
           rotate: -1.5,
         }}
         transition={{ duration: 1.0, ease: "easeOut" }}
-        className="relative w-full max-w-[380px] rounded-xl border border-gray-200 bg-white/95 ring-1 ring-gray-100 overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.08)]"
+        className="relative w-full max-w-[380px] overflow-hidden rounded-xl border border-gray-200 bg-white/95 ring-1 ring-gray-100 shadow-[0_24px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-[#0f1724]/92 dark:ring-white/10"
         style={{
           boxShadow:
             "0 28px 64px rgba(0,0,0,0.08), 0 6px 24px rgba(0,0,0,0.05)",
@@ -313,7 +321,7 @@ export default function InboxToClarity() {
               {/* avatar on the far right */}
               {/* avatar on the far right */}
               <div className="relative flex-shrink-0">
-                <div className="w-7 h-7 rounded-full bg-gray-200 text-gray-700 text-[10px] font-medium flex items-center justify-center ring-1 ring-gray-300 pointer-events-auto">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200 text-[10px] font-medium text-gray-700 ring-1 ring-gray-300 pointer-events-auto dark:bg-white/12 dark:text-white dark:ring-white/15">
                   You
                 </div>
               </div>
@@ -340,7 +348,7 @@ export default function InboxToClarity() {
             >
               {/* avatar on left, can still pulse while AI is "talking" */}
               <div className="relative flex-shrink-0">
-                <div className="w-7 h-7 rounded-full bg-[#FFE8DC] text-[#C76545] text-[10px] font-medium flex items-center justify-center ring-1 ring-orange-200">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFE8DC] text-[10px] font-medium text-[#C76545] ring-1 ring-orange-200 dark:bg-[#E07A5F]/18 dark:text-[#ffb59e] dark:ring-[#E07A5F]/30">
                   C
                 </div>
 

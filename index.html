@@ -20,6 +20,23 @@
       name="apple-mobile-web-app-status-bar-style"
       content="black-translucent"
     />
+    <script>
+      (() => {
+        try {
+          const storedTheme = localStorage.getItem("claro-theme");
+          const theme =
+            storedTheme === "light" || storedTheme === "dark"
+              ? storedTheme
+              : window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light";
+          document.documentElement.classList.toggle("dark", theme === "dark");
+          document.documentElement.dataset.theme = theme;
+        } catch {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
     <title>Claro AI</title>
 
     <!-- Favicons -->
@@ -51,22 +68,33 @@
       #root {
         height: 100%;
       }
-      html {
-        background:
+      :root {
+        --shell-bg:
           radial-gradient(1000px at 15% 25%, rgba(224, 122, 95, 0.012), transparent 70%),
           radial-gradient(900px at 85% 75%, rgba(61, 64, 91, 0.015), transparent 70%),
           linear-gradient(135deg, rgba(224, 122, 95, 0.01) 0%, rgba(61, 64, 91, 0.01) 100%),
           linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
-        background-color: #f8f3f4;
+        --shell-bg-color: #f8f3f4;
+        --shell-text: #0f172a;
+      }
+      html.dark {
+        --shell-bg:
+          radial-gradient(1000px at 15% 25%, rgba(224, 122, 95, 0.12), transparent 70%),
+          radial-gradient(900px at 85% 75%, rgba(111, 159, 255, 0.12), transparent 70%),
+          linear-gradient(135deg, rgba(224, 122, 95, 0.05) 0%, rgba(61, 64, 91, 0.08) 100%),
+          linear-gradient(180deg, #09111d 0%, #0f1724 100%);
+        --shell-bg-color: #0c0d12;
+        --shell-text: #e5eefb;
+      }
+      html {
+        background: var(--shell-bg);
+        background-color: var(--shell-bg-color);
       }
       body {
         margin: 0;
-        background:
-          radial-gradient(1000px at 15% 25%, rgba(224, 122, 95, 0.012), transparent 70%),
-          radial-gradient(900px at 85% 75%, rgba(61, 64, 91, 0.015), transparent 70%),
-          linear-gradient(135deg, rgba(224, 122, 95, 0.01) 0%, rgba(61, 64, 91, 0.01) 100%),
-          linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
-        background-color: #f8f3f4;
+        background: var(--shell-bg);
+        background-color: var(--shell-bg-color);
+        color: var(--shell-text);
       }
     </style>
   </head>

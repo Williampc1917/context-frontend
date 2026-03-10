@@ -19,6 +19,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import FeatureLayout from "./FeatureLayout.jsx";
 import InboxRow from "./InboxRow.jsx";
 
+void motion;
+
 const FOLLOW_UP_ROWS = [
   {
     unread: true,
@@ -550,19 +552,25 @@ export default function FollowupCard() {
       ref={rootRef}
       title="Replies that sound like you"
       description={[
-        <p key="p1" className="text-base leading-relaxed text-gray-700">
+        <p
+          key="p1"
+          className="text-base leading-relaxed text-gray-700 dark:text-slate-200"
+        >
           Say “Draft a reply,” and Claro writes the message in the tone you
           actually use with that person, with the same greeting, the same formality, the same
           sign-off
         </p>,
-        <p key="p2" className="text-sm leading-relaxed text-gray-600">
+        <p
+          key="p2"
+          className="text-sm leading-relaxed text-gray-600 dark:text-slate-400"
+        >
           Without Claro, you’re scrolling, clicking, and typing it yourself
         </p>,
       ]}
     >
       <div className="relative flex w-full flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex flex-1 flex-col items-start gap-3">
-          <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-500">
+          <div className="flex items-center gap-2 text-xs font-medium text-gray-500 sm:text-sm dark:text-slate-400">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-400" />
             Without Claro
           </div>
@@ -691,7 +699,7 @@ export default function FollowupCard() {
                     </div>
 
                     <div className="relative flex-shrink-0">
-                      <div className="w-7 h-7 rounded-full bg-gray-200 text-gray-700 text-[10px] font-medium flex items-center justify-center ring-1 ring-gray-300 pointer-events-auto">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200 text-[10px] font-medium text-gray-700 ring-1 ring-gray-300 pointer-events-auto dark:bg-white/12 dark:text-white dark:ring-white/15">
                         You
                       </div>
                     </div>
@@ -710,7 +718,7 @@ export default function FollowupCard() {
                     className="flex w-full justify-start gap-2 items-start pointer-events-auto"
                   >
                     <div className="relative flex-shrink-0">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFE8DC] text-[10px] font-medium text-[#C76545] ring-1 ring-orange-200">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFE8DC] text-[10px] font-medium text-[#C76545] ring-1 ring-orange-200 dark:bg-[#E07A5F]/18 dark:text-[#ffb59e] dark:ring-[#E07A5F]/30">
                         C
                       </div>
 
@@ -823,7 +831,7 @@ export default function FollowupCard() {
                     </div>
 
                     <div className="relative flex-shrink-0">
-                      <div className="w-7 h-7 rounded-full bg-gray-200 text-gray-700 text-[10px] font-medium flex items-center justify-center ring-1 ring-gray-300 pointer-events-auto">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200 text-[10px] font-medium text-gray-700 ring-1 ring-gray-300 pointer-events-auto dark:bg-white/12 dark:text-white dark:ring-white/15">
                         You
                       </div>
                     </div>
@@ -842,7 +850,7 @@ export default function FollowupCard() {
                     className="flex w-full justify-start gap-2 items-start pointer-events-auto"
                   >
                     <div className="relative flex-shrink-0">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFE8DC] text-[10px] font-medium text-[#C76545] ring-1 ring-orange-200">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFE8DC] text-[10px] font-medium text-[#C76545] ring-1 ring-orange-200 dark:bg-[#E07A5F]/18 dark:text-[#ffb59e] dark:ring-[#E07A5F]/30">
                         C
                       </div>
                       {aiWrapTalkingForUI && (
@@ -952,7 +960,7 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, aiDone, demoComplete }) {
     <div className="relative">
       <div className="relative w-full max-w-[380px]">
         <div
-          className="overflow-hidden rounded-2xl border border-transparent bg-white/95 shadow-[0_24px_60px_rgba(0,0,0,0.08)] transition-all duration-500"
+          className="overflow-hidden rounded-2xl border border-transparent bg-white/95 shadow-[0_24px_60px_rgba(0,0,0,0.08)] transition-all duration-500 dark:border-white/10 dark:bg-[#0f1724]/92"
           style={{
             boxShadow:
               "0 28px 64px rgba(0,0,0,0.08), 0 6px 24px rgba(0,0,0,0.05)",
@@ -1006,14 +1014,14 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, aiDone, demoComplete }) {
               transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
               className="pointer-events-none absolute left-[152px] top-[118px] z-30"
             >
-              <div className="min-w-[140px] rounded-xl border border-gray-200/80 bg-white/98 p-1 text-[11px] text-gray-600 shadow-[0_20px_40px_rgba(15,23,42,0.16)] ring-1 ring-gray-100 backdrop-blur">
+              <div className="min-w-[140px] rounded-xl border border-gray-200/80 bg-white/98 p-1 text-[11px] text-gray-600 shadow-[0_20px_40px_rgba(15,23,42,0.16)] ring-1 ring-gray-100 backdrop-blur dark:border-white/10 dark:bg-[#111a29]/96 dark:text-slate-300 dark:ring-white/10">
                 <div
                   className={`flex items-center gap-2 rounded-lg px-3 py-2 font-medium transition-colors duration-200 ${
                     contextMenuPressed
                       ? "bg-blue-100 text-blue-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
                       : contextMenuHover
                         ? "bg-blue-50 text-blue-600"
-                        : "text-gray-600"
+                        : "text-gray-600 dark:text-slate-300"
                   }`}
                 >
                   <span className="flex h-5 w-5 items-center justify-center rounded-md bg-blue-100/80 text-[10px] font-semibold text-blue-600">

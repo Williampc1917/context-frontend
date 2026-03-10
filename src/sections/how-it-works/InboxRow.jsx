@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 
+void motion;
+
 const chipColor = {
   red: {
     bg: "bg-red-50",
@@ -64,11 +66,11 @@ export default function InboxRow({
         };
 
   const unreadClasses = unread
-    ? "bg-blue-50/[0.08] hover:bg-blue-50/[0.16]"
-    : "bg-white hover:bg-gray-50";
+    ? "bg-blue-50/[0.08] hover:bg-blue-50/[0.16] dark:bg-sky-500/[0.08] dark:hover:bg-sky-500/[0.14]"
+    : "bg-white hover:bg-gray-50 dark:bg-[#0f1724] dark:hover:bg-[#152033]";
 
   const activeClasses = active
-    ? "ring-1 ring-blue-200/80 bg-blue-50/70 hover:bg-blue-100/70"
+    ? "ring-1 ring-blue-200/80 bg-blue-50/70 hover:bg-blue-100/70 dark:ring-sky-400/40 dark:bg-sky-500/12 dark:hover:bg-sky-500/16"
     : "ring-0";
 
   return (
@@ -76,7 +78,7 @@ export default function InboxRow({
       data-pointer-target={dataPointerTarget}
       animate={rowAnimate}
       className={[
-        "relative px-3 py-2 border-b border-gray-100 transition-colors",
+        "relative border-b border-gray-100 px-3 py-2 transition-colors dark:border-white/8",
         unreadClasses,
         activeClasses,
       ].join(" ")}
@@ -89,7 +91,7 @@ export default function InboxRow({
             )}
             <input
               type="checkbox"
-              className="mt-[2px] w-[14px] h-[14px] rounded-[3px] border border-gray-300 appearance-none checked:bg-blue-600 checked:border-blue-600 checked:ring-1 checked:ring-blue-600 focus:outline-none"
+              className="mt-[2px] h-[14px] w-[14px] appearance-none rounded-[3px] border border-gray-300 checked:border-blue-600 checked:bg-blue-600 checked:ring-1 checked:ring-blue-600 focus:outline-none dark:border-white/20 dark:bg-transparent dark:checked:border-sky-500 dark:checked:bg-sky-500 dark:checked:ring-sky-500"
             />
           </div>
 
@@ -98,7 +100,7 @@ export default function InboxRow({
               "mt-[1px] text-[13px] leading-none flex-shrink-0 " +
               (unread
                 ? "text-yellow-400"
-                : "text-gray-400 hover:text-yellow-400")
+                : "text-gray-400 hover:text-yellow-400 dark:text-slate-500")
             }
             aria-label="Star"
           >
@@ -110,13 +112,13 @@ export default function InboxRow({
               className={
                 "truncate text-[13px] leading-snug " +
                 (unread
-                  ? "text-gray-900 font-medium"
-                  : "text-gray-700 font-normal")
+                  ? "font-medium text-gray-900 dark:text-white"
+                  : "font-normal text-gray-700 dark:text-slate-200")
               }
             >
               {isChaos && (
                 <span
-                  className="absolute text-[13px] text-gray-400/40 font-medium pointer-events-none select-none"
+                  className="absolute pointer-events-none select-none text-[13px] font-medium text-gray-400/40 dark:text-slate-500/30"
                   style={{ transform: "translate(-1px, -1px) rotate(-0.5deg)" }}
                 >
                   {from}
@@ -129,12 +131,12 @@ export default function InboxRow({
 
         <div className="flex items-start gap-2 flex-shrink-0">
           {hasAttachment && (
-            <span className="text-[12px] leading-none text-gray-400">📎</span>
+            <span className="text-[12px] leading-none text-gray-400 dark:text-slate-500">📎</span>
           )}
-          <span className="text-[11px] text-gray-500 leading-none tabular-nums whitespace-nowrap relative">
+          <span className="relative whitespace-nowrap text-[11px] leading-none tabular-nums text-gray-500 dark:text-slate-400">
             {isChaos && (
               <span
-                className="absolute text-[11px] text-gray-400/40 font-medium pointer-events-none select-none"
+                className="absolute pointer-events-none select-none text-[11px] font-medium text-gray-400/40 dark:text-slate-500/30"
                 style={{ transform: "translate(-1px, -1px) rotate(0.4deg)" }}
               >
                 {time}
@@ -148,12 +150,14 @@ export default function InboxRow({
       <p
         className={
           "text-[13px] leading-snug mt-1 " +
-          (unread ? "text-gray-900 font-medium" : "text-gray-800 font-medium")
+          (unread
+            ? "font-medium text-gray-900 dark:text-white"
+            : "font-medium text-gray-800 dark:text-slate-100")
         }
       >
         {isChaos && (
           <span
-            className="absolute text-[13px] text-gray-400/40 font-medium pointer-events-none select-none"
+            className="absolute pointer-events-none select-none text-[13px] font-medium text-gray-400/40 dark:text-slate-500/30"
             style={{ transform: "translate(-1px, -1px) rotate(-0.3deg)" }}
           >
             {subject}
@@ -162,10 +166,10 @@ export default function InboxRow({
         {subject}
       </p>
 
-      <div className="text-[12px] text-gray-600 leading-snug mt-1 line-clamp-2 relative">
+      <div className="relative mt-1 line-clamp-2 text-[12px] leading-snug text-gray-600 dark:text-slate-400">
         {isChaos && (
           <span
-            className="absolute text-[12px] text-gray-400/30 font-normal pointer-events-none select-none line-clamp-2"
+            className="absolute pointer-events-none select-none line-clamp-2 text-[12px] font-normal text-gray-400/30 dark:text-slate-500/25"
             style={{
               transform: "translate(-1px, -1px) rotate(0.2deg)",
               maxWidth: "94%",

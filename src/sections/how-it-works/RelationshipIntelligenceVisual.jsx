@@ -11,6 +11,8 @@ import {
   UserRoundCheck,
 } from "lucide-react";
 
+void motion;
+
 const ICONS = {
   message: MessageSquareText,
   replyNeeded: Reply,
@@ -179,12 +181,24 @@ const CHAOS_BITS = [
   },
 ];
 
-export default function RelationshipIntelligenceVisual() {
+export default function RelationshipIntelligenceVisual({ theme = "light" }) {
   const containerRef = useRef(null);
   const [started, setStarted] = useState(false);
   const [gathered, setGathered] = useState(false);
   const [stacked, setStacked] = useState(false);
   const [layoutFactor, setLayoutFactor] = useState(1);
+  const isDark = theme === "dark";
+  const chaosBits = useMemo(
+    () =>
+      CHAOS_BITS.map((bit) => ({
+        ...bit,
+        accent: isDark ? "#7FD0FF" : bit.accent,
+        background: isDark
+          ? "linear-gradient(145deg, rgba(15,23,36,0.96), rgba(30,41,59,0.88))"
+          : bit.background,
+      })),
+    [isDark],
+  );
 
   useEffect(() => {
     const el = containerRef.current;
@@ -287,13 +301,13 @@ export default function RelationshipIntelligenceVisual() {
       ref={containerRef}
       className="relative mx-auto flex h-[300px] w-full max-w-[520px] items-center justify-center sm:h-[360px] md:h-[420px]"
     >
-      <div className="pointer-events-none absolute inset-[-20%] -z-20 bg-[radial-gradient(circle_at_50%_40%,rgba(226,251,240,0.45),transparent_65%)] blur-[95px]" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-3 -z-10 mx-auto h-32 w-48 rounded-[50%] bg-[radial-gradient(circle,rgba(15,23,42,0.18),transparent_65%)] blur-[40px]" />
+      <div className="pointer-events-none absolute inset-[-20%] -z-20 bg-[radial-gradient(circle_at_50%_40%,rgba(226,251,240,0.45),transparent_65%)] blur-[95px] dark:bg-[radial-gradient(circle_at_50%_40%,rgba(56,189,248,0.12),transparent_65%)]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-3 -z-10 mx-auto h-32 w-48 rounded-[50%] bg-[radial-gradient(circle,rgba(15,23,42,0.18),transparent_65%)] blur-[40px] dark:bg-[radial-gradient(circle,rgba(2,6,23,0.48),transparent_65%)]" />
 
       <div className="relative h-full w-full">
-        <div className="pointer-events-none absolute inset-0 rounded-[45%] border border-white/30 opacity-40 blur-[2px]" />
-        <WaveformHub stacked={stacked} connections={waveConnections} />
-        {CHAOS_BITS.map((bit) => (
+        <div className="pointer-events-none absolute inset-0 rounded-[45%] border border-white/30 opacity-40 blur-[2px] dark:border-white/10 dark:opacity-60" />
+        <WaveformHub stacked={stacked} connections={waveConnections} isDark={isDark} />
+        {chaosBits.map((bit) => (
           <FloatingBit
             key={bit.id}
             bit={bit}
@@ -451,7 +465,7 @@ function FloatingBit({
   );
 }
 
-function WaveformHub({ stacked, connections = [] }) {
+function WaveformHub({ stacked, connections = [], isDark = false }) {
   return (
     <div className="pointer-events-none absolute inset-0 z-0">
       <motion.svg
@@ -514,7 +528,9 @@ function WaveformHub({ stacked, connections = [] }) {
       </motion.svg>
 
       <motion.div
-        className="absolute h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/60 blur-3xl"
+        className={`absolute h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl ${
+          isDark ? "bg-sky-400/18" : "bg-white/60"
+        }`}
         style={{ top: `${HUB_POSITION.top}%`, left: `${HUB_POSITION.left}%` }}
         initial={{ opacity: 0 }}
         animate={{ opacity: stacked ? 0.5 : 0 }}
@@ -522,7 +538,11 @@ function WaveformHub({ stacked, connections = [] }) {
       />
 
       <motion.div
-        className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/60 bg-white/80 p-3 shadow-[0_20px_45px_rgba(15,23,42,0.16)] backdrop-blur"
+        className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full border p-3 shadow-[0_20px_45px_rgba(15,23,42,0.16)] backdrop-blur ${
+          isDark
+            ? "border-white/10 bg-[#111a29]/92 shadow-[0_22px_56px_rgba(2,6,23,0.45)]"
+            : "border-white/60 bg-white/80"
+        }`}
         style={{ top: `${HUB_POSITION.top}%`, left: `${HUB_POSITION.left}%` }}
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: stacked ? 1 : 0, scale: stacked ? 1 : 0.8 }}
@@ -547,11 +567,11 @@ function CardBit({ bit }) {
 
   return (
     <div
-      className="w-[110px] rounded-2xl border border-white/60 p-3 text-[10px] shadow-[0_20px_55px_rgba(15,23,42,0.18)] backdrop-blur-[6px] sm:w-[150px] sm:text-[11px]"
+      className="w-[110px] rounded-2xl border border-white/60 p-3 text-[10px] shadow-[0_20px_55px_rgba(15,23,42,0.18)] backdrop-blur-[6px] dark:border-white/10 dark:shadow-[0_22px_55px_rgba(2,6,23,0.45)] sm:w-[150px] sm:text-[11px]"
       style={{ background: bit.background }}
     >
-      <div className="flex items-center gap-2 font-semibold text-slate-800">
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow-inner">
+      <div className="flex items-center gap-2 font-semibold text-slate-800 dark:text-white">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow-inner dark:bg-white/12">
           <Icon
             className="h-3.5 w-3.5"
             strokeWidth={2.4}
@@ -560,7 +580,7 @@ function CardBit({ bit }) {
         </span>
         {bit.title}
       </div>
-      <p className="mt-1 text-[9px] font-medium text-slate-500 sm:text-[10px]">
+      <p className="mt-1 text-[9px] font-medium text-slate-500 dark:text-slate-400 sm:text-[10px]">
         {bit.detail}
       </p>
     </div>
@@ -569,7 +589,7 @@ function CardBit({ bit }) {
 
 function PersonBit({ bit }) {
   return (
-    <div className="flex items-center gap-2 rounded-full border border-white/50 bg-white/90 px-2.5 py-1.5 text-[9px] shadow-[0_18px_40px_rgba(15,23,42,0.15)] backdrop-blur-[6px] sm:gap-3 sm:px-3 sm:text-[10px]">
+    <div className="flex items-center gap-2 rounded-full border border-white/50 bg-white/90 px-2.5 py-1.5 text-[9px] shadow-[0_18px_40px_rgba(15,23,42,0.15)] backdrop-blur-[6px] dark:border-white/10 dark:bg-[#111a29]/92 dark:shadow-[0_22px_46px_rgba(2,6,23,0.42)] sm:gap-3 sm:px-3 sm:text-[10px]">
       <div
         className="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-semibold text-white shadow-inner sm:h-9 sm:w-9 sm:text-xs"
         style={{
@@ -579,10 +599,10 @@ function PersonBit({ bit }) {
         {bit.initials}
       </div>
       <div className="leading-tight">
-        <div className="text-[10px] font-semibold text-slate-800 sm:text-[11px]">
+        <div className="text-[10px] font-semibold text-slate-800 dark:text-white sm:text-[11px]">
           {bit.note}
         </div>
-        <div className="text-[9px] text-slate-500 sm:text-[10px]">
+        <div className="text-[9px] text-slate-500 dark:text-slate-400 sm:text-[10px]">
           {bit.sub}
         </div>
       </div>
