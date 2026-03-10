@@ -43,9 +43,9 @@ function getInitialTheme() {
     void error;
   }
 
-  return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches
-    ? "dark"
-    : "light";
+  return window.matchMedia?.("(prefers-color-scheme: light)")?.matches
+    ? "light"
+    : "dark";
 }
 
 function setThemeColor(color) {
@@ -320,6 +320,13 @@ export default function ContextLanding() {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("resize", handleResize);
+
+      // iOS Safari resets theme-color rendering when overflow toggles.
+      // Force re-apply after the browser repaints.
+      requestAnimationFrame(() => {
+        const color = themeColorRef.current;
+        if (color) setThemeColor(color);
+      });
     };
   }, [menuOpen]);
 
@@ -457,7 +464,7 @@ export default function ContextLanding() {
         style={{ paddingTop: heroSafePadding }}
         className="hero-canvas relative flex flex-col items-center justify-start min-h-[90vh] px-6 pb-18 lg:px-8 text-center"
       >
-        <div className="hero-shell w-full max-w-5xl px-6 py-10 md:py-12 lg:px-16 mx-auto">
+        <div className="hero-shell w-full max-w-5xl px-0 py-10 sm:px-6 md:py-12 lg:px-16 mx-auto">
           {/* Hero text block */}
           <div className="hero-content flex flex-col items-center justify-center w-full max-w-3xl lg:max-w-4xl mx-auto text-center">
             <RevealHeadline
@@ -679,11 +686,11 @@ export default function ContextLanding() {
               onClick={() => scrollTo("top")}
               className="flex items-center gap-3 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-left shadow-lg backdrop-blur dark:border-white/12 dark:bg-white/6"
             >
-              <span className="flex size-9 items-center justify-center rounded-full bg-white/80 dark:bg-white/12">
+              <span className="flex size-10 items-center justify-center rounded-full bg-white/80 dark:bg-white/12">
                 <img
                   src={`${import.meta.env.BASE_URL}waveform.svg`}
                   alt="Claro AI"
-                  className="h-5 w-5"
+                  className="h-7 w-7 object-contain"
                 />
               </span>
               <span className="text-xl font-silkscreen tracking-tight text-white">
