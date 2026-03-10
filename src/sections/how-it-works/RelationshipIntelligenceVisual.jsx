@@ -71,8 +71,8 @@ const CHAOS_BITS = [
     id: "message",
     type: "card",
     icon: "message",
-    title: "Message",
-    detail: "Recent interaction",
+    title: "Recent Interaction",
+    detail: "You spoke 3 days ago",
     accent: "#0A84FF",
     background:
       "linear-gradient(145deg, rgba(255,255,255,0.98), rgba(243,246,251,0.92))",
@@ -104,7 +104,7 @@ const CHAOS_BITS = [
     type: "card",
     icon: "priorityRising",
     title: "Priority Rising",
-    detail: "Shifting priority",
+    detail: "Engaging more often",
     accent: "#0A84FF",
     background:
       "linear-gradient(145deg, rgba(255,255,255,0.98), rgba(243,246,251,0.92))",
@@ -135,8 +135,8 @@ const CHAOS_BITS = [
     id: "connection-opportunity",
     type: "card",
     icon: "connectionOpportunity",
-    title: "Connection Opportunity",
-    detail: "Important relationship",
+    title: "Fading Connection",
+    detail: "Haven't spoken in weeks",
     accent: "#0A84FF",
     background:
       "linear-gradient(145deg, rgba(255,255,255,0.98), rgba(243,246,251,0.92))",
@@ -567,7 +567,7 @@ function CardBit({ bit }) {
 
   return (
     <div
-      className="w-[110px] rounded-2xl border border-white/60 p-3 text-[10px] shadow-[0_20px_55px_rgba(15,23,42,0.18)] backdrop-blur-[6px] dark:border-white/10 dark:shadow-[0_22px_55px_rgba(2,6,23,0.45)] sm:w-[150px] sm:text-[11px]"
+      className={`${bit.id === "connection-opportunity" || bit.id === "message" ? "w-[140px] sm:w-[185px]" : "w-[110px] sm:w-[150px]"} rounded-2xl border border-white/60 p-3 text-[10px] shadow-[0_20px_55px_rgba(15,23,42,0.18)] backdrop-blur-[6px] dark:border-white/10 dark:shadow-[0_22px_55px_rgba(2,6,23,0.45)] sm:text-[11px]`}
       style={{ background: bit.background }}
     >
       <div className="flex items-center gap-2 font-semibold text-slate-800 dark:text-white">
