@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useReducedMotion, motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Menu, X, Linkedin } from "lucide-react";
 import "./index.css";
@@ -533,9 +533,11 @@ export default function ContextLanding() {
         </div>
 
         <div className="flex flex-col items-center gap-16">
-          {howItWorksFeatures.map(({ id, Component }) => (
-            <Component key={id} />
-          ))}
+          <Suspense fallback={null}>
+            {howItWorksFeatures.map(({ id, Component }) => (
+              <Component key={id} />
+            ))}
+          </Suspense>
         </div>
       </section>
 
@@ -585,27 +587,12 @@ export default function ContextLanding() {
               </span>
             </button>
             <div className="mt-4 text-sm text-white/70"></div>
-            <div className="mt-6 flex items-center gap-3">
-              <FooterSocialLink
-                href="https://x.com"
-                label="Follow Claro AI on X"
-              >
-                <XLogo size={18} />
-              </FooterSocialLink>
-              <FooterSocialLink
-                href="https://linkedin.com"
-                label="Connect with Claro AI on LinkedIn"
-              >
-                <Linkedin size={18} />
-              </FooterSocialLink>
-            </div>
           </div>
 
           <div className="flex flex-1 flex-col gap-10 sm:flex-row sm:justify-end">
             <FooterNavGroup
               title="Product"
               links={[
-                { label: "Features", target: "features" },
                 { label: "How it works", target: "how" },
                 { label: "Waitlist", target: "waitlist" },
               ]}
@@ -617,13 +604,6 @@ export default function ContextLanding() {
         <div className="relative border-t border-white/10">
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 py-6 text-sm text-white/60 md:flex-row md:items-center md:justify-between">
             <p>© {new Date().getFullYear()} Claro AI. All rights reserved.</p>
-            <p className="flex items-center gap-2">
-              <span
-                className="inline-flex h-2 w-2 animate-pulse rounded-full bg-[#E07A5F]"
-                aria-hidden
-              />
-              Based in New York.
-            </p>
           </div>
         </div>
       </footer>

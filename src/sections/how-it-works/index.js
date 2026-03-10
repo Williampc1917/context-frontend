@@ -1,7 +1,9 @@
-import EmailCard from "./EmailCard.jsx";
-import FollowUpsCard from "./FollowUpsCard.jsx";
-import RelationshipIntelligenceCard from "./RelationshipIntelligenceCard.jsx";
-import PromiseTrackerCard from "./PromiseTrackerCard.jsx";
+import { lazy } from "react";
+
+const EmailCard = lazy(() => import("./EmailCard.jsx"));
+const FollowUpsCard = lazy(() => import("./FollowUpsCard.jsx"));
+const RelationshipIntelligenceCard = lazy(() => import("./RelationshipIntelligenceCard.jsx"));
+const PromiseTrackerCard = lazy(() => import("./PromiseTrackerCard.jsx"));
 
 export const howItWorksFeatures = [
   { id: "feature-email", Component: EmailCard },
