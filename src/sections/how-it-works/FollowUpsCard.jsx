@@ -543,25 +543,29 @@ export default function FollowupCard() {
   const aiBubbleSecondaryTextColor = "rgba(255,255,255,0.68)";
   const aiBubbleBoxShadow =
     "0 5px 8px rgba(0,0,0,0.2), 0 0 36px rgba(234,132,103,0.18), inset 0 0 10px rgba(234,132,103,0.12)";
+  const demoComplete = manualPhase === "compose_done" && aiWrapDone;
 
   return (
     <FeatureLayout
       ref={rootRef}
-      title="Replies that sound like you. Instantly."
+      title="Replies that sound like you"
       description={[
         <p key="p1" className="text-base leading-relaxed text-gray-700">
           Say “Draft a reply,” and Claro writes the message in the tone you
-          actually use with that person — same greeting, same formality, same
+          actually use with that person, with the same greeting, the same formality, the same
           sign-off.
         </p>,
         <p key="p2" className="text-sm leading-relaxed text-gray-600">
           Without Claro, you’re scrolling, clicking, and typing it yourself.
-          With Claro, you just describe the intent and it’s ready to send.
         </p>,
       ]}
     >
       <div className="relative flex w-full flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
-        <div className="flex flex-1 flex-col items-start gap-6">
+        <div className="flex flex-1 flex-col items-start gap-3">
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-500">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-400" />
+            Without Claro
+          </div>
           <div className="relative w-full max-w-[460px]">
             <motion.div
               initial={{ opacity: 0, y: 30, rotate: 0 }}
@@ -578,6 +582,7 @@ export default function FollowupCard() {
                 dimmed={composeVisible}
                 chatPhase={chatPhase}
                 aiDone={aiDone}
+                demoComplete={demoComplete}
               />
             </motion.div>
 
@@ -613,7 +618,12 @@ export default function FollowupCard() {
           </div>
         </div>
 
-        <div className="relative flex flex-1 justify-start lg:pl-6">
+        <div className="relative flex flex-1 flex-col gap-3 lg:pl-6">
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-[#E07A5F]">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#E07A5F]" />
+            With Claro
+          </div>
+          <div className="relative flex justify-start">
           <motion.div
             className="pointer-events-none absolute -top-10 -right-6 h-36 w-36 rounded-full bg-[rgba(224,122,95,0.14)] blur-3xl"
             animate={{ opacity: chatStarted ? 0.6 : 0.25 }}
@@ -899,6 +909,7 @@ export default function FollowupCard() {
               </AnimatePresence>
             </div>
           </div>
+          </div>
         </div>
       </div>
     </FeatureLayout>
@@ -909,7 +920,7 @@ export default function FollowupCard() {
    SUBCOMPONENTS
    ================================================= */
 
-function InboxPreviewCard({ phase, dimmed, chatPhase, aiDone }) {
+function InboxPreviewCard({ phase, dimmed, chatPhase, aiDone, demoComplete }) {
   const highlightSarah =
     phase === "row_hover" ||
     phase === "row_context" ||
@@ -927,7 +938,8 @@ function InboxPreviewCard({ phase, dimmed, chatPhase, aiDone }) {
 
   const rows = FOLLOW_UP_ROWS;
 
-  const inboxIsChill = chatPhase === "ai_final" && aiDone;
+  const inboxIsChill =
+    (chatPhase === "ai_final" && aiDone) || demoComplete;
 
   const showContextMenu =
     phase === "row_context" ||
@@ -1193,12 +1205,16 @@ function VoiceBars({ active }) {
               ? { height: ["4px", "11px", "5px", "9px", "6px"] }
               : { height: "5px" }
           }
-          transition={{
-            duration: 1.4,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: d,
-          }}
+          transition={
+            active
+              ? {
+                  duration: 1.4,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: d,
+                }
+              : { duration: 0.2, ease: "linear" }
+          }
           initial={false}
         />
       ))}

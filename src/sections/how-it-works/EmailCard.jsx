@@ -138,7 +138,7 @@ export default function InboxToClarity() {
   return (
     <FeatureLayout
       ref={rootRef}
-      title="Your daily briefing, in a single command."
+      title="Your daily briefing, in a single command"
       description={[
         <p key="catch" className="text-base leading-relaxed text-gray-700">
           Say “Catch me up,” and Claro speaks your priorities: your key relationships, urgent follow-ups, and open promises.
@@ -441,12 +441,16 @@ function VoiceBars({ active }) {
                 }
               : { height: "5px" }
           }
-          transition={{
-            duration: 1.4,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: d,
-          }}
+          transition={
+            active
+              ? {
+                  duration: 1.4,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: d,
+                }
+              : { duration: 0.2, ease: "linear" }
+          }
           initial={false}
         />
       ))}

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 import FeatureLayout from "./FeatureLayout.jsx";
 
@@ -48,12 +48,13 @@ const SMART_ALERTS = [
   },
 ];
 
-const ROTATION_MS = 3000;
 const STACK_OFFSET = 26;
+const ROTATION_MS = 4200;
 
 export default function PromiseTrackerCard() {
   const rootRef = useRef(null);
   const [started, setStarted] = useState(false);
+  const [isActive, setIsActive] = useState(false);
   const [stack, setStack] = useState(() =>
     SMART_ALERTS.map((alert, idx) => ({
       ...alert,
@@ -62,6 +63,7 @@ export default function PromiseTrackerCard() {
   );
   const [revealed, setRevealed] = useState(false);
   const instanceRef = useRef(SMART_ALERTS.length);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     const el = rootRef.current;
@@ -70,8 +72,8 @@ export default function PromiseTrackerCard() {
       ([entry]) => {
         if (entry.isIntersecting) {
           setStarted(true);
-          io.disconnect();
         }
+        setIsActive(entry.isIntersecting);
       },
       { threshold: 0.35 },
     );
@@ -86,7 +88,8 @@ export default function PromiseTrackerCard() {
   }, [started, revealed]);
 
   useEffect(() => {
-    if (!started) return;
+    if (!started || !isActive || prefersReducedMotion) return;
+
     const interval = setInterval(() => {
       setStack((current) => {
         if (current.length <= 1) return current;
@@ -100,23 +103,23 @@ export default function PromiseTrackerCard() {
         ];
       });
     }, ROTATION_MS);
+
     return () => clearInterval(interval);
-  }, [started]);
+  }, [started, isActive, prefersReducedMotion]);
 
   const visibleStack = started ? stack.slice(0, 3) : [];
 
   return (
     <FeatureLayout
       ref={rootRef}
-      title="Smart Alerts that keep every promise in sight."
+      title="Smart Alerts that keep every promise in sight"
       description={[
         <p key="summary" className="text-base leading-relaxed text-gray-700">
-          Claro notices the moments that matter, when you owe a reply, miss a
+          Claro keeps track of the moments that matter, when you owe a reply, miss a
           follow up, or forget a promise, and gathers them into one clear place.
         </p>,
         <p key="detail" className="text-sm leading-relaxed text-gray-600">
-          The mental load of remembering every little thing goes away, and you
-          are not trying to keep track of every loose end by yourself.
+          You are not left keeping track of every loose end yourself.
         </p>,
       ]}
     >

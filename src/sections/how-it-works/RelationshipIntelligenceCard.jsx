@@ -4,7 +4,7 @@ import RelationshipIntelligenceVisual from "./RelationshipIntelligenceVisual.jsx
 export default function RelationshipIntelligenceCard() {
   return (
     <FeatureLayout
-      title="Relationship intelligence that maps your world."
+      title="Relationship intelligence with real context"
       description={[
         <p key="primary" className="text-base leading-relaxed text-gray-700">
           Claro builds a simple, living picture of the people around you: recent
@@ -12,8 +12,7 @@ export default function RelationshipIntelligenceCard() {
           most. It’s context you can actually use.
         </p>,
         <p key="secondary" className="text-sm leading-relaxed text-gray-600">
-          Otherwise you’re left piecing things together from scattered threads
-          and half-remembered conversations.
+          Otherwise you’re left piecing things together from scattered threads.
         </p>,
       ]}
     >

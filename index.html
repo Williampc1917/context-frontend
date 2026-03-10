@@ -2,11 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
     <meta
       name="theme-color"
       media="(prefers-color-scheme: light)"
-      content="#f7f2ed"
+      content="#FAF9F7"
     />
     <meta
       name="theme-color"
@@ -20,7 +23,8 @@
     <title>Claro AI</title>
 
     <!-- Favicons -->
-    <link rel="icon" type="image/svg+xml" href="/waveform.svg" />
+    <link rel="icon" type="image/svg+xml" sizes="any" href="/waveform.svg" />
+    <link rel="shortcut icon" href="/waveform.svg" />
 
     <!-- Speed up Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -43,15 +47,26 @@
 
       /* Optional: calm brand-tinted page background (can remove if using Tailwind styles elsewhere) */
       html,
-      body {
+      body,
+      #root {
         height: 100%;
+      }
+      html {
+        background:
+          radial-gradient(1000px at 15% 25%, rgba(224, 122, 95, 0.012), transparent 70%),
+          radial-gradient(900px at 85% 75%, rgba(61, 64, 91, 0.015), transparent 70%),
+          linear-gradient(135deg, rgba(224, 122, 95, 0.01) 0%, rgba(61, 64, 91, 0.01) 100%),
+          linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
+        background-color: #fafafa;
       }
       body {
         margin: 0;
         background:
-          radial-gradient(80% 60% at 50% 0%, #e07a5f14 0%, transparent 60%),
-          radial-gradient(60% 50% at 50% 100%, #3d405b12 0%, transparent 60%),
-          #fff;
+          radial-gradient(1000px at 15% 25%, rgba(224, 122, 95, 0.012), transparent 70%),
+          radial-gradient(900px at 85% 75%, rgba(61, 64, 91, 0.015), transparent 70%),
+          linear-gradient(135deg, rgba(224, 122, 95, 0.01) 0%, rgba(61, 64, 91, 0.01) 100%),
+          linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
+        background-color: #fafafa;
       }
     </style>
   </head>

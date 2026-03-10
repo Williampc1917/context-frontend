@@ -368,6 +368,7 @@ export default function ContextLanding() {
               tileEnd={3.2}
               threshold={0.4}
               breathDelayMs={1200}
+              enableBreathing={false}
               onRevealComplete={handleHeroRevealComplete}
             />
 
@@ -389,8 +390,8 @@ export default function ContextLanding() {
               aria-hidden={!subtextActive}
             >
               CLARO AI is a voice assistant for your email and calendar. It
-              understands how you connect — who matters, how you communicate,
-              and when to reach out.
+              understands how you connect, who matters, how you communicate,
+              and when to reach out
             </motion.p>
 
             <motion.div
@@ -759,7 +760,7 @@ function HowItWorksHeading() {
       </h2>
       <p className="how-it-works-subtitle text-lg text-black sm:text-xl">
         Built with the same clarity and intelligence that powers every Claro
-        experience.
+        experience
       </p>
     </div>
   );

@@ -57,6 +57,7 @@ export function RevealHeadline({
 
   // Start breathing after this delay (gap between reveal end and overlay start)
   breathDelayMs = 900,
+  enableBreathing = true,
 
   // Staged breathing intro (tiles appear gradually)
   breathIntroMs = 7500, // total time to bring overlay to full density
@@ -659,6 +660,11 @@ export function RevealHeadline({
     ctx.globalAlpha = 1;
   }
 
+  function clearCanvasOverlay() {
+    const ctx = canvasRef.current?.getContext("2d");
+    if (ctx && S.current) ctx.clearRect(0, 0, S.current.w, S.current.h);
+  }
+
   function breathTick(now) {
     if (S.current.mobile) {
       cancelAnimationFrame(breathRafRef.current);
@@ -691,7 +697,7 @@ export function RevealHeadline({
   }
 
   function startBreathing() {
-    if (S.current.mobile) return;
+    if (!enableBreathing || S.current.mobile) return;
     if (h1Ref.current) h1Ref.current.style.opacity = "1";
     const now =
       typeof performance !== "undefined" ? performance.now() : Date.now();
@@ -709,8 +715,7 @@ export function RevealHeadline({
     breathRafRef.current = 0;
     cancelLowPowerBreath();
     S.current.lowPower = false;
-    const ctx = canvasRef.current?.getContext("2d");
-    if (ctx && S.current) ctx.clearRect(0, 0, S.current.w, S.current.h);
+    clearCanvasOverlay();
   }
 
   function clearBreathDelay() {
@@ -753,6 +758,12 @@ export function RevealHeadline({
       St.revealedOnce = true;
       if (h1Ref.current) h1Ref.current.style.opacity = "1";
 
+      if (!enableBreathing) {
+        clearCanvasOverlay();
+        notifyRevealComplete();
+        return;
+      }
+
       // Delay the breathing overlay (then it ramps in gradually)
       clearBreathDelay();
       breathTimeoutRef.current = window.setTimeout(
@@ -786,7 +797,12 @@ export function RevealHeadline({
       St.progress = 1;
       if (h1) h1.style.opacity = "1";
 
-      if (!prefersReducedMotion && St.visible && !St.mobile) {
+      if (
+        enableBreathing &&
+        !prefersReducedMotion &&
+        St.visible &&
+        !St.mobile
+      ) {
         clearBreathDelay();
         breathTimeoutRef.current = window.setTimeout(
           () => {
@@ -816,6 +832,7 @@ export function RevealHeadline({
   function scheduleLowPowerBreath() {
     if (
       breathIdleTimeoutRef.current ||
+      !enableBreathing ||
       prefersReducedMotion ||
       S.current.mobile
     )
@@ -918,6 +935,7 @@ export function RevealHeadline({
           }
           if (
             S.current.revealedOnce &&
+            enableBreathing &&
             !prefersReducedMotion &&
             !S.current.mobile
           ) {
@@ -947,6 +965,7 @@ export function RevealHeadline({
         }
         if (
           S.current.revealedOnce &&
+          enableBreathing &&
           !prefersReducedMotion &&
           !S.current.mobile
         ) {
@@ -964,6 +983,7 @@ export function RevealHeadline({
         }
         if (
           S.current.revealedOnce &&
+          enableBreathing &&
           !prefersReducedMotion &&
           !S.current.mobile &&
           !breathRafRef.current
@@ -1022,6 +1042,7 @@ export function RevealHeadline({
     tileShape,
     // breathing
     breathDelayMs,
+    enableBreathing,
     breathIntroMs,
     breathPerTileRampMs,
     retriggerOnHover, // <-- now defined

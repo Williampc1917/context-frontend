@@ -350,13 +350,11 @@ function FloatingBit({
   const baseFloatDuration = useMemo(() => randomBetween(7, 11), []);
   const floatTransition = useMemo(
     () => ({
-      duration: stacked ? baseFloatDuration * 1.2 : baseFloatDuration,
+      duration: Math.min(baseFloatDuration, 4.8),
       ease: "easeInOut",
-      repeat: Infinity,
-      repeatType: "mirror",
       delay: randomBetween(0, 1.4),
     }),
-    [baseFloatDuration, stacked],
+    [baseFloatDuration],
   );
 
   const restingPosition = useMemo(
@@ -428,7 +426,7 @@ function FloatingBit({
     >
       <motion.div
         animate={
-          started
+          started && !stacked
             ? {
                 x: drift.x,
                 y: drift.y,
@@ -436,7 +434,11 @@ function FloatingBit({
               }
             : { x: 0, y: 0, rotate: 0 }
         }
-        transition={started ? floatTransition : { duration: 0 }}
+        transition={
+          started && !stacked
+            ? floatTransition
+            : { duration: 0.45, ease: [0.22, 1, 0.36, 1] }
+        }
         className="relative"
       >
         {bit.type === "person" ? (

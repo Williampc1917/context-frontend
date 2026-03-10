@@ -761,18 +761,6 @@ html {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Reduce repaints during scroll */
-body {
-  /* Hint to browser about scroll-affected properties */
-  will-change: scroll-position;
-}
-
-/* Main container optimizations */
-.relative.min-h-screen {
-  /* Contain layout calculations within this element */
-  contain: layout style;
-}
-
 /* Navigation scroll performance */
 nav {
   /* Separate layer for fixed nav */
@@ -780,11 +768,8 @@ nav {
   will-change: background-color, backdrop-filter;
 }
 
-/* Section containers - optimize repaints */
+/* Section containers */
 section {
-  /* Each section gets its own paint layer */
-  contain: layout paint style;
-  /* Only repaint this section, not parents */
   isolation: isolate;
 }
 
@@ -826,10 +811,10 @@ section {
    Step 7: Advanced Performance
    =========================== */
 
-/* Content visibility for off-screen sections */
+/* Avoid lazy paint skipping on animated sections during fast scroll */
 section {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 500px; /* Estimated height */
+  content-visibility: visible;
+  contain-intrinsic-size: auto;
 }
 
 /* GPU acceleration hints */
@@ -873,11 +858,6 @@ nav,
   to {
     will-change: auto;
   }
-}
-
-/* Contain layout calculations */
-.relative.min-h-screen {
-  contain: layout style;
 }
 
 /* Isolate paint layers */

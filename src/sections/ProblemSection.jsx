@@ -136,7 +136,7 @@ export default function ProblemSection() {
   const mobileTimersRef = useRef([]);
 
   const line1 = "You type. You scroll. You drown in inboxes.";
-  const line2 = "CLARO AI lets you talk your work into motion.";
+  const line2 = "CLARO AI lets you talk your work into motion";
   const mobileLines = useMemo(
     () => [
       { text: "You type.", accent: false },
