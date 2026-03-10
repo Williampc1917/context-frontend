@@ -46,18 +46,18 @@ const DEFAULT_GROUP_STACKS = {
 
 const COMPACT_GROUP_STACKS = {
   interactions: {
-    stack: { top: 1, left: 32 },
-    anchor: { top: 18, left: 44 },
+    stack: { top: 3, left: 22 },
+    anchor: { top: 16, left: 38 },
     zBase: 40,
   },
   priorities: {
-    stack: { top: 60, left: 68 },
-    anchor: { top: 66, left: 78 },
+    stack: { top: 55, left: 66 },
+    anchor: { top: 62, left: 72 },
     zBase: 30,
   },
   connections: {
-    stack: { top: 82, left: 36 },
-    anchor: { top: 86, left: 48 },
+    stack: { top: 80, left: 18 },
+    anchor: { top: 86, left: 34 },
     zBase: 20,
   },
 };
@@ -75,7 +75,7 @@ const CHAOS_BITS = [
     background:
       "linear-gradient(145deg, rgba(255,255,255,0.98), rgba(243,246,251,0.92))",
     position: { top: 4, left: 8 },
-    compactPosition: { top: 1, left: 24 },
+    compactPosition: { top: 2, left: 10 },
     group: "interactions",
     stackIndex: 0,
     floatRadius: 28,
@@ -91,7 +91,7 @@ const CHAOS_BITS = [
     background:
       "linear-gradient(145deg, rgba(255,255,255,0.98), rgba(243,246,251,0.92))",
     position: { top: 16, left: 56 },
-    compactPosition: { top: 20, left: 60 },
+    compactPosition: { top: 16, left: 48 },
     group: "interactions",
     stackIndex: 1,
     floatRadius: 34,
@@ -107,7 +107,7 @@ const CHAOS_BITS = [
     background:
       "linear-gradient(145deg, rgba(255,255,255,0.98), rgba(243,246,251,0.92))",
     position: { top: 36, left: 12 },
-    compactPosition: { top: 40, left: 26 },
+    compactPosition: { top: 38, left: 46 },
     group: "priorities",
     stackIndex: 0,
     floatRadius: 30,
@@ -123,7 +123,7 @@ const CHAOS_BITS = [
     background:
       "linear-gradient(145deg, rgba(255,255,255,0.98), rgba(243,246,251,0.92))",
     position: { top: 54, left: 60 },
-    compactPosition: { top: 60, left: 62 },
+    compactPosition: { top: 54, left: 10 },
     group: "priorities",
     stackIndex: 1,
     floatRadius: 24,
@@ -139,7 +139,7 @@ const CHAOS_BITS = [
     background:
       "linear-gradient(145deg, rgba(255,255,255,0.98), rgba(243,246,251,0.92))",
     position: { top: 70, left: 14 },
-    compactPosition: { top: 74, left: 32 },
+    compactPosition: { top: 68, left: 42 },
     group: "connections",
     stackIndex: 0,
     floatRadius: 26,
@@ -155,7 +155,7 @@ const CHAOS_BITS = [
     background:
       "linear-gradient(145deg, rgba(255,255,255,0.98), rgba(243,246,251,0.92))",
     position: { top: 78, left: 44 },
-    compactPosition: { top: 80, left: 52 },
+    compactPosition: { top: 80, left: 6 },
     group: "connections",
     stackIndex: 1,
     floatRadius: 22,
@@ -171,7 +171,7 @@ const CHAOS_BITS = [
     background:
       "linear-gradient(145deg, rgba(255,255,255,0.98), rgba(243,246,251,0.92))",
     position: { top: 28, left: 70 },
-    compactPosition: { top: 32, left: 66 },
+    compactPosition: { top: 28, left: 6 },
     group: "interactions",
     stackIndex: 2,
     floatRadius: 20,
@@ -545,7 +545,7 @@ function CardBit({ bit }) {
 
   return (
     <div
-      className="w-[130px] rounded-2xl border border-white/60 p-3 text-[10px] shadow-[0_20px_55px_rgba(15,23,42,0.18)] backdrop-blur-[6px] sm:w-[150px] sm:text-[11px]"
+      className="w-[110px] rounded-2xl border border-white/60 p-3 text-[10px] shadow-[0_20px_55px_rgba(15,23,42,0.18)] backdrop-blur-[6px] sm:w-[150px] sm:text-[11px]"
       style={{ background: bit.background }}
     >
       <div className="flex items-center gap-2 font-semibold text-slate-800">

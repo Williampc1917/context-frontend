@@ -12,7 +12,6 @@ import ProblemSection from "./sections/ProblemSection.jsx";
 import { RevealHeadline } from "./sections/RevealHeadline.jsx";
 import FloatingLogo from "./sections/FloatingLogo.jsx";
 import { howItWorksFeatures } from "./sections/how-it-works/index.js";
-import ClaroBrainOverlay from "./sections/ClaroBrainOverlay.jsx";
 3;
 
 export default function ContextLanding() {
@@ -103,13 +102,17 @@ export default function ContextLanding() {
     videoEl.pause?.();
   }, [videoVisible, videoReady, prefersReducedMotion, heroInView]);
 
+  // Set iOS inline-playback attributes on mount
   useEffect(() => {
-    if (prefersReducedMotion) return;
-    const videoEl = videoRef.current;
-    if (!videoEl) return;
-    setVideoReady(false);
-    videoEl.load();
-  }, [prefersReducedMotion]);
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = true;
+    v.defaultMuted = true;
+    v.playsInline = true;
+    v.setAttribute("muted", "");
+    v.setAttribute("playsinline", "");
+    v.setAttribute("webkit-playsinline", "true");
+  }, []);
 
   useEffect(() => {
     if (prefersReducedMotion) return;
@@ -127,44 +130,28 @@ export default function ContextLanding() {
     return () => io.disconnect();
   }, [prefersReducedMotion]);
 
-  // Force inline muted autoplay on iOS + user-gesture fallback
+  // User-gesture fallback for iOS Low Power Mode
   useEffect(() => {
+    if (prefersReducedMotion) return;
     const v = videoRef.current;
     if (!v) return;
 
-    // make absolutely sure these are set on the DOM element
-    v.muted = true;
-    v.defaultMuted = true;
-    v.playsInline = true;
-    v.setAttribute("muted", "");
-    v.setAttribute("playsinline", "");
-    v.setAttribute("webkit-playsinline", "true");
-
-    const tryPlay = () => {
-      const p = v.play?.();
-      if (p && p.catch) p.catch(() => {});
+    const onGesture = () => {
+      if (v.paused) {
+        v.play?.()
+          .then(() => { videoHasStartedRef.current = true; })
+          .catch(() => {});
+      }
     };
 
-    // try when enough is loaded
-    v.addEventListener("loadeddata", tryPlay, { once: true });
-    v.addEventListener("canplaythrough", tryPlay, { once: true });
-
-    // one-time user gesture fallback (covers Low Power Mode, etc.)
-    const onFirstInteract = () => {
-      tryPlay();
-      window.removeEventListener("touchstart", onFirstInteract);
-      window.removeEventListener("click", onFirstInteract);
-    };
-    window.addEventListener("touchstart", onFirstInteract, { once: true });
-    window.addEventListener("click", onFirstInteract, { once: true });
+    window.addEventListener("touchstart", onGesture, { once: true, passive: true });
+    window.addEventListener("click", onGesture, { once: true });
 
     return () => {
-      v.removeEventListener("loadeddata", tryPlay);
-      v.removeEventListener("canplaythrough", tryPlay);
-      window.removeEventListener("touchstart", onFirstInteract);
-      window.removeEventListener("click", onFirstInteract);
+      window.removeEventListener("touchstart", onGesture);
+      window.removeEventListener("click", onGesture);
     };
-  }, []);
+  }, [prefersReducedMotion]);
 
   const scrollTo = useCallback((id) => {
     const el = document.getElementById(id);
@@ -302,7 +289,6 @@ export default function ContextLanding() {
                 label="The problem"
                 onClick={() => scrollTo("problem")}
               />
-              <NavLink label="Solution" onClick={() => scrollTo("solution")} />
               <NavLink label="How it works" onClick={() => scrollTo("how")} />
               <NavLink label="Waitlist" onClick={() => scrollTo("waitlist")} />
             </div>
@@ -343,10 +329,6 @@ export default function ContextLanding() {
                 <MobileNavButton
                   label="The problem"
                   onClick={() => scrollTo("problem")}
-                />
-                <MobileNavButton
-                  label="Solution"
-                  onClick={() => scrollTo("solution")}
                 />
                 <MobileNavButton
                   label="How it works"
@@ -471,7 +453,7 @@ export default function ContextLanding() {
                 muted
                 playsInline
                 webkit-playsinline="true"
-                preload="metadata"
+                preload="auto"
                 poster={`${import.meta.env.BASE_URL}standard-mockup.png`}
                 width={420}
                 height={860}
@@ -542,35 +524,6 @@ export default function ContextLanding() {
       >
         <div className="mx-auto max-w-7xl">
           <ProblemSection />
-        </div>
-      </section>
-
-      {/* Claro brain / solution section */}
-      <section
-        id="solution"
-        className="section-plain px-6 py-24 lg:px-8 scroll-mt-24 lg:scroll-mt-32"
-      >
-        <div className="mx-auto grid w-full max-w-6xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <h2 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
-                Built on four intelligent cores
-              </h2>
-              <p className="text-lg text-slate-600 sm:text-xl">
-                The system understands every conversation in context, adapting
-                to how you write, what you promise, and who matters most.
-              </p>
-              <p className="text-lg text-slate-600 sm:text-xl">
-                Together, these cores power your communication, making it more
-                human, responsive, and intelligent.
-              </p>
-            </div>
-          </div>
-          <div className="relative">
-            <div className="relative rounded-[32px] border border-white/30 bg-[#080B14] p-3 shadow-[0_30px_80px_rgba(15,23,42,0.45)] ring-1 ring-white/10">
-              <ClaroBrainOverlay height={560} />
-            </div>
-          </div>
         </div>
       </section>
 
@@ -652,7 +605,6 @@ export default function ContextLanding() {
             <FooterNavGroup
               title="Product"
               links={[
-                { label: "Solution", target: "solution" },
                 { label: "Features", target: "features" },
                 { label: "How it works", target: "how" },
                 { label: "Waitlist", target: "waitlist" },

@@ -18,9 +18,9 @@ function VoiceParticles({
 }) {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
-  const rafRef = useRef(0);
   const roRef = useRef(null);
   const startTimer = useRef(null);
+  const drawnRef = useRef(false);
 
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -28,91 +28,55 @@ function VoiceParticles({
     if (!wrap || !canvas) return;
 
     const ctx = canvas.getContext("2d");
-    let running = false;
-
-    // animation state
-    let phase = 0;
-    let boost = 0;
-    let width = 0;
-    let heightPx = height;
-    let dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-    let tPrev = 0;
+    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
 
     const cfg = {
-      baseAmp: 18, // baseline amplitude (CSS px @ DPR 1)
-      speed: 0.015, // carrier phase speed
-      freq: 2.2, // carrier frequency
-      fadeAlpha: 0.36, // bits alpha
-      bitGapCss: 10, // horizontal spacing between bits (CSS px)
-      bitScale: 0.52, // bit size relative to gap
+      baseAmp: 18,
+      freq: 2.2,
+      fadeAlpha: 0.36,
+      bitGapCss: 10,
+      bitScale: 0.52,
       fillMain: "#ff8a3d",
       fillEcho: "rgba(255,179,106,0.35)",
     };
 
-    const resize = () => {
+    const drawFrame = () => {
       const rect = wrap.getBoundingClientRect();
-      width = Math.max(0, Math.floor(rect.width));
+      const width = Math.max(0, Math.floor(rect.width));
       const small = width < 640;
-      heightPx = small ? Math.min(height, 64) : height;
-
-      // amplitude auto-scale for small widths
+      const heightPx = small ? Math.min(height, 64) : height;
       const ampScale = small ? 0.6 : 1;
-      cfg.baseAmp = 18 * ampScale;
 
       canvas.style.width = width + "px";
       canvas.style.height = heightPx + "px";
       canvas.width = Math.max(1, Math.floor(width * dpr));
       canvas.height = Math.max(1, Math.floor(heightPx * dpr));
-    };
-
-    const draw = () => {
-      if (!running) return;
-
-      const now = performance.now() / 1000;
-      const dt = tPrev ? Math.min(0.05, now - tPrev) : 0.016;
-      tPrev = now;
-
-      // gentle breathing so it never feels robotic
-      const breath = 0.9 + 0.1 * Math.sin(now * 0.65);
-      boost *= 0.94; // decay scroll boost
-      phase += cfg.speed;
 
       const { width: cw, height: ch } = canvas;
       ctx.clearRect(0, 0, cw, ch);
 
       const midY = ch / 2;
-      const gapPx = Math.max(6, cfg.bitGapCss) * dpr; // device px
+      const gapPx = Math.max(6, cfg.bitGapCss) * dpr;
       const bitSize = Math.max(2, Math.floor(gapPx * cfg.bitScale));
-      const ampPx = cfg.baseAmp * (breath + boost * 0.8) * dpr;
+      const ampPx = cfg.baseAmp * ampScale * dpr;
 
       ctx.globalAlpha = reducedMotion ? 0.22 : cfg.fadeAlpha;
-
       const count = Math.floor((cw / gapPx) | 0);
 
       for (let i = 0; i <= count; i++) {
-        const x = i * gapPx + gapPx * 0.5; // center column
-
-        // normalized across 0..1
+        const x = i * gapPx + gapPx * 0.5;
         const t = i / Math.max(1, count);
-
-        // gaussian energy envelope (more motion near center)
         const center = 0.5,
           sigma = 0.22;
         const gauss = Math.exp(-0.5 * Math.pow((t - center) / sigma, 2));
-
-        // carrier wave
-        const ySignal = Math.sin(t * Math.PI * 2 * cfg.freq + phase);
+        const ySignal = Math.sin(t * Math.PI * 2 * cfg.freq);
         const y = midY + ySignal * ampPx * (0.35 + gauss * 0.65);
 
-        // square bit centered at (x, y)
         const rx = Math.round(x - bitSize / 2);
         const ry = Math.round(y - bitSize / 2);
 
-        // main bit
         ctx.fillStyle = cfg.fillMain;
         ctx.fillRect(rx, ry, bitSize, bitSize);
-
-        // faint echo/glow just above (adds depth while staying “bitty”)
         ctx.fillStyle = cfg.fillEcho;
         ctx.fillRect(
           rx,
@@ -122,68 +86,19 @@ function VoiceParticles({
         );
       }
 
-      rafRef.current = requestAnimationFrame(draw);
+      drawnRef.current = true;
     };
 
-    const onScroll = () => {
-      boost = Math.min(1, boost + 0.35);
-    };
-
-    const start = () => {
-      if (running) return;
-      running = true;
-      resize();
-      tPrev = performance.now() / 1000;
-      rafRef.current = requestAnimationFrame(draw);
-      window.addEventListener("scroll", onScroll, { passive: true });
-    };
-
-    const stop = () => {
-      running = false;
-      cancelAnimationFrame(rafRef.current);
-      window.removeEventListener("scroll", onScroll);
-    };
-
-    roRef.current = new ResizeObserver(() => resize());
+    roRef.current = new ResizeObserver(() => {
+      if (drawnRef.current) drawFrame();
+    });
     roRef.current.observe(wrap);
 
     if (play) {
-      if (reducedMotion) {
-        // static snapshot for reduced-motion
-        startTimer.current = setTimeout(() => {
-          resize();
-          const { width: cw, height: ch } = canvas;
-          ctx.clearRect(0, 0, cw, ch);
-
-          const midY = ch / 2;
-          const gapPx = Math.max(6, cfg.bitGapCss) * dpr;
-          const bitSize = Math.max(2, Math.floor(gapPx * cfg.bitScale));
-          const amp = cfg.baseAmp * dpr;
-          ctx.globalAlpha = 0.22;
-
-          const count = Math.floor((cw / gapPx) | 0);
-          for (let i = 0; i <= count; i++) {
-            const x = i * gapPx + gapPx * 0.5;
-            const t = i / Math.max(1, count);
-            const center = 0.5,
-              sigma = 0.22;
-            const gauss = Math.exp(-0.5 * Math.pow((t - center) / sigma, 2));
-            const ySignal = Math.sin(t * Math.PI * 2 * cfg.freq);
-            const y = midY + ySignal * amp * (0.35 + gauss * 0.65);
-
-            const rx = Math.round(x - bitSize / 2);
-            const ry = Math.round(y - bitSize / 2);
-            ctx.fillStyle = cfg.fillMain;
-            ctx.fillRect(rx, ry, bitSize, bitSize);
-          }
-        }, delay * 1000);
-      } else {
-        startTimer.current = setTimeout(start, delay * 1000);
-      }
+      startTimer.current = setTimeout(drawFrame, delay * 1000);
     }
 
     return () => {
-      stop();
       roRef.current?.disconnect();
       if (startTimer.current) clearTimeout(startTimer.current);
     };
@@ -295,30 +210,19 @@ export default function ProblemSection() {
     const el = sectionRef.current;
     if (!el) return;
 
-    let mobileHasActivated = mobileSequenceStartedRef.current;
-
     const io = new IntersectionObserver(
       ([entry]) => {
-        if (isMobile) {
-          if (entry.isIntersecting && !mobileHasActivated) {
-            mobileHasActivated = true;
-            setPlay(true);
-          } else if (entry.isIntersecting && mobileHasActivated) {
-            setPlay(true);
-          }
-          return;
+        if (entry.isIntersecting) {
+          setPlay(true);
+          io.disconnect();
         }
-        setPlay(entry.isIntersecting);
       },
       { threshold: 0.35 },
     );
 
     io.observe(el);
-    return () => {
-      io.disconnect();
-      if (!isMobile) setPlay(false);
-    };
-  }, [reduce, isMobile]);
+    return () => io.disconnect();
+  }, [reduce]);
 
   useEffect(() => {
     if (!isMobile || reduce || !play) return;
@@ -570,7 +474,7 @@ export default function ProblemSection() {
         .particlesWrap canvas { width: 100%; height: 100%; display: block; }
 
         .is-play .type__text { animation: typingPx var(--type-dur) steps(var(--chars)) forwards; }
-        .is-play .caret { animation: caretFollowPx var(--type-dur) steps(var(--chars)) forwards, caretBlink 0.9s step-end var(--type-dur) infinite; }
+        .is-play .caret { animation: caretFollowPx var(--type-dur) steps(var(--chars)) forwards, caretBlink 0.9s step-end var(--type-dur) 3 forwards; }
         .is-play .subline { animation: fadeUp .6s ease-out calc(var(--wave-delay) + .15s) forwards; }
         .is-play .particlesWrap { animation: voiceShow .6s ease var(--wave-delay) forwards; }
 
